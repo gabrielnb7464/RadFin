@@ -370,6 +370,30 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .wk-tot .wt b{display:block;font-size:15px;font-weight:800;letter-spacing:-.01em}
 .wk-tot .wt span{font-size:10px;color:var(--muted);font-weight:600}
 
+/* ============ MODALIDADES (check cards) ============ */
+.modgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modcard{display:flex;align-items:center;gap:11px;background:var(--surface-2);border:1.5px solid var(--border);
+  border-radius:14px;padding:13px 12px;text-align:left;transition:border-color .15s,background .15s;min-height:58px}
+.modcard.on{border-color:rgba(43,201,164,.6);background:var(--accent-soft)}
+.modcard .mc-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-strong);
+  display:grid;place-items:center;flex:0 0 auto;transition:.15s;color:transparent}
+.modcard.on .mc-check{background:var(--accent);border-color:var(--accent);color:#052019}
+.modcard .mc-check svg{width:13px;height:13px}
+.modcard b{display:block;font-size:14.5px;letter-spacing:-.01em}
+.modcard small{font-size:10.5px;color:var(--muted);font-weight:600}
+.modcard.on small{color:#7fe7cd}
+.ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--border-strong);display:grid;place-items:center;
+  flex:0 0 auto;color:transparent;transition:.13s}
+.ck.on{background:var(--accent);border-color:var(--accent);color:#052019}
+.ck svg{width:14px;height:14px}
+.wiz-steps{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.wiz-steps .st{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:800;
+  background:var(--surface-3);color:var(--muted)}
+.wiz-steps .st.on{background:var(--accent);color:#052019}
+.wiz-steps .ln{flex:1;height:2px;background:var(--surface-3);border-radius:1px}
+.wiz-steps .ln.on{background:var(--accent)}
+.wiz-steps span{font-size:11.5px;color:var(--muted);font-weight:600}
+
 /* ============ PROJEÇÃO ============ */
 .proj-total{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:2px 0 10px}
 .proj-bar{display:flex;height:14px;border-radius:8px;overflow:hidden;gap:2px;background:var(--surface-3);margin-bottom:12px}
@@ -452,26 +476,167 @@ const store = {
 };
 const DB_KEY = "radfin.v1";
 
-/* ================== MODALIDADES & CATÁLOGO ================== */
-const MODS = ["USG","Doppler","RX","TC","RM","MMG","DMO","Outros"];
+/* ================== MODALIDADES & CATÁLOGO ==================
+   Nomes baseados no Rol ANS / nomenclatura TUSS. O campo `code`
+   (código TUSS) é opcional e pode ser preenchido por exame.       */
+const MODS = ["US","DO","RX","TC","RM","MMG","DMO","PROCED"];
+const MOD_LABELS = {
+  US:"Ultrassonografia", DO:"Doppler", RX:"Radiografia", TC:"Tomografia",
+  RM:"Ressonância Magnética", MMG:"Mamografia", DMO:"Densitometria Óssea", PROCED:"Procedimentos"
+};
 const CATALOG_SEED = [
-  ["USG","Abdome total"],["USG","Abdome superior"],["USG","Aparelho urinário"],
-  ["USG","Pélvica (via abdominal)"],["USG","Transvaginal"],["USG","Próstata (via abdominal)"],
-  ["USG","Tireoide"],["USG","Cervical / Glândulas salivares"],["USG","Mamas"],
-  ["USG","Axilas"],["USG","Bolsa escrotal"],["USG","Partes moles"],
-  ["USG","Articular (por articulação)"],["USG","Ombro"],["USG","Quadril infantil"],
-  ["USG","Parede abdominal"],["USG","Obstétrica"],["USG","Obstétrica 1º trimestre"],
-  ["USG","Morfológica 1º trimestre"],["USG","Morfológica 2º trimestre"],
-  ["Doppler","Obstétrica com Doppler"],["Doppler","Carótidas e vertebrais"],
-  ["Doppler","Venoso de MMII (unilateral)"],["Doppler","Venoso de MMII (bilateral)"],
-  ["Doppler","Arterial de MMII (unilateral)"],["Doppler","Arterial de MMII (bilateral)"],
-  ["Doppler","Aorta e ilíacas"],["Doppler","Artérias renais"],["Doppler","Transvaginal com Doppler"],
-  ["Doppler","Tireoide com Doppler"],["Doppler","Ecodoppler de bolsa escrotal"],
-  ["RX","Tórax (PA + perfil)"],["RX","Coluna lombar"],["RX","Seios da face"],["RX","Abdome simples"],
-  ["TC","Crânio"],["TC","Tórax"],["TC","Abdome total"],["TC","Coluna lombar"],
-  ["RM","Crânio"],["RM","Coluna lombar"],["RM","Joelho"],["RM","Ombro"],
-  ["MMG","Mamografia bilateral"],["DMO","Densitometria óssea (col. + fêmur)"]
+  /* Base: TABELA DE PREÇOS DE EXAMES (enviada pelo usuário, com códigos TUSS).
+     RM e DMO mantidos da base Rol ANS (sem código na tabela). Formato: [modalidade, descrição, códigoTUSS] */
+  /* US */
+  ["US","ABDOME INFERIOR FEMININO (BEXIGA, UTERO, OVARIO E ANEXOS)","40901181"],
+  ["US","ABDOME INFERIOR MASCULINO (BEXIGA, PROSTATA E VESICULAS SEMINAIS)","40901173"],
+  ["US","ABDOME SUPERIOR (FIGADO, VIAS BILIARES, VESICULA, PANCREAS E BACO)","40901130"],
+  ["US","ABDOME TOTAL (INCLUI ABDOME INFERIOR)","40901122"],
+  ["US","APARELHO URINARIO (RINS, URETERES E BEXIGA)","40901769"],
+  ["US","ARTICULAR (POR ARTICULACAO)","40901220"],
+  ["US","DERMATOLOGICO - PELE E SUBCUTANEO","40901190"],
+  ["US","ESTRUTURAS SUPERFICIAIS (CERVICAL OU AXILAS OU MUSCULO OU TENDAO)","40901211"],
+  ["US","GLANDULAS SALIVARES (TODAS)","40901033"],
+  ["US","GLOBO OCULAR BILATERAL","40901017"],
+  ["US","MAMAS","40901114"],
+  ["US","OBSTETRICA","40901238"],
+  ["US","OBSTETRICA 1º TRIMESTRE (ENDOVAGINAL)","40901297"],
+  ["US","OBSTETRICA COM TRANSLUCENCIA NUCAL","40901254"],
+  ["US","OBSTETRICA GESTACAO MULTIPLA (CADA FETO)","40901270"],
+  ["US","OBSTETRICA MORFOLOGICA","40901262"],
+  ["US","OBSTETRICA: PERFIL BIOFISICO FETAL","40901505"],
+  ["US","ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)","40901203"],
+  ["US","PROSTATA (VIA ABDOMINAL)","40901173"],
+  ["US","PROSTATA TRANSRETAL (INCLUI ABDOME INFERIOR MASCULINO)","40901335"],
+  ["US","RETROPERITONEO (GRANDES VASOS OU ADRENAIS)","40901149"],
+  ["US","TORACICO EXTRACARDIACO","40901041"],
+  ["US","TRANSVAGINAL (INCLUI ABDOME INFERIOR FEMININO)","40901300"],
+  ["US","TRANSVAGINAL P/ CONTROLE DE OVULACAO (3 OU MAIS EXAMES) INCLUI ABDOME INFERIOR FEMININO","40901319"],
+  ["US","TRIDIMENSIONAL - ACRESCENTAR AO EXAME DE BASE","40901491"],
+  ["US","US PESQUISA ENDOMETRIOSE","40901858"],
+  /* DO */
+  ["DO","DOPPLER COLORIDO ARTERIAL DE MEMBRO INFERIOR - UNILATERAL","40901459"],
+  ["DO","DOPPLER COLORIDO ARTERIAL DE MEMBRO SUPERIOR - UNILATERAL","40901475"],
+  ["DO","DOPPLER COLORIDO DE AORTA E ARTERIAS RENAIS","40901394"],
+  ["DO","DOPPLER COLORIDO DE AORTA E ILIACAS","40901408"],
+  ["DO","DOPPLER COLORIDO DE ORGAO OU ESTRUTURA ISOLADA","40901386"],
+  ["DO","DOPPLER COLORIDO DE VASOS CERVICAIS ARTERIAIS BILATERAL (CAROTIDAS E VERTEBRAIS)","40901360"],
+  ["DO","DOPPLER COLORIDO DE VASOS CERVICAIS VENOSOS BILATERAL (SUBCLAVIAS E JUGULARES)","40901378"],
+  ["DO","DOPPLER COLORIDO TRANSCRANIANO OU TRANSFONTANELA","40901351"],
+  ["DO","DOPPLER COLORIDO VENOSO DE MEMBRO INFERIOR - UNILATERAL","40901483"],
+  ["DO","DOPPLER COLORIDO VENOSO DE MEMBRO SUPERIOR - UNILATERAL","40901467"],
+  ["DO","DOPPLER VENOSO ABDOMINAL (VEIA CAVA SUPERIOR OU INFERIOR E ILIACAS), SISTEMA PORTA","40901432"],
+  ["DO","OBSTETRICA CONVENCIONAL COM DOPPLER COLORIDO","40901246"],
+  ["DO","OBSTETRICA GESTACAO MULTIPLA COM DOPPLER COLORIDO (CADA FETO)","40901289"],
+  /* RX */
+  ["RX","Abdome Simples","40808017"],
+  ["RX","Adenóides ou cavum","40801128"],
+  ["RX","Antebraço","40803104"],
+  ["RX","Arcos zigomáticos ou malar ou apófises estilóides","40801101"],
+  ["RX","Articulação acromioclavicular","40803066"],
+  ["RX","Articulação coxofemoral (quadril)","40804038"],
+  ["RX","Articulação escapuloumeral (ombro) - unilateral","40803074"],
+  ["RX","Articulação esternoclavicular","40803023"],
+  ["RX","Articulação temporomandibular - bilateral","40801110"],
+  ["RX","Articulação tibiotársica (tornozelo)","40804089"],
+  ["RX","Articulações sacroilíacas","40804020"],
+  ["RX","Bacia","40804011"],
+  ["RX","Braço","40803082"],
+  ["RX","Calcâneo","40804100"],
+  ["RX","Clavícula","40803040"],
+  ["RX","Coluna (por segmento) - 2 incidências","40802019"],
+  ["RX","Coluna dorso-lombar para escoliose","40802086"],
+  ["RX","Coluna total para escoliose (telespondilografia)","40802094"],
+  ["RX","Coração e vasos da base","40805050"],
+  ["RX","Costelas - por hemitórax","40803031"],
+  ["RX","Cotovelo","40803090"],
+  ["RX","Coxa","40804046"],
+  ["RX","Crânio - 2 incidências","40801012"],
+  ["RX","Escafóide","40803155"],
+  ["RX","Escanometria","40804119"],
+  ["RX","Esterno","40803015"],
+  ["RX","Incidência adicional de coluna","40802116"],
+  ["RX","Incidência adicional de membro superior","40803147"],
+  ["RX","Incidência adicional de membros inferiores","40804135"],
+  ["RX","Joelho","40804054"],
+  ["RX","Laringe ou hipofaringe ou pescoço (partes moles)","40805077"],
+  ["RX","Maxilar inferior","40801080"],
+  ["RX","Mão ou quirodáctilo","40803120"],
+  ["RX","Mãos e punhos para idade óssea","40803139"],
+  ["RX","Omoplata ou escápula","40803058"],
+  ["RX","Orelha, mastóides ou rochedos - bilateral","40801047"],
+  ["RX","Ossos da face","40801098"],
+  ["RX","Panorâmica de membros inferiores","40804127"],
+  ["RX","Patela","40804062"],
+  ["RX","Perna","40804070"],
+  ["RX","Punho","40803112"],
+  ["RX","Pé ou pododáctilo","40804097"],
+  ["RX","Sacro-coccix","40802078"],
+  ["RX","Seios da face","40801063"],
+  ["RX","Sela túrcica","40801071"],
+  ["RX","Tórax - 2 incidências","40805026"],
+  ["RX","Órbitas - bilateral","40801055"],
+  /* TC */
+  ["TC","Abdome inferior, Pelve ou bacia","41001117"],
+  ["TC","Abdome superior","41001109"],
+  ["TC","Abdome total (abdome superior, pelve e retroperitônio)","41001109 + 41001117"],
+  ["TC","Articulação (esternoclavicular ou ombro ou cotovelo ou punho ou sacroilíacas ou coxofemoral ou joelho ou tornozelo) - unilateral","41001141"],
+  ["TC","Articulações temporomandibulares","41001044"],
+  ["TC","Coluna - segmento adicional","41001133"],
+  ["TC","Coluna cervical ou dorsal ou lombo-sacra (até 3 segmentos)","41001125"],
+  ["TC","Crânio ou sela túrcica ou órbitas","41001010"],
+  ["TC","Face ou seios da face","41001036"],
+  ["TC","Mandíbula","41001273"],
+  ["TC","Mastóides ou orelhas","41001028"],
+  ["TC","Maxilar","41001281"],
+  ["TC","Pescoço (partes moles, laringe, tireóide, faringe e glândulas salivares)","41001060"],
+  ["TC","Segmento apendicular (braço ou antebraço ou mão ou coxa ou perna ou pé) - unilateral","41001150"],
+  ["TC","Tórax","41001079"],
+  ["TC","Vias urinárias (Urotomografia)","41001362"],
+  /* RM */
+  ["RM","Abdome superior",null],
+  ["RM","Angio-RM de crânio",null],
+  ["RM","Articulações sacroilíacas",null],
+  ["RM","ATM (bilateral)",null],
+  ["RM","Coluna cervical",null],
+  ["RM","Coluna lombar",null],
+  ["RM","Coluna torácica",null],
+  ["RM","Cotovelo",null],
+  ["RM","Crânio",null],
+  ["RM","Joelho",null],
+  ["RM","Mamas",null],
+  ["RM","Ombro",null],
+  ["RM","Pelve",null],
+  ["RM","Próstata (multiparamétrica)",null],
+  ["RM","Punho",null],
+  ["RM","Pé",null],
+  ["RM","Quadril",null],
+  ["RM","Sela túrcica",null],
+  ["RM","Tornozelo",null],
+  ["RM","Órbitas",null],
+  /* MMG */
+  ["MMG","AMPLIACAO OU MAGNIFICACAO DE LESAO MAMARIA","40808050"],
+  ["MMG","MAMOGRAFIA CONVENCIONAL BILATERAL","40808033"],
+  ["MMG","MAMOGRAFIA DIGITAL BILATERAL","40808041"],
+  /* DMO */
+  ["DMO","Densitometria óssea (col. + fêmur)",null],
+  ["DMO","Densitometria óssea corpo inteiro",null],
+  ["DMO","Densitometria óssea de antebraço",null],
+  /* PROCED */
+  ["PROCED","Ato de coleta de PAAF de órgãos ou estruturas superficiais sem deslocamento do patologista - por nódulo","40601072"],
+  ["PROCED","Ato de coleta de PAAF de órgãos ou estruturas superficiais sem deslocamento do patologista - por nódulo - 2o nódulo em diante","40601072"],
+  ["PROCED","Biópsia Percutânea de fragmento mamário por agulha grossa (core biopsy) orientada por US","40808262"],
+  ["PROCED","Biópsia Percutânea de fragmento mamário por agulha grossa (core biopsy) orientada por US - 2a lesão em diante","40808262"],
+  ["PROCED","Mamotomia guiada por US (não inclui exame de imagem)",null],
+  ["PROCED","Mamotomia guiada por US (não inclui exame de imagem) - (2a lesão em diante)",null],
+  ["PROCED","Marcação pré-cirúrgica por nódulo por US (não inclui exame de imagem) (clipagem)","40808203"],
+  ["PROCED","Punção biópsia percutânea de mama por agulha fina orientada por US - por nódulo","30602181"],
+  ["PROCED","Punção biópsia percutânea de mama por agulha fina orientada por US - por nódulo - 2a lesão em diante","30602181"],
+  ["PROCED","Punção biópsia-/aspirativa de órgão ou estrutura superficial orientada por US (por lesão)","40809161"],
+  ["PROCED","Punção biópsia-/aspirativa de órgão ou estrutura superficial orientada por US (por lesão) - 2a lesão em diante","40809161"]
 ];
+const normName = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+function activeMods(){ return (S.userMods && S.userMods.length)? S.userMods : MODS; }
 
 /* ================== STATE ================== */
 const SLOTS = ["#3987e5","#008300","#d55181","#c98500","#199e70","#d95926","#9085e9","#e66767"];
@@ -481,21 +646,126 @@ function freshState(){
   return {
     version: 1,
     locations: [],           // {id,name,slot,convenios:[..]}
-    exams: CATALOG_SEED.map((e,i)=>({id:"x"+(i+1), mod:e[0], name:e[1]})),
+    exams: CATALOG_SEED.map((e,i)=>{ const o={id:"x"+(i+1), mod:e[0], name:e[1]}; if(e[2]) o.code=e[2]; return o; }),
     examSeq: CATALOG_SEED.length,
     prices: {},              // "locId|examId|conv" -> number
     entries: [],             // {id,date,locId,examId,conv,qty,unit}
     entrySeq: 0, locSeq: 0,
     goal: 0,                 // meta mensal R$
     last: { locId:null, conv:null },
-    agenda: { events:[], rules:[], skips:[], seq:0 }
+    agenda: { events:[], rules:[], skips:[], seq:0 },
+    userMods: null,          // modalidades que o médico realiza (perfil)
+    catalogV: 4
   };
 }
+/* Renomeações de nomes antigos → nomenclatura oficial da tabela (preservando id, preços e lançamentos) */
+const RENAMES_V4 = [
+  ["US","Abdome total","ABDOME TOTAL (INCLUI ABDOME INFERIOR)"],
+  ["US","Abdome superior","ABDOME SUPERIOR (FIGADO, VIAS BILIARES, VESICULA, PANCREAS E BACO)"],
+  ["US","Abdome inferior feminino (pelve)","ABDOME INFERIOR FEMININO (BEXIGA, UTERO, OVARIO E ANEXOS)"],
+  ["US","Pélvica transabdominal","ABDOME INFERIOR FEMININO (BEXIGA, UTERO, OVARIO E ANEXOS)"],
+  ["US","Abdome inferior masculino (próstata via abdominal)","ABDOME INFERIOR MASCULINO (BEXIGA, PROSTATA E VESICULAS SEMINAIS)"],
+  ["US","Aparelho urinário (rins e vias urinárias)","APARELHO URINARIO (RINS, URETERES E BEXIGA)"],
+  ["US","Transvaginal","TRANSVAGINAL (INCLUI ABDOME INFERIOR FEMININO)"],
+  ["US","Transvaginal para controle de ovulação","TRANSVAGINAL P/ CONTROLE DE OVULACAO (3 OU MAIS EXAMES) INCLUI ABDOME INFERIOR FEMININO"],
+  ["US","Transvaginal com preparo intestinal (pesquisa de endometriose)","US PESQUISA ENDOMETRIOSE"],
+  ["US","Tireoide","ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)"],
+  ["US","Bolsa escrotal","ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)"],
+  ["US","Pênis","ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)"],
+  ["US","Partes moles / estruturas superficiais","ESTRUTURAS SUPERFICIAIS (CERVICAL OU AXILAS OU MUSCULO OU TENDAO)"],
+  ["US","Axilas","ESTRUTURAS SUPERFICIAIS (CERVICAL OU AXILAS OU MUSCULO OU TENDAO)"],
+  ["US","Obstétrico","OBSTETRICA"],
+  ["US","Obstétrico com translucência nucal","OBSTETRICA COM TRANSLUCENCIA NUCAL"],
+  ["US","Obstétrico morfológico","OBSTETRICA MORFOLOGICA"],
+  ["US","Obstétrico com perfil biofísico fetal","OBSTETRICA: PERFIL BIOFISICO FETAL"],
+  ["US","Obstétrica 1º trimestre","OBSTETRICA 1º TRIMESTRE (ENDOVAGINAL)"],
+  ["US","Obstétrico 1º trimestre","OBSTETRICA 1º TRIMESTRE (ENDOVAGINAL)"],
+  ["US","Próstata via transretal","PROSTATA TRANSRETAL (INCLUI ABDOME INFERIOR MASCULINO)"],
+  ["US","Dermatológico","DERMATOLOGICO - PELE E SUBCUTANEO"],
+  ["US","Glândulas salivares","GLANDULAS SALIVARES (TODAS)"],
+  ["US","Transtorácica extracardíaca","TORACICO EXTRACARDIACO"],
+  ["US","Articular: joelho","ARTICULAR (POR ARTICULACAO)"],
+  ["DO","Obstétrico com Doppler","OBSTETRICA CONVENCIONAL COM DOPPLER COLORIDO"],
+  ["DO","Doppler de carótidas e vertebrais","DOPPLER COLORIDO DE VASOS CERVICAIS ARTERIAIS BILATERAL (CAROTIDAS E VERTEBRAIS)"],
+  ["DO","Doppler venoso (mapeamento) de membros inferiores","DOPPLER COLORIDO VENOSO DE MEMBRO INFERIOR - UNILATERAL"],
+  ["DO","Doppler venoso (mapeamento) de membros superiores","DOPPLER COLORIDO VENOSO DE MEMBRO SUPERIOR - UNILATERAL"],
+  ["DO","Doppler arterial de membros inferiores","DOPPLER COLORIDO ARTERIAL DE MEMBRO INFERIOR - UNILATERAL"],
+  ["DO","Doppler arterial de membros superiores","DOPPLER COLORIDO ARTERIAL DE MEMBRO SUPERIOR - UNILATERAL"],
+  ["DO","Doppler de aorta abdominal","DOPPLER COLORIDO DE AORTA E ILIACAS"],
+  ["DO","Doppler de artérias ilíacas","DOPPLER COLORIDO DE AORTA E ILIACAS"],
+  ["DO","Doppler de artérias renais","DOPPLER COLORIDO DE AORTA E ARTERIAS RENAIS"],
+  ["DO","Doppler hepático / sistema porta","DOPPLER VENOSO ABDOMINAL (VEIA CAVA SUPERIOR OU INFERIOR E ILIACAS), SISTEMA PORTA"],
+  ["DO","Doppler transcraniano","DOPPLER COLORIDO TRANSCRANIANO OU TRANSFONTANELA"],
+  ["DO","Tireoide com Doppler","DOPPLER COLORIDO DE ORGAO OU ESTRUTURA ISOLADA"],
+  ["DO","Bolsa escrotal com Doppler","DOPPLER COLORIDO DE ORGAO OU ESTRUTURA ISOLADA"],
+  ["MMG","Mamografia bilateral","MAMOGRAFIA CONVENCIONAL BILATERAL"],
+  ["RX","Tórax (PA + perfil)","Tórax - 2 incidências"],
+  ["RX","Crânio","Crânio - 2 incidências"],
+  ["RX","Coluna lombar","Coluna (por segmento) - 2 incidências"],
+  ["TC","Crânio","Crânio ou sela túrcica ou órbitas"],
+  ["TC","Seios da face","Face ou seios da face"],
+  ["TC","Abdome total","Abdome total (abdome superior, pelve e retroperitônio)"],
+  ["TC","Coluna lombar","Coluna cervical ou dorsal ou lombo-sacra (até 3 segmentos)"]
+];
 function migrate(){
   if(!S.agenda || !Array.isArray(S.agenda.rules)) S.agenda = { events:[], rules:[], skips:[], seq:0 };
   if(!Array.isArray(S.agenda.events)) S.agenda.events=[];
   if(!Array.isArray(S.agenda.skips)) S.agenda.skips=[];
   if(typeof S.agenda.seq!=="number") S.agenda.seq=0;
+  // v4: catálogo oficial (tabela do usuário, com códigos TUSS)
+  if(!S.catalogV || S.catalogV<4){
+    const remap = {USG:"US", Doppler:"DO", Outros:"PROCED"};
+    S.exams.forEach(x=>{ if(remap[x.mod]) x.mod = remap[x.mod]; });
+    // 1. renomeia exames conhecidos para a nomenclatura oficial (mantém id, preços e histórico)
+    RENAMES_V4.forEach(([om,on,nn])=>{
+      const sEntry = CATALOG_SEED.find(c=>c[1]===nn);
+      if(!sEntry) return;
+      const ex = S.exams.find(x=>x.mod===om && normName(x.name)===normName(on));
+      if(!ex) return;
+      const already = S.exams.find(x=>x!==ex && x.mod===sEntry[0] && normName(x.name)===normName(nn));
+      if(already) return; // destino já existe — o antigo segue as regras de limpeza abaixo
+      ex.mod=sEntry[0]; ex.name=sEntry[1]; if(sEntry[2]) ex.code=sEntry[2];
+    });
+    // 2. remove do catálogo exames antigos sem uso (sem lançamentos e sem preços) fora da base nova
+    const used = new Set(S.entries.map(e=>e.examId));
+    Object.keys(S.prices).forEach(k=>used.add(k.split("|")[1]));
+    const v4 = new Set(CATALOG_SEED.map(c=>c[0]+"§"+normName(c[1])));
+    S.exams = S.exams.filter(x=> used.has(x.id) || v4.has(x.mod+"§"+normName(x.name)));
+    // 3. adiciona os que faltam (comparação sem acentos/caixa evita duplicatas)
+    CATALOG_SEED.forEach(c=>{
+      if(!S.exams.some(e=>e.mod===c[0] && normName(e.name)===normName(c[1]))){
+        const o={id:"x"+(++S.examSeq), mod:c[0], name:c[1]}; if(c[2]) o.code=c[2];
+        S.exams.push(o);
+      }
+    });
+    // 4. anexa códigos TUSS a exames existentes que ainda não têm
+    S.exams.forEach(x=>{
+      if(x.code) return;
+      const c = CATALOG_SEED.find(s=>s[0]===x.mod && normName(s[1])===normName(x.name));
+      if(c && c[2]) x.code=c[2];
+    });
+    S.catalogV = 4;
+  }
+  if(S.userMods===undefined) S.userMods = null;
+  // v4: turnos matutino/vespertino/noturno + integração com agenda
+  const perRemap = {"Manhã":"Matutino","Tarde":"Vespertino","Noite":"Noturno"};
+  S.agenda.rules.forEach(r=>{ if(perRemap[r.period]) r.period=perRemap[r.period]; });
+  S.agenda.events.forEach(e=>{ if(perRemap[e.period]) e.period=perRemap[e.period]; });
+  if(!S.cal || typeof S.cal!=="object") S.cal = { reminder:60, weekly:false, prompt:true };
+  if(S.cal.reminder===undefined) S.cal.reminder=60;
+  if(S.cal.weekly===undefined) S.cal.weekly=false;
+  if(S.cal.prompt===undefined) S.cal.prompt=true;
+  S.locations.forEach(l=>{
+    if(!Array.isArray(l.mods) || !l.mods.length){
+      // infere pelas tabelas de preço já existentes; senão, todas
+      const used = new Set();
+      Object.keys(S.prices).forEach(k=>{
+        if(k.startsWith(l.id+"|")){ const x=examById(k.split("|")[1]); if(x) used.add(x.mod); }
+      });
+      l.mods = used.size? Array.from(used) : MODS.slice();
+    }
+    if(!Array.isArray(l.examIds)) l.examIds = [];
+  });
 }
 function save(){ store.set(DB_KEY, JSON.stringify(S)); }
 function load(){
@@ -503,18 +773,30 @@ function load(){
   if(raw){ try { S = JSON.parse(raw); } catch(e){ S = null; } }
   if(!S || !Array.isArray(S.exams)) S = freshState();
   migrate();
+  save();
 }
 
 /* ================== AGENDA (compromissos) ================== */
-const PERIODS = ["Manhã","Tarde","Noite","Dia inteiro"];
+const PERIODS = ["Matutino","Vespertino","Noturno","Dia inteiro"];
+const PERIOD_TIMES = { Matutino:["07:00","13:00",false], Vespertino:["13:00","19:00",false], Noturno:["19:00","07:00",true] };
+function occTimes(o){
+  if(o.start && o.end) return {allDay:false, start:o.start, end:o.end, endNext:o.end<=o.start};
+  const pt = PERIOD_TIMES[o.period];
+  if(pt) return {allDay:false, start:pt[0], end:pt[1], endNext:pt[2]};
+  return {allDay:true};
+}
+function occLabel(o){
+  if(o.start && o.end) return o.start+" – "+o.end;
+  return o.period;
+}
 function occurrences(date){
   const dow = fromISO(date).getDay();
   const evs = S.agenda.events.filter(e=>e.date===date)
-    .map(e=>({id:e.id, date, locId:e.locId, period:e.period, note:e.note, type:"event"}));
+    .map(e=>({id:e.id, date, locId:e.locId, period:e.period, start:e.start, end:e.end, note:e.note, type:"event"}));
   const rls = S.agenda.rules.filter(r=>
       r.dow===dow && r.from<=date && (!r.until || date<r.until) &&
       !S.agenda.skips.some(s=>s.ruleId===r.id && s.date===date))
-    .map(r=>({id:r.id, date, locId:r.locId, period:r.period, note:r.note, type:"rule"}));
+    .map(r=>({id:r.id, date, locId:r.locId, period:r.period, start:r.start, end:r.end, note:r.note, type:"rule"}));
   return evs.concat(rls).filter(o=>locById(o.locId));
 }
 function hasAgendaData(){ return S.agenda.events.length>0 || S.agenda.rules.length>0; }
@@ -606,38 +888,39 @@ function confirmSheet(title, msg, okLabel, onOk, danger=true){
 /* ================== DEMO DATA ================== */
 function loadDemo(){
   S = freshState();
-  const mkLoc = (name,convs)=>{ const id="l"+(++S.locSeq); S.locations.push({id,name,slot:(S.locSeq-1)%8,convenios:convs}); return id; };
-  const l1 = mkLoc("Hospital São Lucas", ["Particular","Unimed","Convênio X"]);
-  const l2 = mkLoc("Clínica ImageCenter", ["Particular","Unimed"]);
-  const l3 = mkLoc("UPA Norte (plantão)", ["SUS"]);
+  S.userMods = ["US","DO"];
+  const mkLoc = (name,convs,mods)=>{ const id="l"+(++S.locSeq); S.locations.push({id,name,slot:(S.locSeq-1)%8,convenios:convs,mods,examIds:[]}); return id; };
+  const l1 = mkLoc("Hospital São Lucas", ["Particular","Unimed","Convênio X"], ["US","DO"]);
+  const l2 = mkLoc("Clínica ImageCenter", ["Particular","Unimed"], ["US","DO"]);
+  const l3 = mkLoc("UPA Norte (plantão)", ["SUS"], ["US"]);
   const X = n => S.exams.find(e=>e.name===n).id;
   const priceRows = [
-    [l1,"Abdome total",{Particular:110,Unimed:82,"Convênio X":74}],
-    [l1,"Tireoide",{Particular:95,Unimed:70,"Convênio X":62}],
-    [l1,"Obstétrica",{Particular:120,Unimed:88,"Convênio X":80}],
-    [l1,"Obstétrica com Doppler",{Particular:170,Unimed:130,"Convênio X":118}],
-    [l1,"Transvaginal",{Particular:105,Unimed:78,"Convênio X":70}],
-    [l1,"Carótidas e vertebrais",{Particular:180,Unimed:140,"Convênio X":126}],
-    [l1,"Venoso de MMII (unilateral)",{Particular:150,Unimed:115,"Convênio X":104}],
-    [l1,"Venoso de MMII (bilateral)",{Particular:240,Unimed:190,"Convênio X":170}],
-    [l1,"Mamas",{Particular:95,Unimed:72,"Convênio X":64}],
-    [l1,"Aparelho urinário",{Particular:90,Unimed:68,"Convênio X":60}],
-    [l1,"Partes moles",{Particular:88,Unimed:66,"Convênio X":58}],
-    [l2,"Abdome total",{Particular:95,Unimed:75}],
-    [l2,"Tireoide",{Particular:85,Unimed:65}],
-    [l2,"Mamas",{Particular:85,Unimed:66}],
-    [l2,"Transvaginal",{Particular:92,Unimed:72}],
-    [l2,"Obstétrica",{Particular:105,Unimed:82}],
-    [l2,"Morfológica 2º trimestre",{Particular:260,Unimed:200}],
-    [l2,"Articular (por articulação)",{Particular:80,Unimed:62}],
-    [l2,"Carótidas e vertebrais",{Particular:160,Unimed:128}],
-    [l2,"Bolsa escrotal",{Particular:85,Unimed:66}],
-    [l3,"Abdome total",{SUS:38}],
-    [l3,"Aparelho urinário",{SUS:34}],
-    [l3,"Pélvica (via abdominal)",{SUS:34}],
-    [l3,"Obstétrica",{SUS:40}],
-    [l3,"Partes moles",{SUS:32}],
-    [l3,"Bolsa escrotal",{SUS:34}]
+    [l1,"ABDOME TOTAL (INCLUI ABDOME INFERIOR)",{Particular:110,Unimed:82,"Convênio X":74}],
+    [l1,"ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)",{Particular:95,Unimed:70,"Convênio X":62}],
+    [l1,"OBSTETRICA",{Particular:120,Unimed:88,"Convênio X":80}],
+    [l1,"OBSTETRICA CONVENCIONAL COM DOPPLER COLORIDO",{Particular:170,Unimed:130,"Convênio X":118}],
+    [l1,"TRANSVAGINAL (INCLUI ABDOME INFERIOR FEMININO)",{Particular:105,Unimed:78,"Convênio X":70}],
+    [l1,"DOPPLER COLORIDO DE VASOS CERVICAIS ARTERIAIS BILATERAL (CAROTIDAS E VERTEBRAIS)",{Particular:180,Unimed:140,"Convênio X":126}],
+    [l1,"DOPPLER COLORIDO VENOSO DE MEMBRO INFERIOR - UNILATERAL",{Particular:150,Unimed:115,"Convênio X":104}],
+    [l1,"DOPPLER COLORIDO ARTERIAL DE MEMBRO INFERIOR - UNILATERAL",{Particular:240,Unimed:190,"Convênio X":170}],
+    [l1,"MAMAS",{Particular:95,Unimed:72,"Convênio X":64}],
+    [l1,"APARELHO URINARIO (RINS, URETERES E BEXIGA)",{Particular:90,Unimed:68,"Convênio X":60}],
+    [l1,"ESTRUTURAS SUPERFICIAIS (CERVICAL OU AXILAS OU MUSCULO OU TENDAO)",{Particular:88,Unimed:66,"Convênio X":58}],
+    [l2,"ABDOME TOTAL (INCLUI ABDOME INFERIOR)",{Particular:95,Unimed:75}],
+    [l2,"ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)",{Particular:85,Unimed:65}],
+    [l2,"MAMAS",{Particular:85,Unimed:66}],
+    [l2,"TRANSVAGINAL (INCLUI ABDOME INFERIOR FEMININO)",{Particular:92,Unimed:72}],
+    [l2,"OBSTETRICA",{Particular:105,Unimed:82}],
+    [l2,"OBSTETRICA MORFOLOGICA",{Particular:260,Unimed:200}],
+    [l2,"ARTICULAR (POR ARTICULACAO)",{Particular:80,Unimed:62}],
+    [l2,"DOPPLER COLORIDO DE VASOS CERVICAIS ARTERIAIS BILATERAL (CAROTIDAS E VERTEBRAIS)",{Particular:160,Unimed:128}],
+    [l2,"ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)",{Particular:85,Unimed:66}],
+    [l3,"ABDOME TOTAL (INCLUI ABDOME INFERIOR)",{SUS:38}],
+    [l3,"APARELHO URINARIO (RINS, URETERES E BEXIGA)",{SUS:34}],
+    [l3,"ABDOME INFERIOR FEMININO (BEXIGA, UTERO, OVARIO E ANEXOS)",{SUS:34}],
+    [l3,"OBSTETRICA",{SUS:40}],
+    [l3,"ESTRUTURAS SUPERFICIAIS (CERVICAL OU AXILAS OU MUSCULO OU TENDAO)",{SUS:32}],
+    [l3,"ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)",{SUS:34}]
   ];
   priceRows.forEach(([loc,name,convs])=>{ for(const c in convs) S.prices[pKey(loc,X(name),c)] = convs[c]; });
 
@@ -646,9 +929,9 @@ function loadDemo(){
   const rnd = ()=>{ seed=(seed*1103515245+12345)%2147483648; return seed/2147483648; };
   const today = todayISO();
   const plans = [
-    {loc:l1, days:[1,3,5], mix:[["Abdome total","Particular",2,5],["Abdome total","Unimed",3,7],["Tireoide","Unimed",2,5],["Obstétrica","Unimed",1,4],["Obstétrica com Doppler","Particular",0,3],["Transvaginal","Convênio X",1,4],["Carótidas e vertebrais","Particular",0,2],["Venoso de MMII (bilateral)","Unimed",0,2],["Mamas","Convênio X",1,3],["Aparelho urinário","Unimed",1,3]]},
-    {loc:l2, days:[2,4], mix:[["Abdome total","Unimed",2,6],["Tireoide","Particular",1,4],["Mamas","Unimed",1,4],["Transvaginal","Unimed",2,5],["Obstétrica","Particular",1,3],["Morfológica 2º trimestre","Particular",0,2],["Articular (por articulação)","Unimed",1,4],["Carótidas e vertebrais","Unimed",0,2],["Bolsa escrotal","Particular",0,2]]},
-    {loc:l3, days:[6], mix:[["Abdome total","SUS",4,10],["Aparelho urinário","SUS",3,8],["Pélvica (via abdominal)","SUS",2,6],["Obstétrica","SUS",1,5],["Partes moles","SUS",1,4]]}
+    {loc:l1, days:[1,3,5], mix:[["ABDOME TOTAL (INCLUI ABDOME INFERIOR)","Particular",2,5],["ABDOME TOTAL (INCLUI ABDOME INFERIOR)","Unimed",3,7],["ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)","Unimed",2,5],["OBSTETRICA","Unimed",1,4],["OBSTETRICA CONVENCIONAL COM DOPPLER COLORIDO","Particular",0,3],["TRANSVAGINAL (INCLUI ABDOME INFERIOR FEMININO)","Convênio X",1,4],["DOPPLER COLORIDO DE VASOS CERVICAIS ARTERIAIS BILATERAL (CAROTIDAS E VERTEBRAIS)","Particular",0,2],["DOPPLER COLORIDO ARTERIAL DE MEMBRO INFERIOR - UNILATERAL","Unimed",0,2],["MAMAS","Convênio X",1,3],["APARELHO URINARIO (RINS, URETERES E BEXIGA)","Unimed",1,3]]},
+    {loc:l2, days:[2,4], mix:[["ABDOME TOTAL (INCLUI ABDOME INFERIOR)","Unimed",2,6],["ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)","Particular",1,4],["MAMAS","Unimed",1,4],["TRANSVAGINAL (INCLUI ABDOME INFERIOR FEMININO)","Unimed",2,5],["OBSTETRICA","Particular",1,3],["OBSTETRICA MORFOLOGICA","Particular",0,2],["ARTICULAR (POR ARTICULACAO)","Unimed",1,4],["DOPPLER COLORIDO DE VASOS CERVICAIS ARTERIAIS BILATERAL (CAROTIDAS E VERTEBRAIS)","Unimed",0,2],["ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)","Particular",0,2]]},
+    {loc:l3, days:[6], mix:[["ABDOME TOTAL (INCLUI ABDOME INFERIOR)","SUS",4,10],["APARELHO URINARIO (RINS, URETERES E BEXIGA)","SUS",3,8],["ABDOME INFERIOR FEMININO (BEXIGA, UTERO, OVARIO E ANEXOS)","SUS",2,6],["OBSTETRICA","SUS",1,5],["ESTRUTURAS SUPERFICIAIS (CERVICAL OU AXILAS OU MUSCULO OU TENDAO)","SUS",1,4]]}
   ];
   for(let i=75;i>=0;i--){
     const iso = addDays(today,-i), dow = fromISO(iso).getDay();
@@ -664,15 +947,16 @@ function loadDemo(){
   }
   S.goal = 22000;
   S.last = {locId:l1, conv:"Unimed"};
+  S.cal = { reminder:60, weekly:true, prompt:true };
   // agenda de exemplo: espelha o padrão de plantões acima
   const rFrom = addDays(today,-75);
   S.agenda = { events:[], skips:[], seq:6, rules:[
-    {id:"r1",dow:1,locId:l1,period:"Manhã",note:"",from:rFrom},
-    {id:"r2",dow:3,locId:l1,period:"Manhã",note:"",from:rFrom},
-    {id:"r3",dow:5,locId:l1,period:"Manhã",note:"",from:rFrom},
-    {id:"r4",dow:2,locId:l2,period:"Tarde",note:"",from:rFrom},
-    {id:"r5",dow:4,locId:l2,period:"Tarde",note:"",from:rFrom},
-    {id:"r6",dow:6,locId:l3,period:"Noite",note:"plantão 12h",from:rFrom}
+    {id:"r1",dow:1,locId:l1,period:"Matutino",note:"",from:rFrom},
+    {id:"r2",dow:3,locId:l1,period:"Matutino",note:"",from:rFrom},
+    {id:"r3",dow:5,locId:l1,period:"Matutino",note:"",from:rFrom},
+    {id:"r4",dow:2,locId:l2,period:"Vespertino",note:"",from:rFrom},
+    {id:"r5",dow:4,locId:l2,period:"Vespertino",note:"",from:rFrom},
+    {id:"r6",dow:6,locId:l3,period:"Noturno",note:"plantão 12h",from:rFrom}
   ]};
   save();
   function getPriceRaw(l,x,c){ return S.prices[pKey(l,x,c)] ?? 0; }
@@ -760,8 +1044,30 @@ function renderDash(){
     $("#view").innerHTML = html;
     bindFilters();
     const d = $("#demoBtn"); if(d) d.onclick = ()=>{ loadDemo(); toast("Dados de exemplo carregados"); render(); };
-    const g = $("#goLocs"); if(g) g.onclick = ()=> nav("locs");
+    const g = $("#goLocs"); if(g) g.onclick = ()=>{ nav("locs"); startWizard(); };
     return;
+  }
+
+  // BANNER de segunda-feira: resumo da semana
+  if(S.cal && S.cal.weekly && new Date().getDay()===1){
+    let nOcc=0, exp=0;
+    const stats1 = buildStats();
+    const t1 = todayISO(), ws1 = weekStart(t1);
+    for(let i=0;i<7;i++){
+      const day = addDays(ws1,i);
+      const occ = occurrences(day);
+      nOcc += occ.length;
+      const counts={}; occ.forEach(o=>counts[o.locId]=(counts[o.locId]||0)+1);
+      occ.forEach(o=>{ exp += expectedForOcc(o,stats1,counts[o.locId]).v; });
+    }
+    if(nOcc>0) html += `
+    <section class="card" style="border-color:rgba(43,201,164,.35);display:flex;align-items:center;gap:13px;padding:15px 16px">
+      <div class="insight" style="border:none;padding:0;flex:1">
+        <div class="ic" style="background:var(--accent-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 9h18"/></svg></div>
+        <div class="tx">Sua semana: <b>${nOcc} plantã${nOcc===1?"o":"es"}</b> agendado${nOcc===1?"":"s"}, previsto <b>${compact(exp)}</b>.</div>
+      </div>
+      <button id="wkGo" class="btn btn-sm" style="flex:0 0 auto">Ver agenda</button>
+    </section>`;
   }
 
   // HERO
@@ -811,6 +1117,7 @@ function renderDash(){
     </section>`;
   }
   html += projectionCard(mp);
+  html += monthCompareCard();
 
   // GRÁFICO DE FATURAMENTO NO TEMPO
   html += `
@@ -851,7 +1158,7 @@ function renderDash(){
   }
 
   // POR MODALIDADE + POR CONVÊNIO (barras horizontais, sequencial)
-  const byMod = Array.from(sumBy(ent, e=>(examById(e.examId)||{}).mod||"Outros").entries()).sort((a,b)=>b[1].v-a[1].v);
+  const byMod = Array.from(sumBy(ent, e=>{ const m=(examById(e.examId)||{}).mod||"PROCED"; return MOD_LABELS[m]||m; }).entries()).sort((a,b)=>b[1].v-a[1].v);
   const byConv = Array.from(sumBy(ent, e=>e.conv).entries()).sort((a,b)=>b[1].v-a[1].v);
   html += `
   <section class="card">
@@ -886,6 +1193,7 @@ function renderDash(){
 
   $("#view").innerHTML = html;
   bindFilters();
+  const wg=$("#wkGo"); if(wg) wg.onclick=()=>nav("agenda");
   drawTimeSeries(ent, from, to);
 }
 
@@ -1044,6 +1352,61 @@ function projectionCard(mp){
   </section>`;
 }
 
+/* ================== COMPARATIVO MÊS A MÊS ================== */
+function monthCompareCard(){
+  const d = new Date();
+  const rows = [];
+  for(let i=5;i>=0;i--){
+    const m = new Date(d.getFullYear(), d.getMonth()-i, 1);
+    const from = toISO(m), to = toISO(new Date(m.getFullYear(), m.getMonth()+1, 0));
+    const ent = filteredEntries([from,to]); // aplica filtros de local/convênio/modalidade/exame
+    const v = ent.reduce((s,e)=>s+entryValue(e),0);
+    const q = ent.reduce((s,e)=>s+e.qty,0);
+    rows.push({label: MONTHS_S[m.getMonth()]+(m.getMonth()===0||i===5?"/"+String(m.getFullYear()).slice(2):""), mIdx:m.getMonth(), v, q, cur:i===0});
+  }
+  if(rows.every(r=>r.v===0)) return "";
+  // gráfico de colunas (série única, sequencial; mês atual = parcial)
+  const W=480, H=170, padL=8, padR=8, padT=26, padB=22;
+  const maxV = niceCeil(Math.max(1,...rows.map(r=>r.v)));
+  const iw=W-padL-padR, ih=H-padT-padB, n=rows.length;
+  const step=iw/n, bw=Math.min(46, step-18);
+  let bars="";
+  rows.forEach((r,i)=>{
+    const x=padL+step*i+(step-bw)/2;
+    const h=Math.max(r.v>0?3:0,(r.v/maxV)*ih);
+    const y=padT+ih-h;
+    if(r.v>0){
+      bars+=`<path d="${roundTopRect(x,y,bw,h,4)}" fill="var(--seq)" ${r.cur?'opacity="0.5"':""}/>`;
+      bars+=`<text x="${x+bw/2}" y="${y-6}" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--text-2)" font-family="var(--font)">${axisLabel(r.v)}</text>`;
+    }
+    bars+=`<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="${r.cur?"var(--text-2)":"var(--muted)"}" font-family="var(--font)">${esc(r.label)}</text>`;
+  });
+  // linhas de variação
+  const deltas = rows.map((r,i)=>{
+    if(i===0 || rows[i-1].v===0 || r.v===0) return "";
+    const pc=(r.v-rows[i-1].v)/rows[i-1].v*100;
+    const cls=pc>0.5?"up":(pc<-0.5?"down":"flat");
+    const ar=pc>0.5?"↑":(pc<-0.5?"↓":"→");
+    return `<div class="lrow" style="padding:9px 0">
+      <div class="lr-main"><div class="lr-title" style="font-size:13px">${esc(cap1(MONTHS_S[r.mIdx]))}${r.cur?' <span class="mut" style="font-weight:500;font-size:11px">(parcial)</span>':""}</div>
+      <div class="lr-sub">${fmtN(r.q)} exames</div></div>
+      <div class="lr-side"><b>${fmtBRL0(r.v)}</b></div>
+      <span class="delta ${cls}" style="min-width:64px;justify-content:center">${ar} ${Math.abs(pc).toLocaleString("pt-BR",{maximumFractionDigits:0})}%</span>
+    </div>`;
+  }).join("");
+  const anyDimFilter = F.loc!=="all"||F.conv!=="all"||F.mod!=="all"||F.exam!=="all";
+  return `
+  <section class="card">
+    <div class="card-title">Comparativo mês a mês <span class="hint">últimos 6 meses${anyDimFilter?" · filtros aplicados":""}</span></div>
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}">
+      <line x1="${padL}" x2="${W-padR}" y1="${padT+ih}" y2="${padT+ih}" stroke="var(--axis)" stroke-width="1"/>
+      ${bars}
+    </svg>
+    ${deltas?`<div style="margin-top:6px">${deltas}</div>`:""}
+  </section>`;
+}
+const cap1 = s => s.charAt(0).toUpperCase()+s.slice(1);
+
 /* ================== FILTER BAR ================== */
 function renderFilters(periodLabel){
   const periods = [["today","Hoje"],["7d","7 dias"],["month","Este mês"],["30d","30 dias"],["pmonth","Mês passado"],["90d","90 dias"],["year","Ano"],["all","Tudo"]];
@@ -1072,8 +1435,8 @@ function bindFilters(){
   opt("#fLoc","Filtrar por local",[["all","Todos os locais"],...S.locations.map(l=>[l.id,l.name])],F.loc,v=>F.loc=v);
   const convs = Array.from(new Set([].concat(...S.locations.map(l=>l.convenios), S.entries.map(e=>e.conv)))).filter(Boolean).sort();
   opt("#fConv","Filtrar por convênio",[["all","Todos os convênios"],...convs.map(c=>[c,c])],F.conv,v=>F.conv=v);
-  const modsUsed = MODS.filter(m=>S.exams.some(x=>x.mod===m));
-  opt("#fMod","Filtrar por modalidade",[["all","Todas as modalidades"],...modsUsed.map(m=>[m,m])],F.mod,v=>F.mod=v);
+  const modsUsed = activeMods().filter(m=>S.exams.some(x=>x.mod===m));
+  opt("#fMod","Filtrar por modalidade",[["all","Todas as modalidades"],...modsUsed.map(m=>[m,m+" · "+(MOD_LABELS[m]||m)])],F.mod,v=>F.mod=v);
   const usedExams = Array.from(new Set(S.entries.map(e=>e.examId))).map(examById).filter(Boolean).sort((a,b)=>a.name.localeCompare(b.name));
   const examOpts = usedExams.length? usedExams : S.exams;
   opt("#fExam","Filtrar por exame",[["all","Todos os exames"],...examOpts.map(x=>[x.id,x.name+" · "+x.mod])],F.exam,v=>F.exam=v);
@@ -1229,17 +1592,19 @@ function renderAdd(){
   const usage = {};
   S.entries.forEach(e=>{ if(e.locId===draft.locId) usage[e.examId]=(usage[e.examId]||0)+1; });
   const priced = x => getPrice(draft.locId,x.id,draft.conv)!=null;
+  const included = x => (loc.examIds||[]).includes(x.id);
+  const locMods = (loc.mods&&loc.mods.length)? loc.mods : MODS;
   const q = draft.search.trim().toLowerCase();
-  let exams = S.exams.filter(x=>!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q));
+  let exams = S.exams.filter(x=> locMods.includes(x.mod) && (!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q) || (x.code||"").includes(q)));
   exams = exams.slice().sort((a,b)=>{
     const ua=usage[a.id]||0, ub=usage[b.id]||0;
     if(ua!==ub) return ub-ua;
-    const pa=priced(a)?1:0, pb=priced(b)?1:0;
+    const pa=(priced(a)?2:0)+(included(a)?1:0), pb=(priced(b)?2:0)+(included(b)?1:0);
     if(pa!==pb) return pb-pa;
     return a.name.localeCompare(b.name);
   });
   const grouped = q? [["Resultados",exams]] :
-    MODS.map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
+    MODS.filter(m=>locMods.includes(m)).map(m=>[MOD_LABELS[m]||m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
 
   const items = Object.entries(draft.qty).filter(([id,n])=>n>0);
   const totQ = items.reduce((s,[,n])=>s+n,0);
@@ -1268,7 +1633,7 @@ function renderAdd(){
           const n = draft.qty[x.id]||0;
           return `<div class="lrow">
             <div class="lr-main">
-              <div class="lr-title">${esc(x.name)}</div>
+              <div class="lr-title" style="white-space:normal;line-height:1.35;font-size:13.5px">${esc(x.name)}</div>
               <div class="lr-sub">${p!=null? fmtBRL(p)+" / exame" : '<button data-setprice="'+x.id+'" style="color:var(--warn);font-weight:700;font-size:11.5px">definir preço</button>'}</div>
             </div>
             <div class="stepper">
@@ -1421,6 +1786,95 @@ function editEntrySheet(id){
 </script>
 <script>
 "use strict";
+/* ================== INTEGRAÇÃO COM AGENDA (Google/Apple) ================== */
+const BYDAY = ["SU","MO","TU","WE","TH","FR","SA"];
+const icsEsc = s => String(s||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+const icsDT = (iso,hm) => iso.replace(/-/g,"") + "T" + hm.replace(":","") + "00";
+const icsD  = iso => iso.replace(/-/g,"");
+function occDates(o){
+  const ts = occTimes(o);
+  if(ts.allDay) return {allDay:true, s:icsD(o.date), e:icsD(addDays(o.date,1))};
+  return {allDay:false, s:icsDT(o.date,ts.start), e:icsDT(ts.endNext?addDays(o.date,1):o.date, ts.end)};
+}
+function eventTitle(o){ const l=locById(o.locId); return "Plantão · "+(l?l.name:""); }
+function eventDetails(o){
+  return "RadFin · "+occLabel(o)+(o.note?" · "+o.note:"")+"\nLance a volumetria do dia no app RadFin.";
+}
+function gcalOpen(o){
+  const d = occDates(o);
+  let url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    + "&text=" + encodeURIComponent(eventTitle(o))
+    + "&dates=" + d.s + "/" + d.e
+    + "&details=" + encodeURIComponent(eventDetails(o));
+  if(o.type==="rule"){
+    const r = S.agenda.rules.find(x=>x.id===o.id);
+    let rr = "RRULE:FREQ=WEEKLY;BYDAY=" + BYDAY[fromISO(o.date).getDay()];
+    if(r && r.until) rr += ";UNTIL=" + icsDT(addDays(r.until,-1),"23:59");
+    url += "&recur=" + encodeURIComponent(rr);
+  }
+  window.open(url, "_blank");
+}
+function nextDowFrom(iso, dow){
+  let d = iso;
+  while(fromISO(d).getDay()!==dow) d = addDays(d,1);
+  return d;
+}
+function buildICS(){
+  const t = todayISO();
+  const L = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//RadFin//Agenda//PT","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
+  const alarm = (S.cal.reminder>0) ? ["BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Plantão","TRIGGER:-PT"+S.cal.reminder+"M","END:VALARM"] : [];
+  const push = (uid, dtLines, title, det, extra)=>{
+    L.push("BEGIN:VEVENT","UID:"+uid+"@radfin","DTSTAMP:"+icsDT(t,"00:00"));
+    dtLines.forEach(x=>L.push(x));
+    if(extra) extra.forEach(x=>L.push(x));
+    L.push("SUMMARY:"+icsEsc(title),"DESCRIPTION:"+icsEsc(det));
+    alarm.forEach(x=>L.push(x));
+    L.push("END:VEVENT");
+  };
+  // eventos avulsos futuros
+  S.agenda.events.filter(e=>e.date>=t && locById(e.locId)).forEach(e=>{
+    const o = {...e, type:"event"};
+    const d = occDates(o);
+    push("ev-"+e.id,
+      d.allDay? ["DTSTART;VALUE=DATE:"+d.s,"DTEND;VALUE=DATE:"+d.e] : ["DTSTART:"+d.s,"DTEND:"+d.e],
+      eventTitle(o), eventDetails(o));
+  });
+  // recorrências semanais
+  S.agenda.rules.filter(r=> locById(r.locId) && (!r.until || r.until>t)).forEach(r=>{
+    const first = nextDowFrom(r.from>t? r.from : t, r.dow);
+    if(r.until && first>=r.until) return;
+    const o = {...r, date:first, type:"rule"};
+    const d = occDates(o);
+    let rr = "RRULE:FREQ=WEEKLY;BYDAY="+BYDAY[r.dow];
+    if(r.until) rr += ";UNTIL="+icsDT(addDays(r.until,-1),"23:59");
+    const ex = S.agenda.skips.filter(s=>s.ruleId===r.id && s.date>=first)
+      .map(s=> d.allDay? "EXDATE;VALUE=DATE:"+icsD(s.date) : "EXDATE:"+icsDT(s.date, occTimes(o).start));
+    push("ru-"+r.id,
+      d.allDay? ["DTSTART;VALUE=DATE:"+d.s,"DTEND;VALUE=DATE:"+d.e,rr] : ["DTSTART:"+d.s,"DTEND:"+d.e,rr],
+      eventTitle(o), eventDetails(o), ex);
+  });
+  // resumo semanal às segundas
+  if(S.cal.weekly){
+    const mon = nextDowFrom(addDays(t,1), 1);
+    push("weekly-summary",
+      ["DTSTART:"+icsDT(mon,"07:30"),"DTEND:"+icsDT(mon,"07:45"),"RRULE:FREQ=WEEKLY;BYDAY=MO"],
+      "RadFin · Resumo da semana",
+      "Abra o RadFin para ver os plantões da semana, o previsto de honorários e a projeção do mês.");
+  }
+  L.push("END:VCALENDAR");
+  return L.join("\r\n");
+}
+function icsExport(){
+  if(!hasAgendaData() && !S.cal.weekly){ toast("Cadastre compromissos na agenda primeiro"); return; }
+  const blob = new Blob([buildICS()], {type:"text/calendar;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "radfin-agenda.ics";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  toast("Agenda exportada (.ics)");
+}
+
 /* ================== AGENDA (calendário mensal) ================== */
 const agView = { y:null, m:null, sel: todayISO() }; // m: 0-11
 
@@ -1433,13 +1887,29 @@ function renderAgenda(){
     return;
   }
   const stats = buildStats();
+  const promo = (S.cal.prompt && hasAgendaData()) ? `
+    <section class="card" style="border-color:rgba(57,135,229,.4)">
+      <div class="card-title">Integrar com sua agenda <span class="hint">Google · Apple</span></div>
+      <p class="note" style="margin-bottom:12px">Leve seus plantões para o Google Agenda ou o Calendário do iPhone — com lembrete antes de cada plantão. Exporte o arquivo e abra-o no seu app de agenda.</p>
+      <div class="input-row">
+        <button class="btn btn-sm" id="agDismiss">Agora não</button>
+        <button class="btn btn-primary btn-sm" id="agExport1">Exportar agenda</button>
+      </div>
+    </section>`:"";
   $("#view").innerHTML = `<div class="page">
-    <div class="sec-head" style="margin-top:0"><h2>Agenda</h2></div>
+    <div class="sec-head" style="margin-top:0"><h2>Agenda</h2>
+      <button id="agExport2" style="display:flex;align-items:center;gap:5px;color:var(--accent);font-weight:700;font-size:13px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 15V3m0 0L7 8m5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Exportar</button>
+    </div>
+    ${promo}
     ${weekSummaryCard(stats)}
     ${calendarCard()}
     ${dayDetailCard(stats)}
   </div>`;
   bindAgenda();
+  const ex1=$("#agExport1"); if(ex1) ex1.onclick=icsExport;
+  const dm=$("#agDismiss"); if(dm) dm.onclick=()=>{ S.cal.prompt=false; save(); renderAgenda(); };
+  $("#agExport2").onclick=icsExport;
 }
 
 /* ---------- Resumo da semana ---------- */
@@ -1472,7 +1942,7 @@ function weekSummaryCard(stats){
         <div class="wk-main">
           ${occ.length? occ.map(o=>{
             const l=locById(o.locId);
-            return `<div class="wk-loc"><span class="dot" style="background:${SLOTS[l.slot]}"></span><span>${esc(l.name)}</span><span class="mut" style="flex:0 0 auto">· ${esc(o.period)}</span></div>`;
+            return `<div class="wk-loc"><span class="dot" style="background:${SLOTS[l.slot]}"></span><span>${esc(l.name)}</span><span class="mut" style="flex:0 0 auto">· ${esc(occLabel(o))}</span></div>`;
           }).join("") : `<div class="wk-free">sem compromisso · produção avulsa</div>`}
         </div>
         <div class="wk-val ${dayRev>0?"done":""}">
@@ -1555,7 +2025,7 @@ function dayDetailCard(stats){
         <span class="dot" style="background:${SLOTS[l.slot]};width:11px;height:11px"></span>
         <div class="lr-main">
           <div class="lr-title">${esc(l.name)}</div>
-          <div class="lr-sub">${esc(o.period)}${o.type==="rule"?" · <span style='color:var(--accent)'>semanal</span>":""}${o.note?" · "+esc(o.note):""}</div>
+          <div class="lr-sub">${esc(occLabel(o))}${o.type==="rule"?" · <span style='color:var(--accent)'>semanal</span>":""}${o.note?" · "+esc(o.note):""}</div>
         </div>
         <div class="lr-side">${ex.known?`<b class="mut" style="font-weight:600;font-size:12.5px">~${fmtBRL0(ex.v)}</b><small>estimado</small>`:""}</div>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
@@ -1586,8 +2056,9 @@ function bindAgenda(){
 /* ---------- Sheets de compromisso ---------- */
 function commitmentSheet(date){
   let locId = S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id;
-  let period = PERIODS[0], repeat = true;
+  let period = PERIODS[0], repeat = true, timeMode = false;
   const dow = fromISO(date).getDay();
+  const perHint = p => PERIOD_TIMES[p]? PERIOD_TIMES[p][0]+"–"+PERIOD_TIMES[p][1] : "";
   openSheet(`
     <h3>Novo compromisso</h3>
     <div class="sheet-body">
@@ -1597,7 +2068,15 @@ function commitmentSheet(date){
       }</div></div>
       <div class="field"><label>Turno</label><div class="conv-chips" id="cmPer">${
         PERIODS.map((p,i)=>`<button class="chip ${i===0?"on":""}" data-p="${esc(p)}">${esc(p)}</button>`).join("")
-      }</div></div>
+      }<button class="chip" id="cmTime">Horário…</button></div></div>
+      <div class="field hidden" id="cmTimeBox">
+        <label>Horário de início e fim</label>
+        <div class="input-row">
+          <input type="time" class="input" id="cmStart" value="07:00">
+          <input type="time" class="input" id="cmEnd" value="13:00">
+        </div>
+        <p class="note" style="margin-top:7px">Se o fim for menor que o início, o plantão termina no dia seguinte (ex.: 19:00 → 07:00).</p>
+      </div>
       <div class="field"><label>Observação (opcional)</label>
         <input class="input" id="cmNote" placeholder="Ex.: plantão 12h, cobrindo colega…"></div>
       <div class="field"><label>Recorrência</label><div class="conv-chips" id="cmRep">
@@ -1611,14 +2090,28 @@ function commitmentSheet(date){
     </div>`,
     el=>{
       $$("#cmLocs .chip",el).forEach(c=> c.onclick=()=>{ locId=c.dataset.l; $$("#cmLocs .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
-      $$("#cmPer .chip",el).forEach(c=> c.onclick=()=>{ period=c.dataset.p; $$("#cmPer .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
+      const timeBtn=$("#cmTime",el), timeBox=$("#cmTimeBox",el);
+      $$("#cmPer .chip",el).forEach(c=>{ if(c===timeBtn) return; c.onclick=()=>{
+        period=c.dataset.p; timeMode=false; timeBox.classList.add("hidden");
+        $$("#cmPer .chip",el).forEach(x=>x.classList.toggle("on",x===c));
+      };});
+      timeBtn.onclick=()=>{
+        timeMode=true; timeBox.classList.remove("hidden");
+        $$("#cmPer .chip",el).forEach(x=>x.classList.toggle("on",x===timeBtn));
+      };
       $$("#cmRep .chip",el).forEach(c=> c.onclick=()=>{ repeat=c.dataset.r==="1"; $$("#cmRep .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
       $("#cmCancel",el).onclick=closeSheet;
       $("#cmOk",el).onclick=()=>{
         const note=$("#cmNote",el).value.trim();
         const id="a"+(++S.agenda.seq);
-        if(repeat) S.agenda.rules.push({id, dow, locId, period, note, from:date});
-        else S.agenda.events.push({id, date, locId, period, note});
+        const base = {id, locId, note};
+        if(timeMode){
+          const st=$("#cmStart",el).value, en=$("#cmEnd",el).value;
+          if(!st||!en){ toast("Informe início e fim"); return; }
+          base.period="Horário"; base.start=st; base.end=en;
+        } else base.period=period;
+        if(repeat) S.agenda.rules.push({...base, dow, from:date});
+        else S.agenda.events.push({...base, date});
         save(); closeSheet();
         toast(repeat? "Compromisso semanal criado":"Compromisso adicionado");
         renderAgenda();
@@ -1632,7 +2125,10 @@ function occDetailSheet(occ){
   openSheet(`
     <h3>${esc(l.name)}</h3>
     <div class="sheet-body">
-      <p class="note" style="margin-bottom:16px">${esc(occ.period)} · ${esc(fmtDateLong(occ.date))}${isRule?` · repete ${[0,6].includes(fromISO(occ.date).getDay())?"todo":"toda"} ${WEEKDAYS[fromISO(occ.date).getDay()]}`:""}${occ.note?"<br>"+esc(occ.note):""}</p>
+      <p class="note" style="margin-bottom:16px">${esc(occLabel(occ))} · ${esc(fmtDateLong(occ.date))}${isRule?` · repete ${[0,6].includes(fromISO(occ.date).getDay())?"todo":"toda"} ${WEEKDAYS[fromISO(occ.date).getDay()]}`:""}${occ.note?"<br>"+esc(occ.note):""}</p>
+      <button class="btn" id="ocGcal" style="margin-bottom:10px;border-color:rgba(57,135,229,.45)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 9h18"/></svg>
+        Adicionar ao Google Agenda</button>
       ${isRule?`
         <button class="btn" id="ocSkip" style="margin-bottom:10px">Pular só este dia</button>
         <button class="btn btn-danger" id="ocEnd">Encerrar recorrência a partir daqui</button>
@@ -1643,6 +2139,7 @@ function occDetailSheet(occ){
     <div class="sheet-foot"><button class="btn" id="ocCancel">Fechar</button></div>`,
     el=>{
       $("#ocCancel",el).onclick=closeSheet;
+      $("#ocGcal",el).onclick=()=> gcalOpen(occ);
       if(isRule){
         $("#ocSkip",el).onclick=()=>{
           S.agenda.skips.push({ruleId:occ.id, date:occ.date});
@@ -1665,11 +2162,183 @@ function occDetailSheet(occ){
 <script>
 "use strict";
 /* ================== LOCAIS & PREÇOS ================== */
-let locView = { locId:null, conv:null, search:"" }; // locId=null → lista
+let locView = { locId:null, conv:null, search:"", mode:null }; // locId=null → lista
+
+/* ---------- PERFIL: modalidades do usuário ---------- */
+const CK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+function modCards(selSet, dataAttr){
+  return `<div class="modgrid">${MODS.map(m=>`
+    <button class="modcard ${selSet.has(m)?"on":""}" data-${dataAttr}="${m}">
+      <span class="mc-check">${CK_SVG}</span>
+      <span><b>${m}</b><small>${esc(MOD_LABELS[m])}</small></span>
+    </button>`).join("")}</div>`;
+}
+function profileSheet(onDone){
+  const sel = new Set(S.userMods || []);
+  openSheet(`
+    <h3>Quais modalidades você realiza?</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:14px">O app mostrará apenas exames dessas modalidades ao cadastrar instituições, precificar e lançar volumetria. Você pode alterar depois em Ajustes.</p>
+      ${modCards(sel,"pm")}
+    </div>
+    <div class="sheet-foot">
+      <button class="btn btn-primary" id="pmOk">Salvar perfil</button>
+    </div>`,
+    el=>{
+      $$("[data-pm]",el).forEach(c=> c.onclick=()=>{
+        const m=c.dataset.pm;
+        sel.has(m)? sel.delete(m) : sel.add(m);
+        c.classList.toggle("on", sel.has(m));
+      });
+      $("#pmOk",el).onclick=()=>{
+        if(!sel.size){ toast("Marque pelo menos uma modalidade"); return; }
+        S.userMods = MODS.filter(m=>sel.has(m));
+        save(); closeSheet(); toast("Perfil salvo");
+        if(onDone) onDone(); else render();
+      };
+    });
+}
+
+/* ---------- WIZARD: nova instituição ---------- */
+const wiz = { name:"", convs:"", mods:new Set(), checks:{}, prices:{}, search:"" };
+function startWizard(){
+  if(S.userMods===null){ profileSheet(()=>startWizard()); return; }
+  wiz.name=""; wiz.convs=""; wiz.mods=new Set(); wiz.checks={}; wiz.prices={}; wiz.search="";
+  const am = activeMods();
+  if(am.length===1) wiz.mods.add(am[0]);
+  locView = { locId:null, conv:null, search:"", mode:"wiz1" };
+  renderLocs();
+}
+function wizSteps(step){
+  return `<div class="wiz-steps">
+    <span class="st ${step>=1?"on":""}">1</span><span>Instituição</span>
+    <span class="ln ${step>=2?"on":""}"></span>
+    <span class="st ${step>=2?"on":""}">2</span><span>Exames &amp; valores</span>
+  </div>`;
+}
+function renderWiz1(){
+  const am = activeMods();
+  $("#view").innerHTML = `<div class="page">
+    <button id="wzBack" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m15 18-6-6 6-6"/></svg>Locais</button>
+    <div class="sec-head" style="margin-top:0"><h2>Nova instituição</h2></div>
+    ${wizSteps(1)}
+    <div class="card">
+      <div class="field"><label>Nome da instituição</label>
+        <input class="input" id="wzName" placeholder="Ex.: Hospital São Lucas" value="${esc(wiz.name)}"></div>
+      <div class="field mb0"><label>Convênios atendidos (separe por vírgula)</label>
+        <input class="input" id="wzConvs" placeholder="Ex.: Particular, Unimed, SUS" value="${esc(wiz.convs)}"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Modalidades presentes nesta instituição</div>
+      ${MODS.some(m=>!am.includes(m))?`<p class="note" style="margin-bottom:12px">Mostrando apenas as modalidades do seu perfil (${am.join(", ")}). Ajuste o perfil em Ajustes, se precisar.</p>`:""}
+      <div class="modgrid">${am.map(m=>`
+        <button class="modcard ${wiz.mods.has(m)?"on":""}" data-wm="${m}">
+          <span class="mc-check">${CK_SVG}</span>
+          <span><b>${m}</b><small>${esc(MOD_LABELS[m])}</small></span>
+        </button>`).join("")}</div>
+    </div>
+    <button class="btn btn-primary" id="wzNext">Seguir → exames e valores</button>
+  </div>`;
+  $("#wzBack").onclick=()=>{ locView={locId:null,mode:null}; renderLocs(); };
+  $("#wzName").oninput = e=> wiz.name=e.target.value;
+  $("#wzConvs").oninput = e=> wiz.convs=e.target.value;
+  $$("[data-wm]").forEach(c=> c.onclick=()=>{
+    const m=c.dataset.wm;
+    wiz.mods.has(m)? wiz.mods.delete(m) : wiz.mods.add(m);
+    c.classList.toggle("on", wiz.mods.has(m));
+  });
+  $("#wzNext").onclick=()=>{
+    if(!wiz.name.trim()){ toast("Dê um nome à instituição"); return; }
+    if(!wiz.mods.size){ toast("Marque ao menos uma modalidade"); return; }
+    locView.mode="wiz2"; renderLocs(); window.scrollTo({top:0});
+  };
+}
+function renderWiz2(){
+  const convs = wiz.convs.split(",").map(s=>s.trim()).filter(Boolean);
+  const firstConv = convs[0] || "Padrão";
+  const q = wiz.search.trim().toLowerCase();
+  const mods = MODS.filter(m=>wiz.mods.has(m));
+  const nSel = Object.keys(wiz.checks).filter(id=>wiz.checks[id]).length;
+  $("#view").innerHTML = `<div class="page">
+    <button id="wzBack2" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m15 18-6-6 6-6"/></svg>Voltar</button>
+    <div class="sec-head" style="margin-top:0"><h2>${esc(wiz.name)}</h2></div>
+    ${wizSteps(2)}
+    <div class="card" style="padding:14px 16px">
+      <p class="note">Marque os exames que você realiza nesta instituição e informe o honorário${convs.length>1?` do convênio <b style="color:var(--text)">${esc(firstConv)}</b> (os demais você ajusta depois na tabela)`:""}. Valores podem ficar em branco e ser definidos depois.</p>
+    </div>
+    <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+      <input class="input" id="wzSearch" placeholder="Buscar exame…" value="${esc(wiz.search)}"></div>
+    <div class="card" style="padding:6px 16px 10px">
+      ${mods.map(m=>{
+        const list = S.exams.filter(x=>x.mod===m && (!q || x.name.toLowerCase().includes(q) || (x.code||"").includes(q)));
+        if(!list.length) return "";
+        const allOn = list.every(x=>wiz.checks[x.id]);
+        return `<div class="mod-head" style="display:flex;justify-content:space-between;align-items:center">
+          <span>${esc(MOD_LABELS[m])}</span>
+          <button data-wall="${m}" style="color:var(--accent);font-weight:700;font-size:10.5px;text-transform:none;letter-spacing:0">${allOn?"desmarcar todos":"marcar todos"}</button>
+        </div>`+
+        list.map(x=>`
+          <div class="lrow">
+            <button class="ck ${wiz.checks[x.id]?"on":""}" data-wck="${x.id}">${CK_SVG}</button>
+            <div class="lr-main" data-wrow="${x.id}">
+              <div class="lr-title" style="font-size:13px;white-space:normal;line-height:1.35">${esc(x.name)}</div>
+              ${x.code?`<div class="lr-sub">TUSS ${esc(x.code)}</div>`:""}
+            </div>
+            ${wiz.checks[x.id]?`<input class="price-input ${wiz.prices[x.id]?"":"noval"}" inputmode="decimal" placeholder="R$ —" data-wpx="${x.id}" value="${esc(wiz.prices[x.id]||"")}">`:""}
+          </div>`).join("");
+      }).join("") || '<p class="note" style="padding:16px 0">Nenhum exame encontrado.</p>'}
+    </div>
+    <button class="total-bar" id="wzDone" style="border:none;width:100%">
+      <span class="tb-l">Concluir cadastro<small>${nSel} exame${nSel===1?"":"s"} incluído${nSel===1?"":"s"}</small></span>
+      <span class="tb-r">✓</span>
+    </button>
+  </div>`;
+  $("#wzBack2").onclick=()=>{ locView.mode="wiz1"; renderLocs(); };
+  const sb=$("#wzSearch");
+  sb.oninput=()=>{ wiz.search=sb.value; renderWiz2(); const s2=$("#wzSearch"); s2.focus(); s2.setSelectionRange(s2.value.length,s2.value.length); };
+  const toggle = id=>{ wiz.checks[id]=!wiz.checks[id]; renderWiz2(); };
+  $$("[data-wck]").forEach(b=> b.onclick=()=>toggle(b.dataset.wck));
+  $$("[data-wrow]").forEach(r=> r.onclick=()=>toggle(r.dataset.wrow));
+  $$("[data-wall]").forEach(b=> b.onclick=()=>{
+    const m=b.dataset.wall;
+    const list=S.exams.filter(x=>x.mod===m);
+    const allOn=list.every(x=>wiz.checks[x.id]);
+    list.forEach(x=> wiz.checks[x.id]=!allOn);
+    renderWiz2();
+  });
+  $$("[data-wpx]").forEach(inp=>{
+    inp.oninput = ()=>{ wiz.prices[inp.dataset.wpx]=inp.value; };
+    inp.onclick = e=> e.stopPropagation();
+  });
+  $("#wzDone").onclick=finishWizard;
+}
+function finishWizard(){
+  const convs = wiz.convs.split(",").map(s=>s.trim()).filter(Boolean);
+  const list = convs.length? Array.from(new Set(convs)) : ["Padrão"];
+  const firstConv = list[0];
+  const id = "l"+(++S.locSeq);
+  const examIds = Object.keys(wiz.checks).filter(k=>wiz.checks[k]);
+  S.locations.push({ id, name:wiz.name.trim(), slot:(S.locSeq-1)%8,
+    convenios:list, mods:MODS.filter(m=>wiz.mods.has(m)), examIds });
+  let nPriced=0;
+  examIds.forEach(xid=>{
+    const v = parseMoney(wiz.prices[xid]||"");
+    if(v!=null && v>=0){ S.prices[pKey(id,xid,firstConv)] = v; nPriced++; }
+  });
+  save();
+  locView = { locId:id, conv:firstConv, search:"", mode:null };
+  toast(`Instituição criada · ${nPriced} preço${nPriced===1?"":"s"} definido${nPriced===1?"":"s"}`);
+  render();
+  window.scrollTo({top:0});
+}
 
 function renderLocs(){
+  if(locView.mode==="wiz1") return renderWiz1();
+  if(locView.mode==="wiz2") return renderWiz2();
   if(locView.locId && locById(locView.locId)) return renderLocDetail();
-  locView = { locId:null, conv:null, search:"" };
+  locView = { locId:null, conv:null, search:"", mode:null };
   $("#view").innerHTML = `<div class="page">
     <div class="sec-head" style="margin-top:0"><h2>Locais de trabalho</h2>
       <button class="link sec-link" id="newLoc" style="background:none;color:var(--accent);font-weight:700;font-size:13.5px">+ Novo local</button></div>
@@ -1680,7 +2349,8 @@ function renderLocs(){
           <span class="dot" style="background:${SLOTS[l.slot]};width:12px;height:12px"></span>
           <div class="lr-main">
             <div class="lr-title">${esc(l.name)}</div>
-            <div class="lr-sub">${l.convenios.map(esc).join(" · ")||"sem convênios"} · ${nPrices} preço${nPrices===1?"":"s"}</div>
+            <div class="lr-sub">${(l.mods||[]).join(" · ")||"—"} · ${nPrices} preço${nPrices===1?"":"s"}</div>
+            <div class="lr-sub" style="margin-top:1px">${l.convenios.map(esc).join(" · ")||"sem convênios"}</div>
           </div>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
         </button>`;
@@ -1692,32 +2362,39 @@ function renderLocs(){
       <button class="btn btn-sm" id="newExam" style="width:100%">+ Adicionar exame ao catálogo</button>
     </div>
   </div>`;
-  const nl=$("#newLoc")||$("#newLoc2"); if(nl) nl.onclick = newLocSheet;
-  const nl2=$("#newLoc2"); if(nl2 && nl2!==nl) nl2.onclick = newLocSheet;
+  const nl=$("#newLoc"); if(nl) nl.onclick = ()=>startWizard();
+  const nl2=$("#newLoc2"); if(nl2) nl2.onclick = ()=>startWizard();
   $$("[data-loc]").forEach(b=> b.onclick=()=>{ locView={locId:b.dataset.loc,conv:null,search:""}; renderLocs(); });
   $("#newExam").onclick = ()=> newExamSheet(()=>renderLocs());
 }
 
 function newLocSheet(editId){
-  const l = editId? locById(editId) : null;
+  const l = locById(editId);
+  if(!l) return startWizard();
+  const selMods = new Set(l.mods||MODS);
   openSheet(`
-    <h3>${l?"Editar local":"Novo local de trabalho"}</h3>
+    <h3>Editar instituição</h3>
     <div class="sheet-body">
       <div class="field"><label>Nome do local</label>
-        <input class="input" id="nlName" placeholder="Ex.: Hospital São Lucas" value="${l?esc(l.name):""}"></div>
+        <input class="input" id="nlName" placeholder="Ex.: Hospital São Lucas" value="${esc(l.name)}"></div>
       <div class="field"><label>Convênios atendidos (separe por vírgula)</label>
-        <input class="input" id="nlConvs" placeholder="Ex.: Particular, Unimed, SUS" value="${l?esc(l.convenios.join(", ")):""}">
+        <input class="input" id="nlConvs" placeholder="Ex.: Particular, Unimed, SUS" value="${esc(l.convenios.join(", "))}">
         <p class="note" style="margin-top:7px">Se os honorários não variam por convênio neste local, deixe em branco — será usado o convênio "Padrão".</p></div>
-      ${l?`<button class="btn btn-danger" id="nlDel">Excluir local</button>`:""}
+      <div class="field"><label>Modalidades presentes</label>${modCards(selMods,"nlm")}</div>
+      <button class="btn btn-danger" id="nlDel">Excluir local</button>
     </div>
     <div class="sheet-foot">
       <button class="btn" id="nlCancel">Cancelar</button>
-      <button class="btn btn-primary" id="nlOk">${l?"Salvar":"Criar local"}</button>
+      <button class="btn btn-primary" id="nlOk">Salvar</button>
     </div>`,
     el=>{
-      setTimeout(()=>$("#nlName",el).focus(),350);
+      $$("[data-nlm]",el).forEach(c=> c.onclick=()=>{
+        const m=c.dataset.nlm;
+        selMods.has(m)? selMods.delete(m) : selMods.add(m);
+        c.classList.toggle("on", selMods.has(m));
+      });
       $("#nlCancel",el).onclick=closeSheet;
-      if(l) $("#nlDel",el).onclick=()=>{
+      $("#nlDel",el).onclick=()=>{
         closeSheet();
         const nEnt = S.entries.filter(e=>e.locId===l.id).length;
         confirmSheet("Excluir "+l.name+"?",
@@ -1732,18 +2409,12 @@ function newLocSheet(editId){
       $("#nlOk",el).onclick=()=>{
         const name=$("#nlName",el).value.trim();
         if(!name){ toast("Dê um nome ao local"); return; }
+        if(!selMods.size){ toast("Marque ao menos uma modalidade"); return; }
         const convs=$("#nlConvs",el).value.split(",").map(s=>s.trim()).filter(Boolean);
-        const list = convs.length?Array.from(new Set(convs)):["Padrão"];
-        if(l){
-          l.name=name;
-          // preserva preços de convênios removidos, apenas atualiza a lista
-          l.convenios=list;
-        } else {
-          const id="l"+(++S.locSeq);
-          S.locations.push({id,name,slot:(S.locSeq-1)%8,convenios:list});
-          locView={locId:id,conv:null,search:""};
-        }
-        save(); closeSheet(); toast(l?"Local atualizado":"Local criado"); render();
+        l.name=name;
+        l.convenios=convs.length?Array.from(new Set(convs)):["Padrão"]; // preços de convênios removidos são preservados
+        l.mods=MODS.filter(m=>selMods.has(m));
+        save(); closeSheet(); toast("Local atualizado"); render();
       };
     });
 }
@@ -1755,21 +2426,26 @@ function newExamSheet(after){
       <div class="field"><label>Descrição do exame</label>
         <input class="input" id="nxName" placeholder="Ex.: USG de punho"></div>
       <div class="field"><label>Modalidade</label>
-        <div class="conv-chips" id="nxMods">${MODS.map((m,i)=>`<button class="chip ${i===0?"on":""}" data-m="${m}">${m}</button>`).join("")}</div></div>
+        <div class="conv-chips" id="nxMods">${activeMods().map((m,i)=>`<button class="chip ${i===0?"on":""}" data-m="${m}">${m} · ${esc(MOD_LABELS[m])}</button>`).join("")}</div></div>
+      <div class="field"><label>Código TUSS (opcional)</label>
+        <input class="input" id="nxCode" inputmode="numeric" placeholder="Ex.: 40901234"></div>
     </div>
     <div class="sheet-foot">
       <button class="btn" id="nxCancel">Cancelar</button>
       <button class="btn btn-primary" id="nxOk">Adicionar</button>
     </div>`,
     el=>{
-      let mod=MODS[0];
+      let mod=activeMods()[0];
       setTimeout(()=>$("#nxName",el).focus(),350);
       $$("#nxMods .chip",el).forEach(c=> c.onclick=()=>{ mod=c.dataset.m; $$("#nxMods .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
       $("#nxCancel",el).onclick=closeSheet;
       $("#nxOk",el).onclick=()=>{
         const name=$("#nxName",el).value.trim();
         if(!name){ toast("Descreva o exame"); return; }
-        S.exams.push({id:"x"+(++S.examSeq),mod,name});
+        const code=$("#nxCode",el).value.trim();
+        const x={id:"x"+(++S.examSeq),mod,name};
+        if(code) x.code=code;
+        S.exams.push(x);
         save(); closeSheet(); toast("Exame adicionado ao catálogo");
         if(after) after();
       };
@@ -1781,9 +2457,10 @@ function renderLocDetail(){
   const convs = l.convenios.length? l.convenios:["Padrão"];
   if(!locView.conv || !convs.includes(locView.conv)) locView.conv = convs[0];
   const q = locView.search.trim().toLowerCase();
-  const priced = S.exams.filter(x=> S.prices[pKey(l.id,x.id,locView.conv)]!=null );
-  let exams = S.exams.filter(x=>!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q));
-  const grouped = MODS.map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
+  const locMods = (l.mods&&l.mods.length)? l.mods : MODS;
+  const priced = S.exams.filter(x=> locMods.includes(x.mod) && S.prices[pKey(l.id,x.id,locView.conv)]!=null );
+  let exams = S.exams.filter(x=> locMods.includes(x.mod) && (!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q) || (x.code||"").includes(q)));
+  const grouped = MODS.filter(m=>locMods.includes(m)).map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
 
   $("#view").innerHTML = `<div class="page">
     <button id="locBack" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
@@ -1801,11 +2478,12 @@ function renderLocDetail(){
       <input class="input" id="lpSearch" placeholder="Buscar exame…" value="${esc(locView.search)}"></div>
     <div class="card" style="padding:6px 16px 10px">
       ${grouped.map(([m,list])=>`
-        <div class="mod-head">${esc(m)}</div>
+        <div class="mod-head">${esc(MOD_LABELS[m]||m)}</div>
         ${list.map(x=>{
           const v = S.prices[pKey(l.id,x.id,locView.conv)];
           return `<div class="lrow">
-            <div class="lr-main"><div class="lr-title" style="font-size:13.5px">${esc(x.name)}</div></div>
+            <div class="lr-main"><div class="lr-title" style="font-size:13px;white-space:normal;line-height:1.35">${esc(x.name)}</div>
+              ${x.code?`<div class="lr-sub">TUSS ${esc(x.code)}</div>`:""}</div>
             <input class="price-input ${v==null?"noval":""}" inputmode="decimal" placeholder="—"
               data-px="${x.id}" value="${v==null?"":v.toLocaleString("pt-BR",{minimumFractionDigits:2})}">
           </div>`;
@@ -1860,6 +2538,29 @@ function renderCfg(){
   $("#view").innerHTML = `<div class="page">
     <div class="sec-head" style="margin-top:0"><h2>Ajustes</h2></div>
     <div class="card">
+      <div class="card-title">Meu perfil · modalidades que realizo</div>
+      <div class="conv-chips" style="margin-bottom:12px">${
+        S.userMods===null? '<span class="note">Ainda não configurado — todas as modalidades são exibidas.</span>'
+        : S.userMods.map(m=>`<span class="tag" style="font-size:12px;padding:6px 10px">${m} · ${esc(MOD_LABELS[m])}</span>`).join("")
+      }</div>
+      <button class="btn btn-sm" id="cfMods" style="width:100%">${S.userMods===null?"Configurar modalidades":"Editar modalidades"}</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Agenda &amp; lembretes <span class="hint">Google · Apple</span></div>
+      <div class="field"><label>Lembrete antes do plantão</label>
+        <div class="conv-chips">${[[0,"Nenhum"],[30,"30 min"],[60,"1 h"],[120,"2 h"],[1440,"1 dia"]].map(([v,l])=>
+          `<button class="chip ${S.cal.reminder===v?"on":""}" data-rem="${v}">${l}</button>`).join("")}</div></div>
+      <div class="field"><label>Resumo da semana às segundas (07:30)</label>
+        <div class="conv-chips">
+          <button class="chip ${S.cal.weekly?"on":""}" data-wk="1">Ativado</button>
+          <button class="chip ${!S.cal.weekly?"on":""}" data-wk="0">Desativado</button>
+        </div></div>
+      <button class="btn" id="cfIcs" style="margin-bottom:10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M12 15V3m0 0L7 8m5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Exportar agenda (.ics)</button>
+      <p class="note">Exporte e abra o arquivo no seu app de agenda: no iPhone, toque nele para adicionar ao Calendário; no Google Agenda, use Configurações → Importar. O lembrete escolhido vai embutido em cada plantão e a notificação push chega pelo próprio app de agenda. Re-exporte sempre que alterar seus plantões. Você também pode adicionar um compromisso individual pelo botão "Adicionar ao Google Agenda" na Agenda.</p>
+    </div>
+    <div class="card">
       <div class="card-title">Meta mensal de faturamento</div>
       <div class="input-row">
         <input class="input" id="cfGoal" inputmode="decimal" placeholder="Ex.: 25.000" value="${S.goal?S.goal.toLocaleString("pt-BR"):""}">
@@ -1881,9 +2582,13 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v1.1 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v1.5 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
+  $("#cfMods").onclick=()=> profileSheet(()=>renderCfg());
+  $$("[data-rem]").forEach(b=> b.onclick=()=>{ S.cal.reminder=+b.dataset.rem; save(); renderCfg(); });
+  $$("[data-wk]").forEach(b=> b.onclick=()=>{ S.cal.weekly=b.dataset.wk==="1"; save(); renderCfg(); });
+  $("#cfIcs").onclick=icsExport;
   $("#cfGoalOk").onclick=()=>{
     const v=parseMoney($("#cfGoal").value);
     S.goal = v&&v>0? v:0; save();
