@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RadFin">
+<meta name="theme-color" content="#0d0d0d">
+<title>RadFin — Honorários & Produtividade</title>
+<style>
+/* ============ TOKENS ============ */
+:root{
+  color-scheme: dark;
+  --bg:#0d0d0d;
+  --surface:#1a1a19;
+  --surface-2:#232322;
+  --surface-3:#2c2c2a;
+  --border:rgba(255,255,255,.09);
+  --border-strong:rgba(255,255,255,.16);
+  --text:#ffffff;
+  --text-2:#c3c2b7;
+  --muted:#898781;
+  --grid:#2c2c2a;
+  --axis:#383835;
+  --accent:#2bc9a4;
+  --accent-soft:rgba(43,201,164,.14);
+  --accent-ink:#06251c;
+  --good:#0ca30c;
+  --warn:#fab219;
+  --crit:#d03b3b;
+  --s1:#3987e5; --s2:#008300; --s3:#d55181; --s4:#c98500;
+  --s5:#199e70; --s6:#d95926; --s7:#9085e9; --s8:#e66767;
+  --seq:#3987e5;
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100%;
+  overscroll-behavior-y:none;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(60% 34% at 18% -6%, rgba(43,201,164,.13), transparent 62%),
+    radial-gradient(52% 30% at 88% -4%, rgba(57,135,229,.11), transparent 60%);
+}
+#app{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:calc(var(--sat) + 14px) 16px calc(var(--sab) + 96px)}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:16px;color:var(--text)}
+::placeholder{color:var(--muted)}
+h1,h2,h3{font-weight:700;letter-spacing:-.02em}
+
+/* ============ HEADER ============ */
+.appbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.appbar .brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#2bc9a4 0%,#3987e5 100%);box-shadow:0 6px 18px rgba(43,201,164,.25)}
+.brand-logo svg{width:22px;height:22px}
+.brand-name{font-size:19px;font-weight:800;letter-spacing:-.03em}
+.brand-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
+.appbar-date{font-size:12.5px;color:var(--text-2);text-align:right;line-height:1.35}
+.appbar-date b{display:block;color:var(--text);font-size:13px;text-transform:capitalize}
+
+/* ============ CARDS ============ */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow:0 8px 28px rgba(0,0,0,.32);
+}
+.card-title{font-size:13px;font-weight:600;color:var(--text-2);letter-spacing:.01em;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title .hint{font-size:11px;color:var(--muted);font-weight:500}
+
+/* ============ HERO ============ */
+.hero{
+  position:relative;overflow:hidden;
+  background:linear-gradient(150deg,#123b31 0%,#0f2338 58%,#161616 100%);
+  border:1px solid rgba(43,201,164,.22);
+}
+.hero .label{font-size:12.5px;color:var(--text-2);font-weight:600}
+.hero .value{font-size:44px;font-weight:800;letter-spacing:-.035em;line-height:1.06;margin:6px 0 2px}
+.hero .value small{font-size:22px;font-weight:700;color:var(--text-2);letter-spacing:-.01em}
+.hero .sub{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;
+  padding:4px 9px;border-radius:99px;background:rgba(255,255,255,.07)}
+.delta.up{color:#2ee56a}.delta.down{color:#ff7a7a}.delta.flat{color:var(--text-2)}
+.hero .period-note{font-size:12px;color:var(--muted)}
+
+/* ============ KPI ============ */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 15px}
+.kpi .k-label{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.01em}
+.kpi .k-value{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+.kpi .k-note{font-size:11px;color:var(--text-2);margin-top:3px}
+
+/* ============ FILTERS ============ */
+.filters{position:sticky;top:calc(var(--sat) + 4px);z-index:30;margin:0 -16px 12px;padding:6px 16px 10px;
+  background:linear-gradient(to bottom,var(--bg) 78%,transparent)}
+.chip-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:2px}
+.chip-row::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:600;color:var(--text-2);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:99px;padding:8px 14px;min-height:36px;white-space:nowrap;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.chip svg{width:13px;height:13px;opacity:.75}
+.chip.on{background:var(--accent-soft);border-color:rgba(43,201,164,.45);color:#7fe7cd}
+.chip.filter-active{background:rgba(57,135,229,.14);border-color:rgba(57,135,229,.5);color:#9cc4f2}
+.chip-row + .chip-row{margin-top:8px}
+
+/* ============ CHARTS ============ */
+.chart-wrap{position:relative}
+.chart-svg{display:block;width:100%;touch-action:pan-y}
+.bar-col{transition:opacity .12s}
+.bar-col.dim{opacity:.45}
+.tooltip{
+  position:absolute;z-index:50;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:#262624;border:1px solid var(--border-strong);border-radius:12px;
+  padding:9px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);min-width:120px;max-width:220px;
+}
+.tooltip.show{opacity:1}
+.tooltip .tt-title{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px}
+.tooltip .tt-val{font-size:15px;font-weight:800}
+.tooltip .tt-sub{font-size:11.5px;color:var(--text-2);margin-top:2px}
+
+/* HTML horizontal bars */
+.hbar-list{display:flex;flex-direction:column;gap:12px}
+.hbar{display:grid;grid-template-columns:1fr auto;gap:3px 10px;align-items:center}
+.hbar .hb-label{font-size:12.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;gap:7px;min-width:0}
+.hbar .hb-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .hb-val{font-size:12.5px;font-weight:700;text-align:right}
+.hbar .hb-sub{grid-column:2;font-size:10.5px;color:var(--muted);text-align:right}
+.hbar .hb-track{grid-column:1/-1;height:10px;border-radius:6px;background:var(--surface-3);overflow:hidden}
+.hbar .hb-fill{height:100%;border-radius:0 6px 6px 0;min-width:2px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+
+/* Stacked share bar */
+.share-bar{display:flex;height:16px;border-radius:9px;overflow:hidden;gap:2px;background:var(--bg)}
+.share-bar .seg-fill{min-width:3px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px}
+.legend .lg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);font-weight:600}
+
+/* Ranking */
+.rank-list{display:flex;flex-direction:column}
+.rank-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.rank-item:last-child{border-bottom:none;padding-bottom:2px}
+.rank-pos{width:26px;height:26px;border-radius:9px;background:var(--surface-3);display:grid;place-items:center;
+  font-size:12px;font-weight:800;color:var(--text-2);flex:0 0 auto}
+.rank-pos.first{background:linear-gradient(135deg,#2bc9a4,#3987e5);color:#062018}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.rank-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.rank-val{text-align:right}
+.rank-val b{font-size:14px;font-weight:800;display:block}
+.rank-val small{font-size:10.5px;color:var(--muted)}
+
+/* Meter */
+.meter-track{height:14px;border-radius:8px;background:var(--accent-soft);overflow:hidden;margin-top:10px}
+.meter-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#2bc9a4,#3fd8b4);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.meter-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-2);margin-top:7px}
+
+/* Insights */
+.insight{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border)}
+.insight:last-child{border-bottom:none;padding-bottom:2px}
+.insight .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;background:var(--surface-3)}
+.insight .ic svg{width:17px;height:17px}
+.insight .tx{flex:1;font-size:13px;color:var(--text-2);line-height:1.45}
+.insight .tx b{color:var(--text)}
+
+/* ============ FORMS / CONTROLS ============ */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:7px}
+.input,select.input{
+  width:100%;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:13px 14px;font-size:16px;outline:none;
+  transition:border-color .15s;appearance:none;-webkit-appearance:none;
+}
+.input:focus{border-color:rgba(43,201,164,.55)}
+.input-row{display:flex;gap:10px}
+.input-row>*{flex:1}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  min-height:50px;border-radius:var(--r-md);font-size:15.5px;font-weight:700;
+  background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+  transition:transform .1s,filter .15s;
+}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:linear-gradient(135deg,#2bc9a4,#24a9c9);border:none;color:#052019}
+.btn-danger{background:rgba(208,59,59,.14);border-color:rgba(208,59,59,.4);color:#ff8a8a}
+.btn-ghost{background:transparent}
+.btn-sm{min-height:38px;font-size:13px;border-radius:11px;padding:0 14px;width:auto}
+.btn:disabled{opacity:.45;pointer-events:none}
+.search-box{position:relative;margin-bottom:12px}
+.search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+.search-box .input{padding-left:38px}
+
+/* Stepper */
+.stepper{display:flex;align-items:center;gap:0;background:var(--surface-3);border-radius:11px;overflow:hidden;flex:0 0 auto}
+.stepper button{width:38px;height:38px;font-size:19px;font-weight:700;color:var(--text-2);display:grid;place-items:center}
+.stepper button:active{background:rgba(255,255,255,.08)}
+.stepper .qty{min-width:30px;text-align:center;font-size:15px;font-weight:800}
+.stepper .qty.zero{color:var(--muted);font-weight:600}
+
+/* List rows */
+.lrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+.lrow:last-child{border-bottom:none}
+.lrow .lr-main{flex:1;min-width:0}
+.lrow .lr-title{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow .lr-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.lrow .lr-side{text-align:right;flex:0 0 auto}
+.lrow .lr-side b{display:block;font-size:14px;font-weight:700}
+.lrow .lr-side small{font-size:11px;color:var(--muted)}
+.chev{width:16px;height:16px;color:var(--muted);flex:0 0 auto}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text-2);
+  background:var(--surface-3);border-radius:7px;padding:3px 8px}
+
+/* Price input */
+.price-input{width:108px;background:var(--surface-3);border:1px solid transparent;border-radius:10px;
+  padding:9px 10px;font-size:15px;font-weight:700;text-align:right;outline:none}
+.price-input:focus{border-color:rgba(43,201,164,.55);background:var(--surface-2)}
+.price-input.noval{color:var(--muted);font-weight:500}
+
+/* Section head inside pages */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin:22px 0 10px}
+.sec-head h2{font-size:17px}
+.sec-head .link{font-size:13px;font-weight:700;color:var(--accent)}
+.mod-head{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:16px 0 4px}
+
+/* ============ EMPTY STATES ============ */
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:36px 20px;gap:12px}
+.empty .em-ic{width:64px;height:64px;border-radius:20px;background:var(--surface-2);display:grid;place-items:center}
+.empty .em-ic svg{width:30px;height:30px;color:var(--accent)}
+.empty h3{font-size:16px}
+.empty p{font-size:13px;color:var(--muted);line-height:1.5;max-width:280px}
+.empty .btn{max-width:260px}
+
+/* ============ TAB BAR ============ */
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  display:flex;justify-content:center;
+  padding:8px 12px calc(var(--sab) + 8px);
+  background:rgba(13,13,13,.78);
+  -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+  border-top:1px solid var(--border);
+}
+.tabbar-inner{display:flex;width:100%;max-width:520px;align-items:flex-end}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;color:var(--muted);min-height:48px;justify-content:center}
+.tab svg{width:23px;height:23px}
+.tab span{font-size:10px;font-weight:600}
+.tab.on{color:var(--accent)}
+.tab-fab{flex:1;display:flex;justify-content:center;align-items:center}
+.fab{
+  width:56px;height:56px;border-radius:19px;display:grid;place-items:center;margin-top:-22px;
+  background:linear-gradient(135deg,#2bc9a4,#24a9c9);color:#052019;
+  box-shadow:0 8px 24px rgba(43,201,164,.4);transition:transform .12s;
+}
+.fab:active{transform:scale(.94)}
+.fab svg{width:26px;height:26px}
+
+/* ============ SHEET ============ */
+.sheet-veil{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);opacity:0;transition:opacity .22s;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.sheet-veil.show{opacity:1}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:81;max-width:520px;margin:0 auto;
+  background:#1e1e1d;border-radius:24px 24px 0 0;border:1px solid var(--border);border-bottom:none;
+  padding:10px 18px calc(var(--sab) + 20px);
+  transform:translateY(102%);transition:transform .28s cubic-bezier(.32,.72,.25,1);
+  max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;
+}
+.sheet.show{transform:translateY(0)}
+.sheet .grab{width:38px;height:5px;border-radius:3px;background:var(--surface-3);margin:4px auto 14px;flex:0 0 auto}
+.sheet h3{font-size:17px;margin-bottom:14px;flex:0 0 auto}
+.sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding-bottom:6px}
+.sheet-foot{flex:0 0 auto;padding-top:12px;display:flex;gap:10px}
+
+/* ============ MISC ============ */
+.toast{
+  position:fixed;left:50%;bottom:calc(var(--sab) + 100px);transform:translate(-50%,16px);z-index:99;
+  background:#262624;border:1px solid var(--border-strong);color:var(--text);
+  font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:99px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;transition:all .25s;white-space:nowrap;
+  display:flex;align-items:center;gap:8px;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast svg{width:16px;height:16px;color:var(--accent)}
+.day-head{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 4px}
+.day-head .dh-date{font-size:13px;font-weight:700}
+.day-head .dh-date::first-letter{text-transform:uppercase}
+.day-head .dh-total{font-size:12.5px;font-weight:700;color:var(--accent)}
+.conv-chips{display:flex;flex-wrap:wrap;gap:8px}
+.total-bar{
+  position:sticky;bottom:calc(var(--sab) + 88px);z-index:40;margin-top:14px;
+  background:linear-gradient(135deg,#2bc9a4,#24a9c9);border-radius:var(--r-md);
+  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
+  color:#052019;box-shadow:0 10px 30px rgba(43,201,164,.35);cursor:pointer;gap:12px;
+}
+.total-bar .tb-l{font-size:13px;font-weight:700;flex:1;min-width:0;text-align:left}
+.total-bar .tb-l small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.total-bar .tb-r{flex:0 0 auto}
+.total-bar .tb-l small{display:block;font-size:11px;opacity:.75;font-weight:600}
+.total-bar .tb-r{font-size:17px;font-weight:800}
+.page{animation:pgin .25s ease}
+@keyframes pgin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hidden{display:none!important}
+.mut{color:var(--muted)}
+.txt-c{text-align:center}
+.mb0{margin-bottom:0}
+.note{font-size:12px;color:var(--muted);line-height:1.55}
+.swatch-row{display:flex;gap:10px;flex-wrap:wrap}
+.swatch{width:34px;height:34px;border-radius:12px;border:2px solid transparent;transition:transform .12s}
+.swatch.on{border-color:#fff;transform:scale(1.1)}
+/* ============ APPBAR EXTRAS ============ */
+.appbar-right{display:flex;align-items:center;gap:10px}
+.icon-btn{width:38px;height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:grid;place-items:center;color:var(--text-2);flex:0 0 auto}
+.icon-btn svg{width:19px;height:19px}
+.icon-btn:active{background:var(--surface-2)}
+
+/* ============ CALENDÁRIO ============ */
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-title{font-weight:800;font-size:15.5px;letter-spacing:-.01em}
+.cal-title::first-letter{text-transform:uppercase}
+.cal-nav{display:flex;gap:8px}
+.cal-nav button{width:34px;height:34px;border-radius:10px;background:var(--surface-3);display:grid;place-items:center;color:var(--text-2)}
+.cal-nav button svg{width:15px;height:15px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dow{text-align:center;font-size:10px;color:var(--muted);font-weight:700;padding:2px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+.cal-cell{aspect-ratio:.86;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:13px;font-weight:600;color:var(--text-2);border:1px solid transparent;padding:2px 0;position:relative}
+.cal-cell.out{opacity:.26;pointer-events:auto}
+.cal-cell.today{border-color:rgba(43,201,164,.55)}
+.cal-cell.sel{background:var(--accent-soft);color:#7fe7cd;border-color:rgba(43,201,164,.4)}
+.cal-cell .cd{display:flex;gap:2.5px;height:5px}
+.cal-cell .cd i{width:5px;height:5px;border-radius:50%;display:block}
+.cal-cell .pb{width:13px;height:2.5px;border-radius:2px;background:var(--accent);position:absolute;bottom:5px}
+.cal-cell .cd .more{font-size:7.5px;line-height:5px;color:var(--muted);font-weight:800}
+
+/* ============ SEMANA / COMPROMISSOS ============ */
+.wk-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--border)}
+.wk-row:last-child{border-bottom:none}
+.wk-day{width:40px;flex:0 0 auto;text-align:center}
+.wk-day b{display:block;font-size:15px;letter-spacing:-.01em}
+.wk-day span{font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.wk-day.today b{color:var(--accent)}
+.wk-main{flex:1;min-width:0}
+.wk-main .wk-loc{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--text-2)}
+.wk-main .wk-loc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-main .wk-free{font-size:12px;color:var(--muted)}
+.wk-val{text-align:right;flex:0 0 auto}
+.wk-val b{display:block;font-size:13px;font-weight:800}
+.wk-val small{font-size:10px;color:var(--muted)}
+.wk-val.done b{color:var(--accent)}
+.wk-tot{display:flex;justify-content:space-between;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.wk-tot .wt{text-align:center;flex:1}
+.wk-tot .wt b{display:block;font-size:15px;font-weight:800;letter-spacing:-.01em}
+.wk-tot .wt span{font-size:10px;color:var(--muted);font-weight:600}
+
+/* ============ PROJEÇÃO ============ */
+.proj-total{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:2px 0 10px}
+.proj-bar{display:flex;height:14px;border-radius:8px;overflow:hidden;gap:2px;background:var(--surface-3);margin-bottom:12px}
+.proj-bar i{display:block;min-width:3px}
+.proj-leg{display:flex;flex-direction:column;gap:8px}
+.proj-leg .pl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2)}
+.proj-leg .pl .dot{width:9px;height:9px;border-radius:3px}
+.proj-leg .pl b{margin-left:auto;color:var(--text);font-weight:700;font-size:13px}
+@media (min-width:520px){ body{padding-top:10px} }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="appbar">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#052019" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17l4-8 4 5 4-9 4 12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">RadFin</div>
+        <div class="brand-sub">Honorários &amp; Produtividade</div>
+      </div>
+    </div>
+    <div class="appbar-right">
+      <div class="appbar-date" id="appbarDate"></div>
+      <button class="icon-btn" id="cfgBtn" aria-label="Ajustes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.09a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="view"></main>
+</div>
+
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab" data-tab="dash">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4.5" height="8" rx="1.2"/><rect x="9.75" y="7" width="4.5" height="13" rx="1.2"/><rect x="16.5" y="3" width="4.5" height="17" rx="1.2"/></svg>
+      <span>Início</span>
+    </button>
+    <button class="tab" data-tab="agenda">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 9h18"/></svg>
+      <span>Agenda</span>
+    </button>
+    <div class="tab-fab">
+      <button class="fab" data-tab="add" aria-label="Lançar exames">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <button class="tab" data-tab="hist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+      <span>Histórico</span>
+    </button>
+    <button class="tab" data-tab="locs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span>Locais</span>
+    </button>
+  </div>
+</nav>
+
+<div class="sheet-veil hidden" id="sheetVeil"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div id="sheetContent" style="display:flex;flex-direction:column;min-height:0;flex:1"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="tooltip" id="tooltip"></div>
+<script>
+"use strict";
+/* ================== STORAGE (safe wrapper) ================== */
+const store = {
+  ok: (() => { try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; } catch(e){ return false; } })(),
+  mem: {},
+  get(k){ if(this.ok){ try { return localStorage.getItem(k); } catch(e){} } return (k in this.mem) ? this.mem[k] : null; },
+  set(k,v){ if(this.ok){ try { localStorage.setItem(k,v); return; } catch(e){} } this.mem[k]=v; },
+  del(k){ if(this.ok){ try { localStorage.removeItem(k); } catch(e){} } delete this.mem[k]; }
+};
+const DB_KEY = "radfin.v1";
+
+/* ================== MODALIDADES & CATÁLOGO ================== */
+const MODS = ["USG","Doppler","RX","TC","RM","MMG","DMO","Outros"];
+const CATALOG_SEED = [
+  ["USG","Abdome total"],["USG","Abdome superior"],["USG","Aparelho urinário"],
+  ["USG","Pélvica (via abdominal)"],["USG","Transvaginal"],["USG","Próstata (via abdominal)"],
+  ["USG","Tireoide"],["USG","Cervical / Glândulas salivares"],["USG","Mamas"],
+  ["USG","Axilas"],["USG","Bolsa escrotal"],["USG","Partes moles"],
+  ["USG","Articular (por articulação)"],["USG","Ombro"],["USG","Quadril infantil"],
+  ["USG","Parede abdominal"],["USG","Obstétrica"],["USG","Obstétrica 1º trimestre"],
+  ["USG","Morfológica 1º trimestre"],["USG","Morfológica 2º trimestre"],
+  ["Doppler","Obstétrica com Doppler"],["Doppler","Carótidas e vertebrais"],
+  ["Doppler","Venoso de MMII (unilateral)"],["Doppler","Venoso de MMII (bilateral)"],
+  ["Doppler","Arterial de MMII (unilateral)"],["Doppler","Arterial de MMII (bilateral)"],
+  ["Doppler","Aorta e ilíacas"],["Doppler","Artérias renais"],["Doppler","Transvaginal com Doppler"],
+  ["Doppler","Tireoide com Doppler"],["Doppler","Ecodoppler de bolsa escrotal"],
+  ["RX","Tórax (PA + perfil)"],["RX","Coluna lombar"],["RX","Seios da face"],["RX","Abdome simples"],
+  ["TC","Crânio"],["TC","Tórax"],["TC","Abdome total"],["TC","Coluna lombar"],
+  ["RM","Crânio"],["RM","Coluna lombar"],["RM","Joelho"],["RM","Ombro"],
+  ["MMG","Mamografia bilateral"],["DMO","Densitometria óssea (col. + fêmur)"]
+];
+
+/* ================== STATE ================== */
+const SLOTS = ["#3987e5","#008300","#d55181","#c98500","#199e70","#d95926","#9085e9","#e66767"];
+let S = null;
+
+function freshState(){
+  return {
+    version: 1,
+    locations: [],           // {id,name,slot,convenios:[..]}
+    exams: CATALOG_SEED.map((e,i)=>({id:"x"+(i+1), mod:e[0], name:e[1]})),
+    examSeq: CATALOG_SEED.length,
+    prices: {},              // "locId|examId|conv" -> number
+    entries: [],             // {id,date,locId,examId,conv,qty,unit}
+    entrySeq: 0, locSeq: 0,
+    goal: 0,                 // meta mensal R$
+    last: { locId:null, conv:null },
+    agenda: { events:[], rules:[], skips:[], seq:0 }
+  };
+}
+function migrate(){
+  if(!S.agenda || !Array.isArray(S.agenda.rules)) S.agenda = { events:[], rules:[], skips:[], seq:0 };
+  if(!Array.isArray(S.agenda.events)) S.agenda.events=[];
+  if(!Array.isArray(S.agenda.skips)) S.agenda.skips=[];
+  if(typeof S.agenda.seq!=="number") S.agenda.seq=0;
+}
+function save(){ store.set(DB_KEY, JSON.stringify(S)); }
+function load(){
+  const raw = store.get(DB_KEY);
+  if(raw){ try { S = JSON.parse(raw); } catch(e){ S = null; } }
+  if(!S || !Array.isArray(S.exams)) S = freshState();
+  migrate();
+}
+
+/* ================== AGENDA (compromissos) ================== */
+const PERIODS = ["Manhã","Tarde","Noite","Dia inteiro"];
+function occurrences(date){
+  const dow = fromISO(date).getDay();
+  const evs = S.agenda.events.filter(e=>e.date===date)
+    .map(e=>({id:e.id, date, locId:e.locId, period:e.period, note:e.note, type:"event"}));
+  const rls = S.agenda.rules.filter(r=>
+      r.dow===dow && r.from<=date && (!r.until || date<r.until) &&
+      !S.agenda.skips.some(s=>s.ruleId===r.id && s.date===date))
+    .map(r=>({id:r.id, date, locId:r.locId, period:r.period, note:r.note, type:"rule"}));
+  return evs.concat(rls).filter(o=>locById(o.locId));
+}
+function hasAgendaData(){ return S.agenda.events.length>0 || S.agenda.rules.length>0; }
+
+/* ================== HELPERS ================== */
+const $  = (s,el)=> (el||document).querySelector(s);
+const $$ = (s,el)=> Array.from((el||document).querySelectorAll(s));
+const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtBRL = v => (v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmtBRL0 = v => (v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
+const fmtN = v => (v||0).toLocaleString("pt-BR");
+const compact = v => {
+  const a = Math.abs(v||0);
+  if(a>=1e6) return "R$ "+(v/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mi";
+  if(a>=1e4) return "R$ "+(v/1e3).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil";
+  return fmtBRL0(v);
+};
+const pad2 = n => String(n).padStart(2,"0");
+const toISO = d => d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+const fromISO = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const todayISO = () => toISO(new Date());
+const addDays = (iso,n)=>{ const d=fromISO(iso); d.setDate(d.getDate()+n); return toISO(d); };
+const WEEKDAYS = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+const MONTHS_S = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function fmtDateShort(iso){ const d=fromISO(iso); return d.getDate()+" "+MONTHS_S[d.getMonth()]; }
+function fmtDateLong(iso){
+  const d=fromISO(iso), t=todayISO();
+  if(iso===t) return "Hoje, "+d.getDate()+" de "+MONTHS_S[d.getMonth()];
+  if(iso===addDays(t,-1)) return "Ontem, "+d.getDate()+" de "+MONTHS_S[d.getMonth()];
+  return WEEKDAYS[d.getDay()]+", "+d.getDate()+" "+MONTHS_S[d.getMonth()]+(d.getFullYear()!==new Date().getFullYear()?" "+d.getFullYear():"");
+}
+const locById  = id => S.locations.find(l=>l.id===id);
+const examById = id => S.exams.find(e=>e.id===id);
+const pKey = (l,x,c)=> l+"|"+x+"|"+c;
+function getPrice(locId,examId,conv){
+  let v = S.prices[pKey(locId,examId,conv)];
+  if(v==null && conv!=="Padrão") v = S.prices[pKey(locId,examId,"Padrão")];
+  return v==null ? null : v;
+}
+function parseMoney(s){
+  if(typeof s!=="string") return null;
+  s = s.trim().replace(/[R$\s]/g,"");
+  if(!s) return null;
+  if(s.includes(",")) s = s.replace(/\./g,"").replace(",",".");
+  const v = parseFloat(s);
+  return isNaN(v) ? null : Math.round(v*100)/100;
+}
+
+let toastTimer=null;
+function toast(msg){
+  const t = $("#toast");
+  t.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'+esc(msg);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+/* ================== SHEET (bottom modal) ================== */
+const sheetEl = $("#sheet"), veilEl = $("#sheetVeil");
+let sheetOnClose = null;
+function openSheet(html, onReady, onClose){
+  $("#sheetContent").innerHTML = html;
+  sheetOnClose = onClose||null;
+  veilEl.classList.remove("hidden");
+  requestAnimationFrame(()=>{ veilEl.classList.add("show"); sheetEl.classList.add("show"); });
+  if(onReady) onReady($("#sheetContent"));
+}
+function closeSheet(){
+  veilEl.classList.remove("show"); sheetEl.classList.remove("show");
+  setTimeout(()=>{ veilEl.classList.add("hidden"); $("#sheetContent").innerHTML=""; }, 300);
+  if(sheetOnClose){ const f=sheetOnClose; sheetOnClose=null; f(); }
+}
+veilEl.addEventListener("click", closeSheet);
+
+function confirmSheet(title, msg, okLabel, onOk, danger=true){
+  openSheet(`
+    <h3>${esc(title)}</h3>
+    <div class="sheet-body"><p class="note" style="font-size:13.5px">${esc(msg)}</p></div>
+    <div class="sheet-foot">
+      <button class="btn" id="cfCancel">Cancelar</button>
+      <button class="btn ${danger?"btn-danger":"btn-primary"}" id="cfOk">${esc(okLabel)}</button>
+    </div>`,
+    el=>{
+      $("#cfCancel",el).onclick = closeSheet;
+      $("#cfOk",el).onclick = ()=>{ closeSheet(); onOk(); };
+    });
+}
+
+/* ================== DEMO DATA ================== */
+function loadDemo(){
+  S = freshState();
+  const mkLoc = (name,convs)=>{ const id="l"+(++S.locSeq); S.locations.push({id,name,slot:(S.locSeq-1)%8,convenios:convs}); return id; };
+  const l1 = mkLoc("Hospital São Lucas", ["Particular","Unimed","Convênio X"]);
+  const l2 = mkLoc("Clínica ImageCenter", ["Particular","Unimed"]);
+  const l3 = mkLoc("UPA Norte (plantão)", ["SUS"]);
+  const X = n => S.exams.find(e=>e.name===n).id;
+  const priceRows = [
+    [l1,"Abdome total",{Particular:110,Unimed:82,"Convênio X":74}],
+    [l1,"Tireoide",{Particular:95,Unimed:70,"Convênio X":62}],
+    [l1,"Obstétrica",{Particular:120,Unimed:88,"Convênio X":80}],
+    [l1,"Obstétrica com Doppler",{Particular:170,Unimed:130,"Convênio X":118}],
+    [l1,"Transvaginal",{Particular:105,Unimed:78,"Convênio X":70}],
+    [l1,"Carótidas e vertebrais",{Particular:180,Unimed:140,"Convênio X":126}],
+    [l1,"Venoso de MMII (unilateral)",{Particular:150,Unimed:115,"Convênio X":104}],
+    [l1,"Venoso de MMII (bilateral)",{Particular:240,Unimed:190,"Convênio X":170}],
+    [l1,"Mamas",{Particular:95,Unimed:72,"Convênio X":64}],
+    [l1,"Aparelho urinário",{Particular:90,Unimed:68,"Convênio X":60}],
+    [l1,"Partes moles",{Particular:88,Unimed:66,"Convênio X":58}],
+    [l2,"Abdome total",{Particular:95,Unimed:75}],
+    [l2,"Tireoide",{Particular:85,Unimed:65}],
+    [l2,"Mamas",{Particular:85,Unimed:66}],
+    [l2,"Transvaginal",{Particular:92,Unimed:72}],
+    [l2,"Obstétrica",{Particular:105,Unimed:82}],
+    [l2,"Morfológica 2º trimestre",{Particular:260,Unimed:200}],
+    [l2,"Articular (por articulação)",{Particular:80,Unimed:62}],
+    [l2,"Carótidas e vertebrais",{Particular:160,Unimed:128}],
+    [l2,"Bolsa escrotal",{Particular:85,Unimed:66}],
+    [l3,"Abdome total",{SUS:38}],
+    [l3,"Aparelho urinário",{SUS:34}],
+    [l3,"Pélvica (via abdominal)",{SUS:34}],
+    [l3,"Obstétrica",{SUS:40}],
+    [l3,"Partes moles",{SUS:32}],
+    [l3,"Bolsa escrotal",{SUS:34}]
+  ];
+  priceRows.forEach(([loc,name,convs])=>{ for(const c in convs) S.prices[pKey(loc,X(name),c)] = convs[c]; });
+
+  // ~75 dias de volumetria pseudo-aleatória determinística
+  let seed = 42;
+  const rnd = ()=>{ seed=(seed*1103515245+12345)%2147483648; return seed/2147483648; };
+  const today = todayISO();
+  const plans = [
+    {loc:l1, days:[1,3,5], mix:[["Abdome total","Particular",2,5],["Abdome total","Unimed",3,7],["Tireoide","Unimed",2,5],["Obstétrica","Unimed",1,4],["Obstétrica com Doppler","Particular",0,3],["Transvaginal","Convênio X",1,4],["Carótidas e vertebrais","Particular",0,2],["Venoso de MMII (bilateral)","Unimed",0,2],["Mamas","Convênio X",1,3],["Aparelho urinário","Unimed",1,3]]},
+    {loc:l2, days:[2,4], mix:[["Abdome total","Unimed",2,6],["Tireoide","Particular",1,4],["Mamas","Unimed",1,4],["Transvaginal","Unimed",2,5],["Obstétrica","Particular",1,3],["Morfológica 2º trimestre","Particular",0,2],["Articular (por articulação)","Unimed",1,4],["Carótidas e vertebrais","Unimed",0,2],["Bolsa escrotal","Particular",0,2]]},
+    {loc:l3, days:[6], mix:[["Abdome total","SUS",4,10],["Aparelho urinário","SUS",3,8],["Pélvica (via abdominal)","SUS",2,6],["Obstétrica","SUS",1,5],["Partes moles","SUS",1,4]]}
+  ];
+  for(let i=75;i>=0;i--){
+    const iso = addDays(today,-i), dow = fromISO(iso).getDay();
+    plans.forEach(p=>{
+      if(!p.days.includes(dow) || rnd()<0.12) return;
+      p.mix.forEach(([name,conv,min,max])=>{
+        const q = min + Math.floor(rnd()*(max-min+1));
+        if(q<=0) return;
+        const xid = X(name), unit = getPriceRaw(p.loc,xid,conv);
+        S.entries.push({id:"e"+(++S.entrySeq), date:iso, locId:p.loc, examId:xid, conv, qty:q, unit});
+      });
+    });
+  }
+  S.goal = 22000;
+  S.last = {locId:l1, conv:"Unimed"};
+  // agenda de exemplo: espelha o padrão de plantões acima
+  const rFrom = addDays(today,-75);
+  S.agenda = { events:[], skips:[], seq:6, rules:[
+    {id:"r1",dow:1,locId:l1,period:"Manhã",note:"",from:rFrom},
+    {id:"r2",dow:3,locId:l1,period:"Manhã",note:"",from:rFrom},
+    {id:"r3",dow:5,locId:l1,period:"Manhã",note:"",from:rFrom},
+    {id:"r4",dow:2,locId:l2,period:"Tarde",note:"",from:rFrom},
+    {id:"r5",dow:4,locId:l2,period:"Tarde",note:"",from:rFrom},
+    {id:"r6",dow:6,locId:l3,period:"Noite",note:"plantão 12h",from:rFrom}
+  ]};
+  save();
+  function getPriceRaw(l,x,c){ return S.prices[pKey(l,x,c)] ?? 0; }
+}
+</script>
+<script>
+"use strict";
+/* ================== FILTROS DO DASHBOARD ================== */
+const F = { period:"month", from:null, to:null, loc:"all", conv:"all", mod:"all", exam:"all" };
+
+function periodRange(){
+  const t = todayISO(), d = new Date();
+  switch(F.period){
+    case "today": return [t,t,"Hoje"];
+    case "7d":    return [addDays(t,-6),t,"Últimos 7 dias"];
+    case "30d":   return [addDays(t,-29),t,"Últimos 30 dias"];
+    case "month": return [toISO(new Date(d.getFullYear(),d.getMonth(),1)),t,"Este mês"];
+    case "pmonth":{
+      const f=new Date(d.getFullYear(),d.getMonth()-1,1), l=new Date(d.getFullYear(),d.getMonth(),0);
+      return [toISO(f),toISO(l),"Mês passado"];
+    }
+    case "90d":  return [addDays(t,-89),t,"Últimos 90 dias"];
+    case "year": return [toISO(new Date(d.getFullYear(),0,1)),t,"Este ano"];
+    case "all":  {
+      const ds = S.entries.map(e=>e.date).sort();
+      return [ds[0]||t, t, "Todo o período"];
+    }
+    case "custom": return [F.from||t, F.to||t, fmtDateShort(F.from||t)+" – "+fmtDateShort(F.to||t)];
+  }
+  return [t,t,""];
+}
+function entryValue(e){ return (e.unit||0)*e.qty; }
+function filteredEntries(range){
+  const [from,to] = range || periodRange();
+  return S.entries.filter(e=>{
+    if(e.date<from || e.date>to) return false;
+    if(F.loc!=="all" && e.locId!==F.loc) return false;
+    if(F.conv!=="all" && e.conv!==F.conv) return false;
+    if(F.mod!=="all"){ const x=examById(e.examId); if(!x||x.mod!==F.mod) return false; }
+    if(F.exam!=="all" && e.examId!==F.exam) return false;
+    return true;
+  });
+}
+function sumBy(arr, keyFn){
+  const m = new Map();
+  arr.forEach(e=>{
+    const k = keyFn(e);
+    const cur = m.get(k)||{v:0,q:0};
+    cur.v += entryValue(e); cur.q += e.qty;
+    m.set(k,cur);
+  });
+  return m;
+}
+
+/* ================== DASHBOARD ================== */
+function renderDash(){
+  const [from,to,label] = periodRange();
+  const ent = filteredEntries([from,to]);
+  const total = ent.reduce((s,e)=>s+entryValue(e),0);
+  const nEx   = ent.reduce((s,e)=>s+e.qty,0);
+  const days  = new Set(ent.map(e=>e.date)).size;
+
+  // período anterior de mesmo tamanho p/ delta
+  const span = Math.round((fromISO(to)-fromISO(from))/86400000)+1;
+  const prevEnt = filteredEntries([addDays(from,-span), addDays(from,-1)]);
+  const prevTotal = prevEnt.reduce((s,e)=>s+entryValue(e),0);
+  let deltaHtml = "";
+  if(prevTotal>0){
+    const pc = (total-prevTotal)/prevTotal*100;
+    const cls = pc>0.5?"up":(pc<-0.5?"down":"flat");
+    const arrow = pc>0.5?"↑":(pc<-0.5?"↓":"→");
+    deltaHtml = `<span class="delta ${cls}">${arrow} ${Math.abs(pc).toLocaleString("pt-BR",{maximumFractionDigits:0})}%</span><span class="period-note">vs período anterior</span>`;
+  }
+
+  const hasData = S.entries.length>0;
+  const hasSetup = S.locations.length>0;
+
+  let html = renderFilters(label);
+
+  if(!hasSetup){
+    html += emptyState("map","Comece cadastrando um local",
+      "Adicione os locais onde você trabalha e defina os honorários de cada exame por convênio.",
+      "Cadastrar primeiro local","goLocs");
+    html += `<div class="card txt-c" style="padding:14px"><p class="note">Ou explore o app com <button class="link-btn" id="demoBtn" style="color:var(--accent);font-weight:700;font-size:12px">dados de exemplo</button></p></div>`;
+    $("#view").innerHTML = html;
+    bindFilters();
+    const d = $("#demoBtn"); if(d) d.onclick = ()=>{ loadDemo(); toast("Dados de exemplo carregados"); render(); };
+    const g = $("#goLocs"); if(g) g.onclick = ()=> nav("locs");
+    return;
+  }
+
+  // HERO
+  html += `
+  <section class="card hero">
+    <div class="label">Faturamento · ${esc(label)}</div>
+    <div class="value">${heroMoney(total)}</div>
+    <div class="sub">${deltaHtml}</div>
+  </section>`;
+
+  // KPIs
+  const ticket = nEx? total/nEx : 0;
+  const daily  = days? total/days : 0;
+  html += `
+  <section class="kpi-grid">
+    <div class="kpi"><div class="k-label">Exames laudados</div><div class="k-value">${fmtN(nEx)}</div><div class="k-note">${days} dia${days===1?"":"s"} com produção</div></div>
+    <div class="kpi"><div class="k-label">Ticket médio / exame</div><div class="k-value">${fmtBRL(ticket)}</div><div class="k-note">média no período</div></div>
+    <div class="kpi"><div class="k-label">Média por dia produtivo</div><div class="k-value">${compact(daily)}</div><div class="k-note">${fmtN(days?Math.round(nEx/days):0)} exames/dia</div></div>
+    <div class="kpi"><div class="k-label">Locais ativos</div><div class="k-value">${new Set(ent.map(e=>e.locId)).size}</div><div class="k-note">de ${S.locations.length} cadastrado${S.locations.length===1?"":"s"}</div></div>
+  </section>`;
+
+  if(ent.length===0){
+    html += emptyState("chart","Sem lançamentos no período",
+      hasData? "Ajuste os filtros acima ou lance a volumetria de hoje no botão +." :
+      "Toque no botão + para lançar sua primeira volumetria diária.",
+      "Lançar exames","goAdd");
+    $("#view").innerHTML = html;
+    bindFilters();
+    const g=$("#goAdd"); if(g) g.onclick=()=>nav("add");
+    return;
+  }
+
+  // META + PROJEÇÃO (sempre sobre o mês corrente, independe dos filtros)
+  const mp = monthProjection();
+  const dNow = new Date();
+  if(S.goal>0){
+    const pct = Math.min(100, mp.realized/S.goal*100);
+    html += `
+    <section class="card">
+      <div class="card-title">Meta do mês <span class="hint">${MONTHS_S[dNow.getMonth()]}/${dNow.getFullYear()}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <b style="font-size:20px;letter-spacing:-.02em">${fmtBRL0(mp.realized)}</b>
+        <span class="mut" style="font-size:12px">meta ${fmtBRL0(S.goal)}</span>
+      </div>
+      <div class="meter-track"><div class="meter-fill" style="width:${pct.toFixed(1)}%"></div></div>
+      <div class="meter-row"><span>${pct.toLocaleString("pt-BR",{maximumFractionDigits:0})}% atingido</span><span>projeção: <b style="color:${mp.total>=S.goal?"#2ee56a":"var(--text)"}">${compact(mp.total)}</b></span></div>
+    </section>`;
+  }
+  html += projectionCard(mp);
+
+  // GRÁFICO DE FATURAMENTO NO TEMPO
+  html += `
+  <section class="card">
+    <div class="card-title">Faturamento no período <span class="hint">toque nas barras</span></div>
+    <div class="chart-wrap" id="tsChart"></div>
+  </section>`;
+
+  // PESO POR LOCAL (share bar) + RANKING
+  const byLoc = sumBy(ent, e=>e.locId);
+  const locRank = Array.from(byLoc.entries())
+    .map(([id,d])=>({loc:locById(id), ...d}))
+    .filter(r=>r.loc)
+    .sort((a,b)=>b.v-a.v);
+  if(locRank.length>0){
+    const shareSegs = locRank.map(r=>`<div class="seg-fill" style="flex:${r.v||0.0001};background:${SLOTS[r.loc.slot]}"></div>`).join("");
+    const legend = locRank.map(r=>`<span class="lg"><span class="dot" style="background:${SLOTS[r.loc.slot]}"></span>${esc(r.loc.name)} · ${(r.v/total*100).toLocaleString("pt-BR",{maximumFractionDigits:0})}%</span>`).join("");
+    html += `
+    <section class="card">
+      <div class="card-title">Peso por local de trabalho</div>
+      <div class="share-bar">${shareSegs}</div>
+      <div class="legend">${legend}</div>
+    </section>
+    <section class="card">
+      <div class="card-title">Ranking de rentabilidade <span class="hint">R$/exame</span></div>
+      <div class="rank-list">${
+        locRank.slice().sort((a,b)=>(b.v/b.q)-(a.v/a.q)).map((r,i)=>`
+        <div class="rank-item">
+          <div class="rank-pos ${i===0?"first":""}">${i+1}</div>
+          <div class="rank-info">
+            <div class="rank-name"><span class="dot" style="background:${SLOTS[r.loc.slot]}"></span><span>${esc(r.loc.name)}</span></div>
+            <div class="rank-meta">${fmtN(r.q)} exames · total ${fmtBRL0(r.v)}</div>
+          </div>
+          <div class="rank-val"><b>${fmtBRL(r.v/r.q)}</b><small>por exame</small></div>
+        </div>`).join("")
+      }</div>
+    </section>`;
+  }
+
+  // POR MODALIDADE + POR CONVÊNIO (barras horizontais, sequencial)
+  const byMod = Array.from(sumBy(ent, e=>(examById(e.examId)||{}).mod||"Outros").entries()).sort((a,b)=>b[1].v-a[1].v);
+  const byConv = Array.from(sumBy(ent, e=>e.conv).entries()).sort((a,b)=>b[1].v-a[1].v);
+  html += `
+  <section class="card">
+    <div class="card-title">Por modalidade</div>
+    ${hbars(byMod, total)}
+  </section>
+  <section class="card">
+    <div class="card-title">Por convênio</div>
+    ${hbars(byConv, total)}
+  </section>`;
+
+  // TOP EXAMES
+  const byExam = Array.from(sumBy(ent, e=>e.examId).entries())
+    .map(([id,d])=>({x:examById(id),...d})).filter(r=>r.x)
+    .sort((a,b)=>b.v-a.v).slice(0,6);
+  html += `
+  <section class="card">
+    <div class="card-title">Top exames por receita</div>
+    <div class="rank-list">${byExam.map((r,i)=>`
+      <div class="rank-item">
+        <div class="rank-pos ${i===0?"first":""}">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-name"><span>${esc(r.x.name)}</span></div>
+          <div class="rank-meta">${esc(r.x.mod)} · ${fmtN(r.q)} exames</div>
+        </div>
+        <div class="rank-val"><b>${fmtBRL0(r.v)}</b><small>${fmtBRL(r.v/r.q)}/exame</small></div>
+      </div>`).join("")}
+  </section>`;
+
+  // INSIGHTS
+  html += insightsCard(ent, total, nEx, locRank);
+
+  $("#view").innerHTML = html;
+  bindFilters();
+  drawTimeSeries(ent, from, to);
+}
+
+function heroMoney(v){
+  const parts = fmtBRL(v).split(",");
+  return esc(parts[0])+`<small>,${esc(parts[1]||"00")}</small>`;
+}
+function hbars(pairs, total){
+  if(!pairs.length) return '<p class="note">Sem dados.</p>';
+  const max = Math.max(...pairs.map(p=>p[1].v));
+  return `<div class="hbar-list">`+pairs.map(([k,d])=>`
+    <div class="hbar">
+      <div class="hb-label"><span>${esc(k)}</span></div>
+      <div class="hb-val">${fmtBRL0(d.v)}</div>
+      <div class="hb-track"><div class="hb-fill" style="width:${(d.v/max*100).toFixed(1)}%;background:var(--seq)"></div></div>
+      <div class="hb-sub">${fmtN(d.q)} exames · ${(d.v/total*100).toLocaleString("pt-BR",{maximumFractionDigits:0})}% da receita</div>
+    </div>`).join("")+`</div>`;
+}
+
+function insightsCard(ent, total, nEx, locRank){
+  const ins = [];
+  const icon = p => `<svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  // melhor dia da semana
+  const byDow = new Map();
+  ent.forEach(e=>{
+    const dw = fromISO(e.date).getDay();
+    const c = byDow.get(dw)||{v:0,days:new Set()};
+    c.v+=entryValue(e); c.days.add(e.date); byDow.set(dw,c);
+  });
+  let best=null;
+  byDow.forEach((c,dw)=>{ const avg=c.v/c.days.size; if(!best||avg>best.avg) best={dw,avg}; });
+  if(best && byDow.size>1) ins.push([icon('<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 9h18"/>'),
+    `Seu dia mais rentável é <b>${WEEKDAYS[best.dw]}</b>, com média de <b>${fmtBRL0(best.avg)}</b> por dia trabalhado.`]);
+  // local mais rentável por exame
+  if(locRank.length>1){
+    const byTicket = locRank.slice().sort((a,b)=>(b.v/b.q)-(a.v/a.q));
+    const t0=byTicket[0], tl=byTicket[byTicket.length-1];
+    const ratio = (t0.v/t0.q)/(tl.v/tl.q);
+    ins.push([icon('<path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 1.8 2.6 5 3.3 5 1.6 5 3.7-2.2 3-5 3-5-1.1-5-3"/>'),
+      `<b>${esc(t0.loc.name)}</b> paga <b>${fmtBRL(t0.v/t0.q)}</b> por exame — ${ratio>=1.15?`<b>${ratio.toLocaleString("pt-BR",{maximumFractionDigits:1})}×</b> o ticket de ${esc(tl.loc.name)}`:"o melhor ticket médio entre seus locais"}.`]);
+  }
+  // exame mais volumoso
+  const byExam = Array.from(sumBy(ent,e=>e.examId).entries()).map(([id,d])=>({x:examById(id),...d})).filter(r=>r.x);
+  if(byExam.length){
+    const topQ = byExam.slice().sort((a,b)=>b.q-a.q)[0];
+    ins.push([icon('<path d="M3 17l4-8 4 5 4-9 4 12"/>'),
+      `O exame que você mais realiza é <b>${esc(topQ.x.name)}</b> (${fmtN(topQ.q)} no período), gerando <b>${fmtBRL0(topQ.v)}</b>.`]);
+  }
+  // concentração
+  if(locRank.length>1){
+    const sh = locRank[0].v/total*100;
+    if(sh>=55) ins.push([icon('<circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 4"/>'),
+      `<b>${sh.toLocaleString("pt-BR",{maximumFractionDigits:0})}%</b> da sua receita vem de <b>${esc(locRank[0].loc.name)}</b> — atenção à concentração.`]);
+  }
+  // ticket médio geral
+  if(nEx>0) ins.push([icon('<path d="M20 6 9 17l-5-5"/>'),
+    `No período você laudou <b>${fmtN(nEx)}</b> exames com ticket médio de <b>${fmtBRL(total/nEx)}</b>.`]);
+  if(!ins.length) return "";
+  return `<section class="card"><div class="card-title">Insights</div>${
+    ins.map(([ic,tx])=>`<div class="insight"><div class="ic">${ic}</div><div class="tx">${tx}</div></div>`).join("")
+  }</section>`;
+}
+
+/* ================== MOTOR DE PROJEÇÃO ==================
+   Aprende o padrão de agenda pelo comportamento:
+   - média de faturamento por dia trabalhado em cada local (últimos 10 dias trabalhados)
+   - média específica por dia da semana quando há amostras suficientes
+   - frequência de trabalho por dia da semana nas últimas 8 semanas
+   Projeção = realizado + compromissos agendados (valor esperado por plantão)
+              + padrão comportamental nos dias/locais sem agenda           */
+function buildStats(){
+  const daily = new Map(); // locId -> Map(date -> receita do dia)
+  S.entries.forEach(e=>{
+    let m = daily.get(e.locId);
+    if(!m){ m = new Map(); daily.set(e.locId, m); }
+    m.set(e.date, (m.get(e.date)||0) + entryValue(e));
+  });
+  const stats = new Map();
+  daily.forEach((m, loc)=>{
+    const dates = Array.from(m.keys()).sort();
+    const last10 = dates.slice(-10);
+    const avg = last10.reduce((s,d)=>s+m.get(d),0)/last10.length;
+    // média por dia da semana (últimos 40 dias trabalhados)
+    const byDow = [[],[],[],[],[],[],[]];
+    dates.slice(-40).forEach(d=> byDow[fromISO(d).getDay()].push(m.get(d)));
+    const avgDow = byDow.map(a=> a.length>=2 ? a.reduce((x,y)=>x+y,0)/a.length : avg);
+    // frequência por dia da semana (janela de 8 semanas, a partir do 1º lançamento)
+    const t = todayISO(), first = dates[0];
+    const cnt=[0,0,0,0,0,0,0], tot=[0,0,0,0,0,0,0];
+    for(let i=55;i>=0;i--){
+      const d = addDays(t,-i);
+      if(d < first) continue;
+      const dw = fromISO(d).getDay();
+      tot[dw]++; if(m.has(d)) cnt[dw]++;
+    }
+    const freq = tot.map((n,i)=> n? cnt[i]/n : 0);
+    stats.set(loc, {avg, avgDow, freq, workedDays:dates.length});
+  });
+  return stats;
+}
+function expectedForOcc(occ, stats, sameLocCount){
+  const st = stats.get(occ.locId);
+  if(!st) return {v:0, known:false};
+  const dow = fromISO(occ.date).getDay();
+  return {v: st.avgDow[dow]/(sameLocCount||1), known:true};
+}
+function monthProjection(){
+  const d = new Date();
+  const mFrom = toISO(new Date(d.getFullYear(), d.getMonth(), 1));
+  const mEnd  = toISO(new Date(d.getFullYear(), d.getMonth()+1, 0));
+  const t = todayISO();
+  const stats = buildStats();
+  const realized = S.entries.filter(e=>e.date>=mFrom && e.date<=mEnd)
+    .reduce((s,e)=>s+entryValue(e),0);
+  let sched=0, schedN=0, schedUnknown=0, patt=0;
+  for(let day=addDays(t,1); day<=mEnd; day=addDays(day,1)){
+    const occ = occurrences(day);
+    const counts = {};
+    occ.forEach(o=> counts[o.locId]=(counts[o.locId]||0)+1);
+    const schedLocs = new Set(occ.map(o=>o.locId));
+    occ.forEach(o=>{
+      const ex = expectedForOcc(o, stats, counts[o.locId]);
+      sched += ex.v; schedN++;
+      if(!ex.known) schedUnknown++;
+    });
+    const dw = fromISO(day).getDay();
+    stats.forEach((st, loc)=>{
+      if(schedLocs.has(loc)) return;
+      const p = st.freq[dw];
+      if(p >= 0.25) patt += p*st.avgDow[dw]; // ≥2 de 8 semanas
+    });
+  }
+  const daysLeft = Math.max(0, Math.round((fromISO(mEnd)-fromISO(t))/86400000));
+  return {realized, sched, schedN, schedUnknown, patt, total:realized+sched+patt, mFrom, mEnd, stats, daysLeft};
+}
+function projectionCard(mp){
+  if(!S.entries.length && !hasAgendaData()) return "";
+  const d = new Date();
+  const segs = [
+    {v:mp.realized, c:"var(--accent)",  l:"Realizado até hoje"},
+    {v:mp.sched,    c:"var(--s1)",      l:`Plantões agendados${mp.schedN?` (${mp.schedN})`:""}`},
+    {v:mp.patt,     c:"var(--s7)",      l:"Padrão de agenda estimado"}
+  ].filter(s=>s.v>0.5);
+  const tot = mp.total||1;
+  let note = "";
+  if(!hasAgendaData()) note = "Cadastre seus plantões na aba Agenda para uma projeção mais precisa.";
+  else if(mp.schedUnknown>0) note = "Alguns plantões agendados são em locais ainda sem histórico — o valor deles não entra na estimativa.";
+  else note = "Estimativa aprendida com sua média por dia trabalhado em cada local nas últimas semanas.";
+  return `
+  <section class="card">
+    <div class="card-title">Projeção de fechamento <span class="hint">${MONTHS_S[d.getMonth()]}/${d.getFullYear()} · faltam ${mp.daysLeft} dia${mp.daysLeft===1?"":"s"}</span></div>
+    <div class="proj-total">${compact(mp.total)}</div>
+    ${segs.length?`<div class="proj-bar">${segs.map(s=>`<i style="flex:${(s.v/tot).toFixed(4)};background:${s.c}"></i>`).join("")}</div>
+    <div class="proj-leg">${segs.map(s=>`<div class="pl"><span class="dot" style="background:${s.c}"></span>${esc(s.l)}<b>${fmtBRL0(s.v)}</b></div>`).join("")}</div>`:""}
+    <p class="note" style="margin-top:12px">${esc(note)}</p>
+  </section>`;
+}
+
+/* ================== FILTER BAR ================== */
+function renderFilters(periodLabel){
+  const periods = [["today","Hoje"],["7d","7 dias"],["month","Este mês"],["30d","30 dias"],["pmonth","Mês passado"],["90d","90 dias"],["year","Ano"],["all","Tudo"]];
+  const fIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+  const locName = F.loc==="all"?"Local": (locById(F.loc)||{}).name||"Local";
+  const examName = F.exam==="all"?"Exame":(examById(F.exam)||{}).name||"Exame";
+  return `
+  <div class="filters">
+    <div class="chip-row">${periods.map(([k,l])=>`<button class="chip ${F.period===k?"on":""}" data-period="${k}">${l}</button>`).join("")}</div>
+    <div class="chip-row">
+      <button class="chip ${F.loc!=="all"?"filter-active":""}" id="fLoc">${esc(trunc(locName,16))} ${fIcon}</button>
+      <button class="chip ${F.conv!=="all"?"filter-active":""}" id="fConv">${F.conv==="all"?"Convênio":esc(trunc(F.conv,14))} ${fIcon}</button>
+      <button class="chip ${F.mod!=="all"?"filter-active":""}" id="fMod">${F.mod==="all"?"Modalidade":esc(F.mod)} ${fIcon}</button>
+      <button class="chip ${F.exam!=="all"?"filter-active":""}" id="fExam">${esc(trunc(examName,16))} ${fIcon}</button>
+      ${(F.loc!=="all"||F.conv!=="all"||F.mod!=="all"||F.exam!=="all")?'<button class="chip" id="fClear" style="color:#ff8a8a">Limpar ✕</button>':""}
+    </div>
+  </div>`;
+}
+const trunc=(s,n)=> s.length>n? s.slice(0,n-1)+"…":s;
+function bindFilters(){
+  $$("[data-period]").forEach(b=> b.onclick = ()=>{ F.period=b.dataset.period; renderDash(); });
+  const opt = (id, title, options, cur, setter)=>{
+    const el=$(id); if(!el) return;
+    el.onclick = ()=> pickerSheet(title, options, cur, v=>{ setter(v); renderDash(); });
+  };
+  opt("#fLoc","Filtrar por local",[["all","Todos os locais"],...S.locations.map(l=>[l.id,l.name])],F.loc,v=>F.loc=v);
+  const convs = Array.from(new Set([].concat(...S.locations.map(l=>l.convenios), S.entries.map(e=>e.conv)))).filter(Boolean).sort();
+  opt("#fConv","Filtrar por convênio",[["all","Todos os convênios"],...convs.map(c=>[c,c])],F.conv,v=>F.conv=v);
+  const modsUsed = MODS.filter(m=>S.exams.some(x=>x.mod===m));
+  opt("#fMod","Filtrar por modalidade",[["all","Todas as modalidades"],...modsUsed.map(m=>[m,m])],F.mod,v=>F.mod=v);
+  const usedExams = Array.from(new Set(S.entries.map(e=>e.examId))).map(examById).filter(Boolean).sort((a,b)=>a.name.localeCompare(b.name));
+  const examOpts = usedExams.length? usedExams : S.exams;
+  opt("#fExam","Filtrar por exame",[["all","Todos os exames"],...examOpts.map(x=>[x.id,x.name+" · "+x.mod])],F.exam,v=>F.exam=v);
+  const c=$("#fClear"); if(c) c.onclick=()=>{ F.loc=F.conv=F.mod=F.exam="all"; renderDash(); };
+}
+function pickerSheet(title, options, current, onPick){
+  openSheet(`
+    <h3>${esc(title)}</h3>
+    ${options.length>8?'<div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><input class="input" id="pkSearch" placeholder="Buscar…"></div>':""}
+    <div class="sheet-body" id="pkList"></div>`,
+    el=>{
+      const list = $("#pkList",el);
+      const draw = q=>{
+        const ql=(q||"").toLowerCase();
+        list.innerHTML = options.filter(([v,l])=>!ql||l.toLowerCase().includes(ql)).map(([v,l])=>`
+          <button class="lrow" style="width:100%;text-align:left" data-v="${esc(v)}">
+            <div class="lr-main"><div class="lr-title" style="${v===current?"color:var(--accent)":""}">${esc(l)}</div></div>
+            ${v===current?'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M20 6 9 17l-5-5"/></svg>':""}
+          </button>`).join("") || '<p class="note" style="padding:14px 0">Nada encontrado.</p>';
+        $$("[data-v]",list).forEach(b=> b.onclick=()=>{ closeSheet(); onPick(b.dataset.v); });
+      };
+      draw("");
+      const s=$("#pkSearch",el); if(s) s.oninput=()=>draw(s.value);
+    });
+}
+
+/* ================== TIME SERIES CHART (SVG colunas) ================== */
+function drawTimeSeries(ent, from, to){
+  const wrap = $("#tsChart"); if(!wrap) return;
+  const span = Math.round((fromISO(to)-fromISO(from))/86400000)+1;
+  // buckets: dia (≤35), semana (≤120), mês
+  let buckets=[], mode="day";
+  if(span<=35){
+    for(let i=0;i<span;i++){ const iso=addDays(from,i); buckets.push({key:iso,label:fmtDateShort(iso),v:0,q:0}); }
+  } else if(span<=180){
+    mode="week";
+    let cur=from;
+    while(cur<=to){ const end=addDays(cur,6); buckets.push({key:cur,end,label:fmtDateShort(cur),v:0,q:0}); cur=addDays(cur,7); }
+  } else {
+    mode="month";
+    let d=fromISO(from); d=new Date(d.getFullYear(),d.getMonth(),1);
+    while(toISO(d)<=to){ buckets.push({key:toISO(d),label:MONTHS_S[d.getMonth()]+(d.getMonth()===0?" "+String(d.getFullYear()).slice(2):""),v:0,q:0}); d=new Date(d.getFullYear(),d.getMonth()+1,1); }
+  }
+  const idx = {};
+  buckets.forEach((b,i)=>idx[b.key]=i);
+  ent.forEach(e=>{
+    let k;
+    if(mode==="day") k=e.date;
+    else if(mode==="week"){ const off=Math.floor((fromISO(e.date)-fromISO(from))/86400000/7); k=buckets[off]?buckets[off].key:null; }
+    else { const d=fromISO(e.date); k=toISO(new Date(d.getFullYear(),d.getMonth(),1)); }
+    const i = idx[k]; if(i==null) return;
+    buckets[i].v += entryValue(e); buckets[i].q += e.qty;
+  });
+
+  const W=480, H=190, padL=44, padR=6, padT=12, padB=26;
+  const maxV = Math.max(1,...buckets.map(b=>b.v));
+  const niceMax = niceCeil(maxV);
+  const iw=W-padL-padR, ih=H-padT-padB;
+  const n=buckets.length;
+  const bw=Math.min(24, Math.max(3, iw/n - 2));
+  const step=iw/n;
+  const y=v=> padT+ih-(v/niceMax*ih);
+  // gridlines: 4 ticks limpos
+  let g="";
+  for(let i=0;i<=4;i++){
+    const val=niceMax/4*i, yy=y(val);
+    g+=`<line x1="${padL}" x2="${W-padR}" y1="${yy}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`;
+    g+=`<text x="${padL-7}" y="${yy+3.5}" text-anchor="end" font-size="9.5" fill="var(--muted)" font-family="var(--font)">${axisLabel(val)}</text>`;
+  }
+  // x labels: ~5
+  const lblEvery=Math.max(1,Math.ceil(n/5));
+  let bars="", xl="";
+  buckets.forEach((b,i)=>{
+    const x=padL+step*i+(step-bw)/2;
+    const h=Math.max(b.v>0?2:0,(b.v/niceMax)*ih);
+    const yy=padT+ih-h;
+    if(b.v>0) bars+=`<path class="bar-col" data-i="${i}" d="${roundTopRect(x,yy,bw,h,Math.min(4,bw/2))}" fill="var(--seq)"/>`;
+    bars+=`<rect data-i="${i}" x="${padL+step*i}" y="${padT}" width="${step}" height="${ih+padB}" fill="transparent"/>`;
+    if(i%lblEvery===0) xl+=`<text x="${padL+step*i+step/2}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="var(--muted)" font-family="var(--font)">${esc(b.label)}</text>`;
+  });
+  wrap.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${W} ${H}" id="tsSvg">
+    <line x1="${padL}" x2="${W-padR}" y1="${padT+ih}" y2="${padT+ih}" stroke="var(--axis)" stroke-width="1"/>
+    ${g}${bars}${xl}</svg>`;
+
+  const svg=$("#tsSvg"), tt=$("#tooltip");
+  let hideT=null;
+  const show=(i,cx,cy)=>{
+    const b=buckets[i]; if(!b) return;
+    $$(".bar-col",svg).forEach(p=>p.classList.toggle("dim", p.dataset.i!=String(i)));
+    const title = mode==="day"? fmtDateLong(b.key) : (mode==="week"? "Semana de "+fmtDateShort(b.key) : b.label);
+    tt.innerHTML=`<div class="tt-title">${esc(title)}</div><div class="tt-val">${fmtBRL(b.v)}</div><div class="tt-sub">${fmtN(b.q)} exame${b.q===1?"":"s"}</div>`;
+    const r=wrap.getBoundingClientRect();
+    tt.classList.add("show");
+    const tw=tt.offsetWidth;
+    let lx=cx-r.left-tw/2;
+    lx=Math.max(4,Math.min(r.width-tw-4,lx));
+    tt.style.left=(r.left+lx+window.scrollX)+"px";
+    tt.style.top =(r.top+window.scrollY-tt.offsetHeight-8)+"px";
+    clearTimeout(hideT); hideT=setTimeout(hide,2600);
+  };
+  const hide=()=>{ tt.classList.remove("show"); $$(".bar-col",svg).forEach(p=>p.classList.remove("dim")); };
+  svg.addEventListener("pointerdown",ev=>{
+    const t=ev.target.closest("[data-i]"); if(!t) return;
+    show(+t.dataset.i, ev.clientX, ev.clientY);
+  });
+}
+function niceCeil(v){
+  const p=Math.pow(10,Math.floor(Math.log10(v)));
+  for(const m of [1,1.5,2,2.5,3,4,5,6,8,10]){ if(m*p>=v) return m*p; }
+  return 10*p;
+}
+function axisLabel(v){
+  if(v>=1e6) return (v/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mi";
+  if(v>=1000) return (v/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil";
+  return String(Math.round(v));
+}
+function roundTopRect(x,y,w,h,r){
+  r=Math.min(r,h);
+  return `M${x},${y+h} L${x},${y+r} Q${x},${y} ${x+r},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r} L${x+w},${y+h} Z`;
+}
+function emptyState(icn,title,text,btnLabel,btnId){
+  const icons={
+    map:'<path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+    chart:'<path d="M3 17l4-8 4 5 4-9 4 12"/>',
+    money:'<path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 1.8 2.6 5 3.3 5 1.6 5 3.7-2.2 3-5 3-5-1.1-5-3"/>'
+  };
+  return `<div class="card"><div class="empty">
+    <div class="em-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[icn]||icons.chart}</svg></div>
+    <h3>${esc(title)}</h3><p>${esc(text)}</p>
+    ${btnLabel?`<button class="btn btn-primary" id="${btnId}">${esc(btnLabel)}</button>`:""}
+  </div></div>`;
+}
+</script>
+<script>
+"use strict";
+/* ================== LANÇAR VOLUMETRIA ================== */
+const draft = { date: todayISO(), locId:null, conv:null, qty:{}, search:"" };
+
+function renderAdd(){
+  if(!S.locations.length){
+    $("#view").innerHTML = `<div class="page">`+emptyState("map","Cadastre um local primeiro",
+      "Para lançar a volumetria você precisa de pelo menos um local de trabalho com preços definidos.",
+      "Ir para Locais","goLocs2")+`</div>`;
+    $("#goLocs2").onclick=()=>nav("locs");
+    return;
+  }
+  if(!draft.locId || !locById(draft.locId)) draft.locId = S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id;
+  const loc = locById(draft.locId);
+  const convs = loc.convenios.length? loc.convenios : ["Padrão"];
+  if(!draft.conv || !convs.includes(draft.conv)) draft.conv = (S.last.conv && convs.includes(S.last.conv))? S.last.conv : convs[0];
+
+  // exames ordenados: mais usados neste local primeiro, depois precificados, depois resto
+  const usage = {};
+  S.entries.forEach(e=>{ if(e.locId===draft.locId) usage[e.examId]=(usage[e.examId]||0)+1; });
+  const priced = x => getPrice(draft.locId,x.id,draft.conv)!=null;
+  const q = draft.search.trim().toLowerCase();
+  let exams = S.exams.filter(x=>!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q));
+  exams = exams.slice().sort((a,b)=>{
+    const ua=usage[a.id]||0, ub=usage[b.id]||0;
+    if(ua!==ub) return ub-ua;
+    const pa=priced(a)?1:0, pb=priced(b)?1:0;
+    if(pa!==pb) return pb-pa;
+    return a.name.localeCompare(b.name);
+  });
+  const grouped = q? [["Resultados",exams]] :
+    MODS.map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
+
+  const items = Object.entries(draft.qty).filter(([id,n])=>n>0);
+  const totQ = items.reduce((s,[,n])=>s+n,0);
+  const totV = items.reduce((s,[id,n])=>{ const p=getPrice(draft.locId,id,draft.conv)||0; return s+p*n; },0);
+
+  $("#view").innerHTML = `<div class="page">
+    <div class="sec-head" style="margin-top:0"><h2>Lançar exames</h2></div>
+    <div class="card" style="padding:15px">
+      <div class="field"><label>Data</label><input type="date" class="input" id="adDate" value="${draft.date}" max="${todayISO()}"></div>
+      <div class="field"><label>Local</label><div class="conv-chips">${
+        S.locations.map(l=>`<button class="chip ${l.id===draft.locId?"on":""}" data-adloc="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
+      }</div></div>
+      <div class="field mb0"><label>Convênio</label><div class="conv-chips">${
+        convs.map(c=>`<button class="chip ${c===draft.conv?"on":""}" data-adconv="${esc(c)}">${esc(c)}</button>`).join("")
+      }</div></div>
+    </div>
+
+    <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+      <input class="input" id="adSearch" placeholder="Buscar exame…" value="${esc(draft.search)}"></div>
+
+    <div class="card" style="padding:6px 16px 10px">
+      ${grouped.map(([m,list])=>`
+        <div class="mod-head">${esc(m)}</div>
+        ${list.map(x=>{
+          const p = getPrice(draft.locId,x.id,draft.conv);
+          const n = draft.qty[x.id]||0;
+          return `<div class="lrow">
+            <div class="lr-main">
+              <div class="lr-title">${esc(x.name)}</div>
+              <div class="lr-sub">${p!=null? fmtBRL(p)+" / exame" : '<button data-setprice="'+x.id+'" style="color:var(--warn);font-weight:700;font-size:11.5px">definir preço</button>'}</div>
+            </div>
+            <div class="stepper">
+              <button data-dec="${x.id}" aria-label="menos">−</button>
+              <span class="qty ${n===0?"zero":""}">${n}</span>
+              <button data-inc="${x.id}" aria-label="mais">+</button>
+            </div>
+          </div>`;
+        }).join("")}`).join("") || '<p class="note" style="padding:16px 0">Nenhum exame encontrado. Adicione um exame novo em Locais → catálogo.</p>'}
+    </div>
+
+    ${totQ>0?`<button class="total-bar" id="adSave">
+      <span class="tb-l">Salvar ${totQ} exame${totQ===1?"":"s"}<small>${esc(loc.name)} · ${esc(draft.conv)}</small></span>
+      <span class="tb-r">${fmtBRL(totV)}</span>
+    </button>`:""}
+  </div>`;
+
+  $("#adDate").onchange = e=>{ draft.date = e.target.value || todayISO(); };
+  $$("[data-adloc]").forEach(b=> b.onclick=()=>{ draft.locId=b.dataset.adloc; draft.conv=null; renderAdd(); });
+  $$("[data-adconv]").forEach(b=> b.onclick=()=>{ draft.conv=b.dataset.adconv; renderAdd(); });
+  const sb=$("#adSearch");
+  sb.oninput = ()=>{ draft.search=sb.value; renderAdd(); const s2=$("#adSearch"); s2.focus(); s2.setSelectionRange(s2.value.length,s2.value.length); };
+  $$("[data-inc]").forEach(b=> b.onclick=()=>{ const id=b.dataset.inc; draft.qty[id]=(draft.qty[id]||0)+1; renderAdd(); });
+  $$("[data-dec]").forEach(b=> b.onclick=()=>{ const id=b.dataset.dec; draft.qty[id]=Math.max(0,(draft.qty[id]||0)-1); renderAdd(); });
+  $$("[data-setprice]").forEach(b=> b.onclick=()=> quickPriceSheet(b.dataset.setprice));
+  const sv=$("#adSave"); if(sv) sv.onclick = saveDraft;
+}
+
+function quickPriceSheet(examId){
+  const x = examById(examId), loc = locById(draft.locId);
+  openSheet(`
+    <h3>Definir honorário</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:14px">${esc(x.name)} · ${esc(loc.name)} · ${esc(draft.conv)}</p>
+      <div class="field"><label>Valor do honorário (R$)</label>
+        <input class="input" id="qpVal" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="qpCancel">Cancelar</button>
+      <button class="btn btn-primary" id="qpOk">Salvar preço</button>
+    </div>`,
+    el=>{
+      const inp=$("#qpVal",el); setTimeout(()=>inp.focus(),350);
+      $("#qpCancel",el).onclick=closeSheet;
+      $("#qpOk",el).onclick=()=>{
+        const v=parseMoney(inp.value);
+        if(v==null||v<0){ toast("Valor inválido"); return; }
+        S.prices[pKey(draft.locId,examId,draft.conv)]=v; save();
+        closeSheet(); toast("Preço salvo"); renderAdd();
+      };
+    });
+}
+
+function saveDraft(){
+  const items = Object.entries(draft.qty).filter(([,n])=>n>0);
+  if(!items.length) return;
+  const missing = items.filter(([id])=>getPrice(draft.locId,id,draft.conv)==null);
+  if(missing.length){
+    toast("Defina o preço de "+examById(missing[0][0]).name);
+    return;
+  }
+  items.forEach(([id,n])=>{
+    S.entries.push({ id:"e"+(++S.entrySeq), date:draft.date, locId:draft.locId,
+      examId:id, conv:draft.conv, qty:n, unit:getPrice(draft.locId,id,draft.conv) });
+  });
+  S.last = {locId:draft.locId, conv:draft.conv};
+  save();
+  const tot = items.reduce((s,[id,n])=>s+n,0);
+  draft.qty={}; draft.search="";
+  toast(tot+" exame"+(tot===1?"":"s")+" lançado"+(tot===1?"":"s")+"!");
+  nav("dash");
+}
+
+/* ================== HISTÓRICO ================== */
+let histLimit = 15; // dias exibidos
+function renderHist(){
+  if(!S.entries.length){
+    $("#view").innerHTML = `<div class="page">`+emptyState("chart","Nenhum lançamento ainda",
+      "Sua volumetria diária aparecerá aqui, agrupada por dia, com os totais de cada plantão.","Lançar exames","goAdd3")+`</div>`;
+    $("#goAdd3").onclick=()=>nav("add");
+    return;
+  }
+  const byDate = new Map();
+  S.entries.forEach(e=>{ if(!byDate.has(e.date)) byDate.set(e.date,[]); byDate.get(e.date).push(e); });
+  const dates = Array.from(byDate.keys()).sort().reverse();
+  const shown = dates.slice(0, histLimit);
+
+  $("#view").innerHTML = `<div class="page">
+    <div class="sec-head" style="margin-top:0"><h2>Histórico</h2><span class="mut" style="font-size:12px">${fmtN(S.entries.length)} lançamentos</span></div>
+    ${shown.map(d=>{
+      const list = byDate.get(d);
+      const tot = list.reduce((s,e)=>s+entryValue(e),0);
+      const nq = list.reduce((s,e)=>s+e.qty,0);
+      return `<div class="day-head"><span class="dh-date">${esc(fmtDateLong(d))}</span><span class="dh-total">${fmtBRL0(tot)} · ${nq} ex.</span></div>
+      <div class="card" style="padding:4px 16px">
+        ${list.slice().sort((a,b)=>(locById(a.locId)||{}).name>(locById(b.locId)||{}).name?1:-1).map(e=>{
+          const x=examById(e.examId)||{name:"Exame removido",mod:""}, l=locById(e.locId);
+          return `<button class="lrow" style="width:100%;text-align:left" data-edit="${e.id}">
+            <div class="lr-main">
+              <div class="lr-title">${e.qty}× ${esc(x.name)}</div>
+              <div class="lr-sub">${l?`<span class="dot" style="background:${SLOTS[l.slot]};display:inline-block;width:7px;height:7px;margin-right:4px"></span>`+esc(l.name)+" · ":""}${esc(e.conv)} · ${fmtBRL(e.unit)}/un</div>
+            </div>
+            <div class="lr-side"><b>${fmtBRL(entryValue(e))}</b></div>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>`;
+        }).join("")}
+      </div>`;
+    }).join("")}
+    ${dates.length>histLimit?`<button class="btn" id="histMore">Mostrar dias anteriores</button>`:""}
+  </div>`;
+  $$("[data-edit]").forEach(b=> b.onclick=()=> editEntrySheet(b.dataset.edit));
+  const m=$("#histMore"); if(m) m.onclick=()=>{ histLimit+=15; renderHist(); };
+}
+
+function editEntrySheet(id){
+  const e = S.entries.find(x=>x.id===id); if(!e) return;
+  const x = examById(e.examId)||{name:"?"};
+  openSheet(`
+    <h3>Editar lançamento</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:14px">${esc(x.name)} · ${esc((locById(e.locId)||{}).name||"")} · ${esc(e.conv)} · ${esc(fmtDateLong(e.date))}</p>
+      <div class="input-row">
+        <div class="field"><label>Quantidade</label><input class="input" id="eeQty" inputmode="numeric" value="${e.qty}"></div>
+        <div class="field"><label>Valor unitário (R$)</label><input class="input" id="eeUnit" inputmode="decimal" value="${String(e.unit).replace(".",",")}"></div>
+      </div>
+      <div class="field"><label>Data</label><input type="date" class="input" id="eeDate" value="${e.date}"></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn btn-danger" id="eeDel" style="flex:0 0 auto;width:auto;padding:0 18px">Excluir</button>
+      <button class="btn btn-primary" id="eeOk">Salvar</button>
+    </div>`,
+    el=>{
+      $("#eeDel",el).onclick=()=>{
+        closeSheet();
+        confirmSheet("Excluir lançamento?", `${e.qty}× ${x.name} será removido do histórico. Essa ação não pode ser desfeita.`,"Excluir",()=>{
+          S.entries = S.entries.filter(a=>a.id!==id); save(); toast("Lançamento excluído"); render();
+        });
+      };
+      $("#eeOk",el).onclick=()=>{
+        const q=parseInt($("#eeQty",el).value,10);
+        const u=parseMoney($("#eeUnit",el).value);
+        const d=$("#eeDate",el).value;
+        if(!q||q<1){ toast("Quantidade inválida"); return; }
+        if(u==null||u<0){ toast("Valor inválido"); return; }
+        e.qty=q; e.unit=u; if(d) e.date=d;
+        save(); closeSheet(); toast("Lançamento atualizado"); render();
+      };
+    });
+}
+</script>
+<script>
+"use strict";
+/* ================== AGENDA (calendário mensal) ================== */
+const agView = { y:null, m:null, sel: todayISO() }; // m: 0-11
+
+function renderAgenda(){
+  if(agView.y==null){ const d=new Date(); agView.y=d.getFullYear(); agView.m=d.getMonth(); }
+  if(!S.locations.length){
+    $("#view").innerHTML = `<div class="page">`+emptyState("map","Cadastre um local primeiro",
+      "Os compromissos da agenda são vinculados aos seus locais de trabalho.","Ir para Locais","goLocs4")+`</div>`;
+    $("#goLocs4").onclick=()=>nav("locs");
+    return;
+  }
+  const stats = buildStats();
+  $("#view").innerHTML = `<div class="page">
+    <div class="sec-head" style="margin-top:0"><h2>Agenda</h2></div>
+    ${weekSummaryCard(stats)}
+    ${calendarCard()}
+    ${dayDetailCard(stats)}
+  </div>`;
+  bindAgenda();
+}
+
+/* ---------- Resumo da semana ---------- */
+function weekStart(iso){ const d=fromISO(iso); const off=(d.getDay()+6)%7; return addDays(iso,-off); } // segunda
+const DOW_S = ["dom","seg","ter","qua","qui","sex","sáb"];
+
+function weekSummaryCard(stats){
+  const t = todayISO();
+  const ws = weekStart(t);
+  let nOcc=0, realized=0, expFuture=0;
+  const rows = [];
+  for(let i=0;i<7;i++){
+    const day = addDays(ws,i);
+    const occ = occurrences(day);
+    const dayRev = S.entries.filter(e=>e.date===day).reduce((s,e)=>s+entryValue(e),0);
+    nOcc += occ.length;
+    realized += dayRev;
+    const isFuture = day>t;
+    let exp = 0;
+    if(occ.length){
+      const counts={}; occ.forEach(o=>counts[o.locId]=(counts[o.locId]||0)+1);
+      exp = occ.reduce((s,o)=>s+expectedForOcc(o,stats,counts[o.locId]).v,0);
+    }
+    if(isFuture) expFuture += exp;
+    if(!occ.length && dayRev===0) continue;
+    const d = fromISO(day);
+    rows.push(`
+      <div class="wk-row">
+        <div class="wk-day ${day===t?"today":""}"><span>${DOW_S[d.getDay()]}</span><b>${d.getDate()}</b></div>
+        <div class="wk-main">
+          ${occ.length? occ.map(o=>{
+            const l=locById(o.locId);
+            return `<div class="wk-loc"><span class="dot" style="background:${SLOTS[l.slot]}"></span><span>${esc(l.name)}</span><span class="mut" style="flex:0 0 auto">· ${esc(o.period)}</span></div>`;
+          }).join("") : `<div class="wk-free">sem compromisso · produção avulsa</div>`}
+        </div>
+        <div class="wk-val ${dayRev>0?"done":""}">
+          ${dayRev>0? `<b>${fmtBRL0(dayRev)}</b><small>realizado</small>`
+            : (isFuture&&exp>0? `<b class="mut">${fmtBRL0(exp)}</b><small>previsto</small>`
+            : (occ.length?`<b class="mut">—</b><small>${day<t?"sem prod.":"hoje"}</small>`:""))}
+        </div>
+      </div>`);
+  }
+  return `
+  <section class="card">
+    <div class="card-title">Resumo da semana <span class="hint">${fmtDateShort(ws)} – ${fmtDateShort(addDays(ws,6))}</span></div>
+    ${rows.length? rows.join("") : '<p class="note">Nenhum compromisso ou produção nesta semana ainda.</p>'}
+    <div class="wk-tot">
+      <div class="wt"><b>${nOcc}</b><span>compromissos</span></div>
+      <div class="wt"><b style="color:var(--accent)">${compact(realized)}</b><span>realizado</span></div>
+      <div class="wt"><b>${compact(expFuture)}</b><span>a realizar (prev.)</span></div>
+    </div>
+  </section>`;
+}
+
+/* ---------- Calendário ---------- */
+const MONTHS_L = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+function calendarCard(){
+  const y=agView.y, m=agView.m;
+  const first = new Date(y,m,1);
+  const start = addDays(toISO(first), -first.getDay()); // domingo anterior
+  const t = todayISO();
+  const entryDates = new Set(S.entries.map(e=>e.date));
+  let cells="";
+  for(let i=0;i<42;i++){
+    const day = addDays(start,i);
+    const dd = fromISO(day);
+    const out = dd.getMonth()!==m;
+    const occ = occurrences(day);
+    const dots = occ.slice(0,3).map(o=>`<i style="background:${SLOTS[locById(o.locId).slot]}"></i>`).join("")
+      + (occ.length>3?'<span class="more">+</span>':"");
+    cells += `<button class="cal-cell ${out?"out":""} ${day===t?"today":""} ${day===agView.sel?"sel":""}" data-cal="${day}">
+      <span>${dd.getDate()}</span>
+      <span class="cd">${dots}</span>
+      ${entryDates.has(day)?'<span class="pb"></span>':""}
+    </button>`;
+  }
+  return `
+  <section class="card">
+    <div class="cal-head">
+      <div class="cal-title">${MONTHS_L[m]} ${y}</div>
+      <div class="cal-nav">
+        <button id="calPrev" aria-label="mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button id="calToday" style="width:auto;padding:0 10px;font-size:11.5px;font-weight:700">hoje</button>
+        <button id="calNext" aria-label="próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+    </div>
+    <div class="cal-grid">
+      ${["D","S","T","Q","Q","S","S"].map(x=>`<span class="cal-dow">${x}</span>`).join("")}
+      ${cells}
+    </div>
+    <div class="legend" style="margin-top:10px">
+      <span class="lg"><span class="dot" style="background:var(--accent);width:12px;height:3px;border-radius:2px"></span>dia com produção</span>
+      <span class="lg"><span class="dot" style="background:var(--s1)"></span>compromisso</span>
+    </div>
+  </section>`;
+}
+
+/* ---------- Detalhe do dia ---------- */
+function dayDetailCard(stats){
+  const day = agView.sel;
+  const occ = occurrences(day);
+  const dayEntries = S.entries.filter(e=>e.date===day);
+  const rev = dayEntries.reduce((s,e)=>s+entryValue(e),0);
+  const nEx = dayEntries.reduce((s,e)=>s+e.qty,0);
+  const counts={}; occ.forEach(o=>counts[o.locId]=(counts[o.locId]||0)+1);
+  return `
+  <section class="card">
+    <div class="card-title">${esc(fmtDateLong(day))}</div>
+    ${occ.length? occ.map((o,i)=>{
+      const l=locById(o.locId);
+      const ex=expectedForOcc(o,stats,counts[o.locId]);
+      return `<button class="lrow" style="width:100%;text-align:left" data-occ="${i}">
+        <span class="dot" style="background:${SLOTS[l.slot]};width:11px;height:11px"></span>
+        <div class="lr-main">
+          <div class="lr-title">${esc(l.name)}</div>
+          <div class="lr-sub">${esc(o.period)}${o.type==="rule"?" · <span style='color:var(--accent)'>semanal</span>":""}${o.note?" · "+esc(o.note):""}</div>
+        </div>
+        <div class="lr-side">${ex.known?`<b class="mut" style="font-weight:600;font-size:12.5px">~${fmtBRL0(ex.v)}</b><small>estimado</small>`:""}</div>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>`;
+    }).join("") : '<p class="note" style="margin-bottom:4px">Nenhum compromisso neste dia.</p>'}
+    ${rev>0?`<div class="lrow"><div class="lr-main"><div class="lr-title" style="color:var(--accent)">Produção do dia</div><div class="lr-sub">${fmtN(nEx)} exames lançados</div></div><div class="lr-side"><b style="color:var(--accent)">${fmtBRL0(rev)}</b></div></div>`:""}
+    <button class="btn btn-primary" id="agAdd" style="margin-top:12px">+ Adicionar compromisso</button>
+  </section>`;
+}
+
+function bindAgenda(){
+  $$("[data-cal]").forEach(b=> b.onclick=()=>{
+    agView.sel=b.dataset.cal;
+    const dd=fromISO(agView.sel);
+    if(dd.getMonth()!==agView.m||dd.getFullYear()!==agView.y){ agView.m=dd.getMonth(); agView.y=dd.getFullYear(); }
+    renderAgenda();
+  });
+  $("#calPrev").onclick=()=>{ agView.m--; if(agView.m<0){agView.m=11;agView.y--;} renderAgenda(); };
+  $("#calNext").onclick=()=>{ agView.m++; if(agView.m>11){agView.m=0;agView.y++;} renderAgenda(); };
+  $("#calToday").onclick=()=>{ const d=new Date(); agView.y=d.getFullYear(); agView.m=d.getMonth(); agView.sel=todayISO(); renderAgenda(); };
+  $("#agAdd").onclick=()=> commitmentSheet(agView.sel);
+  $$("[data-occ]").forEach(b=> b.onclick=()=>{
+    const occ=occurrences(agView.sel)[+b.dataset.occ];
+    if(occ) occDetailSheet(occ);
+  });
+}
+
+/* ---------- Sheets de compromisso ---------- */
+function commitmentSheet(date){
+  let locId = S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id;
+  let period = PERIODS[0], repeat = true;
+  const dow = fromISO(date).getDay();
+  openSheet(`
+    <h3>Novo compromisso</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:14px">${esc(fmtDateLong(date))}</p>
+      <div class="field"><label>Local</label><div class="conv-chips" id="cmLocs">${
+        S.locations.map(l=>`<button class="chip ${l.id===locId?"on":""}" data-l="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
+      }</div></div>
+      <div class="field"><label>Turno</label><div class="conv-chips" id="cmPer">${
+        PERIODS.map((p,i)=>`<button class="chip ${i===0?"on":""}" data-p="${esc(p)}">${esc(p)}</button>`).join("")
+      }</div></div>
+      <div class="field"><label>Observação (opcional)</label>
+        <input class="input" id="cmNote" placeholder="Ex.: plantão 12h, cobrindo colega…"></div>
+      <div class="field"><label>Recorrência</label><div class="conv-chips" id="cmRep">
+        <button class="chip on" data-r="1">${dow===0||dow===6?"Todo":"Toda"} ${WEEKDAYS[dow]}</button>
+        <button class="chip" data-r="0">Só neste dia</button>
+      </div></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="cmCancel">Cancelar</button>
+      <button class="btn btn-primary" id="cmOk">Salvar</button>
+    </div>`,
+    el=>{
+      $$("#cmLocs .chip",el).forEach(c=> c.onclick=()=>{ locId=c.dataset.l; $$("#cmLocs .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
+      $$("#cmPer .chip",el).forEach(c=> c.onclick=()=>{ period=c.dataset.p; $$("#cmPer .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
+      $$("#cmRep .chip",el).forEach(c=> c.onclick=()=>{ repeat=c.dataset.r==="1"; $$("#cmRep .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
+      $("#cmCancel",el).onclick=closeSheet;
+      $("#cmOk",el).onclick=()=>{
+        const note=$("#cmNote",el).value.trim();
+        const id="a"+(++S.agenda.seq);
+        if(repeat) S.agenda.rules.push({id, dow, locId, period, note, from:date});
+        else S.agenda.events.push({id, date, locId, period, note});
+        save(); closeSheet();
+        toast(repeat? "Compromisso semanal criado":"Compromisso adicionado");
+        renderAgenda();
+      };
+    });
+}
+
+function occDetailSheet(occ){
+  const l = locById(occ.locId);
+  const isRule = occ.type==="rule";
+  openSheet(`
+    <h3>${esc(l.name)}</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:16px">${esc(occ.period)} · ${esc(fmtDateLong(occ.date))}${isRule?` · repete ${[0,6].includes(fromISO(occ.date).getDay())?"todo":"toda"} ${WEEKDAYS[fromISO(occ.date).getDay()]}`:""}${occ.note?"<br>"+esc(occ.note):""}</p>
+      ${isRule?`
+        <button class="btn" id="ocSkip" style="margin-bottom:10px">Pular só este dia</button>
+        <button class="btn btn-danger" id="ocEnd">Encerrar recorrência a partir daqui</button>
+      `:`
+        <button class="btn btn-danger" id="ocDel">Excluir compromisso</button>
+      `}
+    </div>
+    <div class="sheet-foot"><button class="btn" id="ocCancel">Fechar</button></div>`,
+    el=>{
+      $("#ocCancel",el).onclick=closeSheet;
+      if(isRule){
+        $("#ocSkip",el).onclick=()=>{
+          S.agenda.skips.push({ruleId:occ.id, date:occ.date});
+          save(); closeSheet(); toast("Dia pulado"); renderAgenda();
+        };
+        $("#ocEnd",el).onclick=()=>{
+          const r=S.agenda.rules.find(x=>x.id===occ.id);
+          if(r){ if(r.from>=occ.date){ S.agenda.rules=S.agenda.rules.filter(x=>x.id!==occ.id); } else { r.until=occ.date; } }
+          save(); closeSheet(); toast("Recorrência encerrada"); renderAgenda();
+        };
+      } else {
+        $("#ocDel",el).onclick=()=>{
+          S.agenda.events=S.agenda.events.filter(x=>x.id!==occ.id);
+          save(); closeSheet(); toast("Compromisso excluído"); renderAgenda();
+        };
+      }
+    });
+}
+</script>
+<script>
+"use strict";
+/* ================== LOCAIS & PREÇOS ================== */
+let locView = { locId:null, conv:null, search:"" }; // locId=null → lista
+
+function renderLocs(){
+  if(locView.locId && locById(locView.locId)) return renderLocDetail();
+  locView = { locId:null, conv:null, search:"" };
+  $("#view").innerHTML = `<div class="page">
+    <div class="sec-head" style="margin-top:0"><h2>Locais de trabalho</h2>
+      <button class="link sec-link" id="newLoc" style="background:none;color:var(--accent);font-weight:700;font-size:13.5px">+ Novo local</button></div>
+    ${S.locations.length? `<div class="card" style="padding:4px 16px">${
+      S.locations.map(l=>{
+        const nPrices = Object.keys(S.prices).filter(k=>k.startsWith(l.id+"|")).length;
+        return `<button class="lrow" style="width:100%;text-align:left" data-loc="${l.id}">
+          <span class="dot" style="background:${SLOTS[l.slot]};width:12px;height:12px"></span>
+          <div class="lr-main">
+            <div class="lr-title">${esc(l.name)}</div>
+            <div class="lr-sub">${l.convenios.map(esc).join(" · ")||"sem convênios"} · ${nPrices} preço${nPrices===1?"":"s"}</div>
+          </div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>`;
+      }).join("")}</div>`
+    : emptyState("map","Nenhum local cadastrado","Cadastre cada clínica, hospital ou plantão onde você atua — os honorários são definidos por local e convênio.","Cadastrar local","newLoc2")}
+    <div class="card">
+      <div class="card-title">Catálogo de exames <span class="hint">${S.exams.length} exames</span></div>
+      <p class="note" style="margin-bottom:12px">O catálogo é compartilhado entre os locais. Adicione exames que não estão na lista padrão.</p>
+      <button class="btn btn-sm" id="newExam" style="width:100%">+ Adicionar exame ao catálogo</button>
+    </div>
+  </div>`;
+  const nl=$("#newLoc")||$("#newLoc2"); if(nl) nl.onclick = newLocSheet;
+  const nl2=$("#newLoc2"); if(nl2 && nl2!==nl) nl2.onclick = newLocSheet;
+  $$("[data-loc]").forEach(b=> b.onclick=()=>{ locView={locId:b.dataset.loc,conv:null,search:""}; renderLocs(); });
+  $("#newExam").onclick = ()=> newExamSheet(()=>renderLocs());
+}
+
+function newLocSheet(editId){
+  const l = editId? locById(editId) : null;
+  openSheet(`
+    <h3>${l?"Editar local":"Novo local de trabalho"}</h3>
+    <div class="sheet-body">
+      <div class="field"><label>Nome do local</label>
+        <input class="input" id="nlName" placeholder="Ex.: Hospital São Lucas" value="${l?esc(l.name):""}"></div>
+      <div class="field"><label>Convênios atendidos (separe por vírgula)</label>
+        <input class="input" id="nlConvs" placeholder="Ex.: Particular, Unimed, SUS" value="${l?esc(l.convenios.join(", ")):""}">
+        <p class="note" style="margin-top:7px">Se os honorários não variam por convênio neste local, deixe em branco — será usado o convênio "Padrão".</p></div>
+      ${l?`<button class="btn btn-danger" id="nlDel">Excluir local</button>`:""}
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="nlCancel">Cancelar</button>
+      <button class="btn btn-primary" id="nlOk">${l?"Salvar":"Criar local"}</button>
+    </div>`,
+    el=>{
+      setTimeout(()=>$("#nlName",el).focus(),350);
+      $("#nlCancel",el).onclick=closeSheet;
+      if(l) $("#nlDel",el).onclick=()=>{
+        closeSheet();
+        const nEnt = S.entries.filter(e=>e.locId===l.id).length;
+        confirmSheet("Excluir "+l.name+"?",
+          nEnt? `Este local tem ${nEnt} lançamentos no histórico, que também serão excluídos, junto com a tabela de preços.` :
+          "A tabela de preços deste local será excluída.","Excluir tudo",()=>{
+          S.locations=S.locations.filter(x=>x.id!==l.id);
+          S.entries=S.entries.filter(e=>e.locId!==l.id);
+          Object.keys(S.prices).forEach(k=>{ if(k.startsWith(l.id+"|")) delete S.prices[k]; });
+          save(); locView={locId:null}; toast("Local excluído"); render();
+        });
+      };
+      $("#nlOk",el).onclick=()=>{
+        const name=$("#nlName",el).value.trim();
+        if(!name){ toast("Dê um nome ao local"); return; }
+        const convs=$("#nlConvs",el).value.split(",").map(s=>s.trim()).filter(Boolean);
+        const list = convs.length?Array.from(new Set(convs)):["Padrão"];
+        if(l){
+          l.name=name;
+          // preserva preços de convênios removidos, apenas atualiza a lista
+          l.convenios=list;
+        } else {
+          const id="l"+(++S.locSeq);
+          S.locations.push({id,name,slot:(S.locSeq-1)%8,convenios:list});
+          locView={locId:id,conv:null,search:""};
+        }
+        save(); closeSheet(); toast(l?"Local atualizado":"Local criado"); render();
+      };
+    });
+}
+
+function newExamSheet(after){
+  openSheet(`
+    <h3>Novo exame</h3>
+    <div class="sheet-body">
+      <div class="field"><label>Descrição do exame</label>
+        <input class="input" id="nxName" placeholder="Ex.: USG de punho"></div>
+      <div class="field"><label>Modalidade</label>
+        <div class="conv-chips" id="nxMods">${MODS.map((m,i)=>`<button class="chip ${i===0?"on":""}" data-m="${m}">${m}</button>`).join("")}</div></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="nxCancel">Cancelar</button>
+      <button class="btn btn-primary" id="nxOk">Adicionar</button>
+    </div>`,
+    el=>{
+      let mod=MODS[0];
+      setTimeout(()=>$("#nxName",el).focus(),350);
+      $$("#nxMods .chip",el).forEach(c=> c.onclick=()=>{ mod=c.dataset.m; $$("#nxMods .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
+      $("#nxCancel",el).onclick=closeSheet;
+      $("#nxOk",el).onclick=()=>{
+        const name=$("#nxName",el).value.trim();
+        if(!name){ toast("Descreva o exame"); return; }
+        S.exams.push({id:"x"+(++S.examSeq),mod,name});
+        save(); closeSheet(); toast("Exame adicionado ao catálogo");
+        if(after) after();
+      };
+    });
+}
+
+function renderLocDetail(){
+  const l = locById(locView.locId);
+  const convs = l.convenios.length? l.convenios:["Padrão"];
+  if(!locView.conv || !convs.includes(locView.conv)) locView.conv = convs[0];
+  const q = locView.search.trim().toLowerCase();
+  const priced = S.exams.filter(x=> S.prices[pKey(l.id,x.id,locView.conv)]!=null );
+  let exams = S.exams.filter(x=>!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q));
+  const grouped = MODS.map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
+
+  $("#view").innerHTML = `<div class="page">
+    <button id="locBack" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m15 18-6-6 6-6"/></svg>Locais</button>
+    <div class="sec-head" style="margin-top:0">
+      <h2 style="display:flex;align-items:center;gap:9px"><span class="dot" style="background:${SLOTS[l.slot]};width:13px;height:13px"></span>${esc(l.name)}</h2>
+      <button id="locEdit" style="color:var(--accent);font-weight:700;font-size:13.5px">Editar</button>
+    </div>
+    <div class="card" style="padding:15px">
+      <div class="card-title" style="margin-bottom:10px">Tabela de honorários <span class="hint">${priced.length} exame${priced.length===1?"":"s"} precificado${priced.length===1?"":"s"}</span></div>
+      <div class="conv-chips" style="margin-bottom:4px">${convs.map(c=>`<button class="chip ${c===locView.conv?"on":""}" data-pconv="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+      ${convs.length>1||S.locations.length>1?`<button id="copyPrices" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:10px">⧉ Copiar preços de outra tabela…</button>`:""}
+    </div>
+    <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+      <input class="input" id="lpSearch" placeholder="Buscar exame…" value="${esc(locView.search)}"></div>
+    <div class="card" style="padding:6px 16px 10px">
+      ${grouped.map(([m,list])=>`
+        <div class="mod-head">${esc(m)}</div>
+        ${list.map(x=>{
+          const v = S.prices[pKey(l.id,x.id,locView.conv)];
+          return `<div class="lrow">
+            <div class="lr-main"><div class="lr-title" style="font-size:13.5px">${esc(x.name)}</div></div>
+            <input class="price-input ${v==null?"noval":""}" inputmode="decimal" placeholder="—"
+              data-px="${x.id}" value="${v==null?"":v.toLocaleString("pt-BR",{minimumFractionDigits:2})}">
+          </div>`;
+        }).join("")}`).join("") || '<p class="note" style="padding:16px 0">Nenhum exame encontrado.</p>'}
+    </div>
+    <button class="btn btn-sm" id="newExam2" style="width:100%;margin-bottom:8px">+ Adicionar exame ao catálogo</button>
+    <p class="note txt-c">Os valores são salvos automaticamente ao sair do campo.</p>
+  </div>`;
+
+  $("#locBack").onclick=()=>{ locView={locId:null}; renderLocs(); };
+  $("#locEdit").onclick=()=> newLocSheet(l.id);
+  $$("[data-pconv]").forEach(b=> b.onclick=()=>{ locView.conv=b.dataset.pconv; renderLocDetail(); });
+  const sb=$("#lpSearch");
+  sb.oninput=()=>{ locView.search=sb.value; renderLocDetail(); const s2=$("#lpSearch"); s2.focus(); s2.setSelectionRange(s2.value.length,s2.value.length); };
+  $$("[data-px]").forEach(inp=>{
+    inp.onchange=()=>{
+      const v=parseMoney(inp.value);
+      const k=pKey(l.id,inp.dataset.px,locView.conv);
+      if(v==null){ delete S.prices[k]; inp.value=""; inp.classList.add("noval"); }
+      else { S.prices[k]=v; inp.value=v.toLocaleString("pt-BR",{minimumFractionDigits:2}); inp.classList.remove("noval"); }
+      save();
+    };
+  });
+  $("#newExam2").onclick=()=> newExamSheet(()=>renderLocDetail());
+  const cp=$("#copyPrices"); if(cp) cp.onclick=copyPricesSheet;
+}
+
+function copyPricesSheet(){
+  const l = locById(locView.locId);
+  const sources=[];
+  S.locations.forEach(sl=>{
+    (sl.convenios.length?sl.convenios:["Padrão"]).forEach(c=>{
+      if(sl.id===l.id && c===locView.conv) return;
+      const n = S.exams.filter(x=>S.prices[pKey(sl.id,x.id,c)]!=null).length;
+      if(n>0) sources.push([sl.id+"§"+c, sl.name+" · "+c+" ("+n+" preços)"]);
+    });
+  });
+  if(!sources.length){ toast("Nenhuma outra tabela com preços"); return; }
+  pickerSheet("Copiar preços de…", sources, null, v=>{
+    const [srcLoc,srcConv]=v.split("§");
+    let n=0;
+    S.exams.forEach(x=>{
+      const sv=S.prices[pKey(srcLoc,x.id,srcConv)];
+      if(sv!=null){ S.prices[pKey(l.id,x.id,locView.conv)]=sv; n++; }
+    });
+    save(); toast(n+" preços copiados — ajuste o que precisar"); renderLocDetail();
+  });
+}
+
+/* ================== AJUSTES ================== */
+function renderCfg(){
+  $("#view").innerHTML = `<div class="page">
+    <div class="sec-head" style="margin-top:0"><h2>Ajustes</h2></div>
+    <div class="card">
+      <div class="card-title">Meta mensal de faturamento</div>
+      <div class="input-row">
+        <input class="input" id="cfGoal" inputmode="decimal" placeholder="Ex.: 25.000" value="${S.goal?S.goal.toLocaleString("pt-BR"):""}">
+        <button class="btn btn-primary" id="cfGoalOk" style="flex:0 0 auto;width:auto;padding:0 20px;min-height:0">Salvar</button>
+      </div>
+      <p class="note" style="margin-top:9px">A meta aparece no dashboard com barra de progresso e projeção do mês.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Backup dos dados</div>
+      <p class="note" style="margin-bottom:12px">Seus dados ficam salvos apenas neste aparelho${store.ok?"":" (⚠️ armazenamento indisponível neste navegador — use o backup!)"}. Exporte um arquivo de backup periodicamente e ao trocar de celular.</p>
+      <div class="input-row">
+        <button class="btn" id="cfExport">↓ Exportar</button>
+        <button class="btn" id="cfImport">↑ Importar</button>
+      </div>
+      <input type="file" id="cfFile" accept=".json,application/json" class="hidden">
+    </div>
+    <div class="card">
+      <div class="card-title">Dados</div>
+      <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
+      <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
+    </div>
+    <p class="note txt-c" style="margin-top:18px">RadFin v1.1 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+  </div>`;
+
+  $("#cfGoalOk").onclick=()=>{
+    const v=parseMoney($("#cfGoal").value);
+    S.goal = v&&v>0? v:0; save();
+    toast(S.goal?"Meta salva: "+fmtBRL0(S.goal):"Meta removida");
+  };
+  $("#cfExport").onclick=()=>{
+    const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="radfin-backup-"+todayISO()+".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast("Backup exportado");
+  };
+  $("#cfImport").onclick=()=>$("#cfFile").click();
+  $("#cfFile").onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const data=JSON.parse(r.result);
+        if(!data||!Array.isArray(data.entries)||!Array.isArray(data.locations)) throw 0;
+        confirmSheet("Importar backup?",
+          `O backup contém ${data.entries.length} lançamentos e ${data.locations.length} locais. Ele substituirá TODOS os dados atuais.`,
+          "Importar", ()=>{ S=data; migrate(); save(); toast("Backup importado"); render(); });
+      }catch(_){ toast("Arquivo de backup inválido"); }
+    };
+    r.readAsText(f);
+    e.target.value="";
+  };
+  $("#cfDemo").onclick=()=> confirmSheet("Carregar dados de exemplo?",
+    "Os dados de exemplo substituem tudo o que está salvo agora. Útil para conhecer o app.","Carregar",()=>{ loadDemo(); toast("Dados de exemplo carregados"); render(); },false);
+  $("#cfWipe").onclick=()=> confirmSheet("Apagar todos os dados?",
+    "Locais, preços, lançamentos e meta serão apagados deste aparelho. Exporte um backup antes, se quiser guardar.","Apagar tudo",()=>{
+      S=freshState(); save(); toast("Dados apagados"); render();
+    });
+}
+
+/* ================== NAVEGAÇÃO / INIT ================== */
+let tab="dash";
+function nav(t){ tab=t; render(); window.scrollTo({top:0}); }
+function render(){
+  $("#tooltip").classList.remove("show");
+  $$(".tab").forEach(b=> b.classList.toggle("on", b.dataset.tab===tab));
+  if(tab==="dash") renderDash();
+  else if(tab==="add") renderAdd();
+  else if(tab==="agenda") renderAgenda();
+  else if(tab==="hist"){ histLimit=15; renderHist(); }
+  else if(tab==="locs") renderLocs();
+  else if(tab==="cfg") renderCfg();
+}
+$$(".tab,[data-tab='add']").forEach(b=> b.addEventListener("click",()=>nav(b.dataset.tab)));
+$("#cfgBtn").addEventListener("click",()=>nav("cfg"));
+
+(function init(){
+  load();
+  const d=new Date();
+  $("#appbarDate").innerHTML = `<b>${WEEKDAYS[d.getDay()]}</b>${d.getDate()} de ${["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][d.getMonth()]}`;
+  render();
+})();
+</script>
+</body>
+</html>
