@@ -490,6 +490,26 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .proj-leg .pl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2)}
 .proj-leg .pl .dot{width:9px;height:9px;border-radius:3px}
 .proj-leg .pl b{margin-left:auto;color:var(--text);font-weight:700;font-size:13px}
+/* ================= LOGIN / USUÁRIOS ================= */
+.login{position:fixed;inset:0;z-index:120;background:var(--bg);overflow-y:auto;
+  display:flex;align-items:center;justify-content:center;padding:26px 20px}
+.login-box{width:100%;max-width:380px;animation:pgin .3s ease}
+.login-logo{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:24px;text-align:center}
+.login-logo svg{width:64px;height:64px}
+.login-logo h1{font-size:24px;font-weight:800;letter-spacing:-.03em}
+.login-logo p{font-size:12.5px;color:var(--muted)}
+.avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px;flex:0 0 auto}
+.user-card{display:flex;align-items:center;gap:12px;width:100%;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:var(--r-md);padding:13px 14px;margin-bottom:10px;
+  box-shadow:var(--shadow);text-align:left;transition:border-color .15s}
+.user-card:active{border-color:var(--accent)}
+.user-card .uc-main{flex:1;min-width:0}
+.user-card .uc-name{font-weight:700;font-size:15px}
+.user-card .uc-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.user-card.on{border-color:var(--accent);background:var(--accent-soft)}
+.user-card .lock{width:15px;height:15px;color:var(--muted);flex:0 0 auto}
+#userBtn .avatar{width:30px;height:30px;font-size:11.5px}
 @media (min-width:520px){ body{padding-top:10px} }
 </style>
 </head>
@@ -521,6 +541,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
     </div>
     <div class="appbar-right">
       <div class="appbar-date" id="appbarDate"></div>
+      <button class="icon-btn" id="userBtn" aria-label="Usuário"></button>
       <button class="icon-btn" id="themeBtn" aria-label="Alternar tema claro/escuro"></button>
       <button class="icon-btn" id="cfgBtn" aria-label="Ajustes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.09a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
@@ -563,6 +584,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
   <div id="sheetContent" style="display:flex;flex-direction:column;min-height:0;flex:1"></div>
 </div>
 
+<div id="login" class="login hidden"></div>
 <div class="toast" id="toast"></div>
 <div class="tooltip" id="tooltip"></div>
 <script>
@@ -575,7 +597,52 @@ const store = {
   set(k,v){ if(this.ok){ try { localStorage.setItem(k,v); return; } catch(e){} } this.mem[k]=v; },
   del(k){ if(this.ok){ try { localStorage.removeItem(k); } catch(e){} } delete this.mem[k]; }
 };
-const DB_KEY = "radfin.v1";
+/* ================== USUÁRIOS (perfis locais) ================== */
+const REG_KEY = "radfin.profiles";
+let REG = { list:[], last:null, seq:0 };
+let PID = null; // perfil ativo
+function loadReg(){
+  try{ REG = JSON.parse(store.get(REG_KEY)) || {list:[],last:null,seq:0}; }catch(e){ REG={list:[],last:null,seq:0}; }
+  if(!Array.isArray(REG.list)) REG={list:[],last:null,seq:0};
+  if(typeof REG.seq!=="number") REG.seq = REG.list.length;
+}
+function saveReg(){ store.set(REG_KEY, JSON.stringify(REG)); }
+function legacyMigrate(){
+  const legacy = store.get("radfin.v1");
+  if(legacy && !REG.list.length){
+    const id = "p"+(++REG.seq);
+    REG.list.push({id, name:"Meu perfil", crm:"", spec:""});
+    REG.last = id;
+    store.set("radfin.v1."+id, legacy);
+    store.del("radfin.v1");
+    saveReg();
+  }
+}
+function dbKey(){ return "radfin.v1."+PID; }
+function curProfile(){ return REG.list.find(p=>p.id===PID) || null; }
+function initials(name){
+  const w = String(name||"").trim().split(/\s+/).filter(Boolean);
+  if(!w.length) return "?";
+  return (w[0][0] + (w.length>1? w[w.length-1][0] : "")).toUpperCase();
+}
+async function hashPwd(salt, pwd){
+  try{
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(salt+"|"+pwd));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }catch(e){
+    let h=5381; const s2=salt+"|"+pwd;
+    for(let i=0;i<s2.length;i++) h=((h<<5)+h+s2.charCodeAt(i))|0;
+    return "djb2:"+(h>>>0).toString(16);
+  }
+}
+function randSalt(){
+  const a = new Uint8Array(8);
+  try{ crypto.getRandomValues(a); }catch(e){ for(let i=0;i<8;i++) a[i]=(i*37+13)%256; }
+  return Array.from(a).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+const SPECS = ["Radiologia e Diagnóstico por Imagem","Ultrassonografia Geral","Medicina Fetal",
+  "Imagem da Mama / Mastologia","Ecocardiografia","Medicina Nuclear","Ginecologia e Obstetrícia",
+  "Angiologia / Vascular","Clínica Médica","Outra"];
 
 /* ================== MODALIDADES & CATÁLOGO ==================
    Nomes baseados no Rol ANS / nomenclatura TUSS. O campo `code`
@@ -944,9 +1011,10 @@ function migrate(){
     if(!Array.isArray(l.examIds)) l.examIds = [];
   });
 }
-function save(){ store.set(DB_KEY, JSON.stringify(S)); }
+function save(){ if(PID) store.set(dbKey(), JSON.stringify(S)); }
 function load(){
-  const raw = store.get(DB_KEY);
+  const raw = PID? store.get(dbKey()) : null;
+  S = null; // sempre recomeça — nunca herda o estado do usuário anterior
   if(raw){ try { S = JSON.parse(raw); } catch(e){ S = null; } }
   if(!S || !Array.isArray(S.exams)) S = freshState();
   migrate();
@@ -3310,6 +3378,18 @@ function renderCfg(){
   $("#view").innerHTML = `<div class="page">
     <div class="sec-head" style="margin-top:0"><h2>Ajustes</h2></div>
     <div class="card">
+      <div class="card-title">Usuário</div>
+      <div class="user-card on" style="pointer-events:none;box-shadow:none;margin-bottom:12px">
+        <span class="avatar">${esc(initials((curProfile()||{}).name))}</span>
+        <span class="uc-main"><span class="uc-name" style="display:block">${esc((curProfile()||{}).name||"")}</span>
+        <span class="uc-sub">${esc([ (curProfile()||{}).crm, (curProfile()||{}).spec ].filter(Boolean).join(" · ")||"complete seu CRM e especialidade")}</span></span>
+      </div>
+      <div class="input-row">
+        <button class="btn btn-sm" id="cfProfEdit">Editar perfil</button>
+        <button class="btn btn-sm" id="cfProfSwitch">Trocar de usuário</button>
+      </div>
+    </div>
+    <div class="card">
       <div class="card-title">Meu perfil · modalidades que realizo</div>
       <div class="conv-chips" style="margin-bottom:12px">${
         S.userMods===null? '<span class="note">Ainda não configurado — todas as modalidades são exibidas.</span>'
@@ -3354,9 +3434,11 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.0 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.1 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
+  $("#cfProfEdit").onclick=()=> editProfileSheet();
+  $("#cfProfSwitch").onclick=()=> showLogin("pick");
   $("#cfMods").onclick=()=> profileSheet(()=>renderCfg());
   $$("[data-rem]").forEach(b=> b.onclick=()=>{ S.cal.reminder=+b.dataset.rem; save(); renderCfg(); });
   $$("[data-wk]").forEach(b=> b.onclick=()=>{ S.cal.weekly=b.dataset.wk==="1"; save(); renderCfg(); });
@@ -3422,6 +3504,165 @@ function renderCfg(){
     });
 }
 
+/* ================== LOGIN & PERFIS ================== */
+function specOptions(){ return SPECS.map(x=>`<option value="${esc(x)}">`).join(""); }
+function showLogin(mode){
+  const el = $("#login");
+  el.classList.remove("hidden");
+  const logo = `<div class="login-logo">
+    <svg viewBox="0 0 48 48" fill="none">
+      <defs><linearGradient id="lgGrad" gradientUnits="userSpaceOnUse" x1="0" y1="48" x2="48" y2="0">
+        <stop offset="0" stop-color="#0d9488"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs>
+      <circle cx="24" cy="24" r="21" stroke="url(#lgGrad)" stroke-width="3.4"/>
+      <g stroke="url(#lgGrad)" stroke-width="3.6" stroke-linecap="round">
+        <line x1="14" y1="34" x2="14" y2="27"/><line x1="19" y1="34" x2="19" y2="19"/>
+        <line x1="24" y1="34" x2="24" y2="14.5"/><line x1="29" y1="34" x2="29" y2="21.5"/>
+        <line x1="34" y1="34" x2="34" y2="25.5"/></g>
+    </svg>
+    <h1>RadFin</h1><p>Honorários &amp; Produtividade</p>
+  </div>`;
+  if(mode==="create" || !REG.list.length){
+    el.innerHTML = `<div class="login-box">${logo}
+      <div class="card">
+        <div class="card-title">${REG.list.length?"Novo usuário":"Crie seu cadastro"}</div>
+        <div class="field"><label>Nome completo *</label><input class="input" id="lgName" placeholder="Ex.: Dr. Gabriel Bacelar"></div>
+        <div class="field"><label>CRM</label><input class="input" id="lgCrm" placeholder="Ex.: CRM-MA 12345"></div>
+        <div class="field"><label>Especialidade médica</label>
+          <input class="input" id="lgSpec" list="specList" placeholder="Ex.: Radiologia e Diagnóstico por Imagem">
+          <datalist id="specList">${specOptions()}</datalist></div>
+        <div class="field"><label>Senha (opcional)</label>
+          <input type="password" class="input" id="lgPwd" placeholder="Deixe em branco para entrar sem senha">
+          <p class="note" style="margin-top:6px">A senha protege o acesso neste aparelho. Os dados de cada usuário ficam separados.</p></div>
+        <button class="btn btn-primary" id="lgCreate">Criar e entrar</button>
+        ${REG.list.length?'<button class="btn btn-ghost" id="lgBack" style="margin-top:8px">← Voltar</button>':""}
+      </div></div>`;
+    $("#lgCreate").onclick = async ()=>{
+      const name=$("#lgName").value.trim();
+      if(!name){ toast("Informe o nome"); return; }
+      const prof = { id:"p"+(++REG.seq), name, crm:$("#lgCrm").value.trim(), spec:$("#lgSpec").value.trim() };
+      const pwd=$("#lgPwd").value;
+      if(pwd){ prof.salt=randSalt(); prof.hash=await hashPwd(prof.salt,pwd); }
+      REG.list.push(prof); saveReg();
+      enterProfile(prof.id);
+      toast("Bem-vindo(a), "+name.split(" ")[0]+"!");
+    };
+    const bk=$("#lgBack"); if(bk) bk.onclick=()=>showLogin("pick");
+    return;
+  }
+  // seleção de usuário
+  el.innerHTML = `<div class="login-box">${logo}
+    <p class="note txt-c" style="margin-bottom:14px;font-size:13px">Quem está usando?</p>
+    ${REG.list.map(p=>`
+      <button class="user-card" data-lg="${p.id}">
+        <span class="avatar">${esc(initials(p.name))}</span>
+        <span class="uc-main"><span class="uc-name" style="display:block">${esc(p.name)}</span>
+        <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
+        ${p.hash?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':""}
+      </button>`).join("")}
+    <button class="btn" id="lgNew" style="margin-top:6px">+ Novo usuário</button>
+    <div id="lgPwdBox"></div>
+  </div>`;
+  $$("[data-lg]").forEach(b=> b.onclick=()=>{
+    const p = REG.list.find(x=>x.id===b.dataset.lg);
+    if(!p) return;
+    if(!p.hash){ enterProfile(p.id); return; }
+    $("#lgPwdBox").innerHTML = `<div class="card" style="margin-top:12px">
+      <div class="card-title">Senha de ${esc(p.name.split(" ")[0])}</div>
+      <div class="input-row">
+        <input type="password" class="input" id="lgTryPwd" placeholder="Senha">
+        <button class="btn btn-primary" id="lgTry" style="flex:0 0 auto;width:auto;padding:0 20px;min-height:0">Entrar</button>
+      </div><p class="note hidden" id="lgErr" style="margin-top:8px;color:var(--crit-text)">Senha incorreta.</p></div>`;
+    const inp=$("#lgTryPwd"); inp.focus();
+    const tryGo = async ()=>{
+      const h = await hashPwd(p.salt||"", inp.value);
+      if(h===p.hash) enterProfile(p.id);
+      else $("#lgErr").classList.remove("hidden");
+    };
+    $("#lgTry").onclick=tryGo;
+    inp.onkeydown=e=>{ if(e.key==="Enter") tryGo(); };
+  });
+  $("#lgNew").onclick=()=>showLogin("create");
+}
+function enterProfile(id){
+  PID=id; REG.last=id; saveReg();
+  // zera estados de sessão do perfil anterior
+  draft.qty={}; draft.locId=null; draft.conv=null; draft.search="";
+  locView.locId=null; locView.mode=null;
+  F.loc=F.conv=F.mod=F.exam="all"; F.period="month";
+  agView.sel=todayISO(); agView.y=null;
+  load(); applyTheme(); updateUserBtn();
+  $("#login").classList.add("hidden");
+  tab="dash"; render();
+}
+function updateUserBtn(){
+  const p=curProfile(), b=$("#userBtn");
+  if(b) b.innerHTML = `<span class="avatar">${esc(p?initials(p.name):"?")}</span>`;
+}
+function userSheet(){
+  const p=curProfile(); if(!p) return;
+  openSheet(`
+    <h3>Usuário</h3>
+    <div class="sheet-body">
+      <div class="user-card on" style="pointer-events:none">
+        <span class="avatar">${esc(initials(p.name))}</span>
+        <span class="uc-main"><span class="uc-name" style="display:block">${esc(p.name)}</span>
+        <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
+      </div>
+      <button class="btn" id="usEdit" style="margin:10px 0">Editar perfil</button>
+      <button class="btn" id="usSwitch" style="margin-bottom:10px">Trocar de usuário</button>
+      <button class="btn" id="usNew">+ Novo usuário</button>
+    </div>
+    <div class="sheet-foot"><button class="btn" id="usClose">Fechar</button></div>`,
+    el=>{
+      $("#usClose",el).onclick=closeSheet;
+      $("#usEdit",el).onclick=()=>{ closeSheet(); editProfileSheet(); };
+      $("#usSwitch",el).onclick=()=>{ closeSheet(); showLogin("pick"); };
+      $("#usNew",el).onclick=()=>{ closeSheet(); showLogin("create"); };
+    });
+}
+function editProfileSheet(){
+  const p=curProfile(); if(!p) return;
+  openSheet(`
+    <h3>Editar perfil</h3>
+    <div class="sheet-body">
+      <div class="field"><label>Nome completo</label><input class="input" id="epName" value="${esc(p.name)}"></div>
+      <div class="field"><label>CRM</label><input class="input" id="epCrm" value="${esc(p.crm||"")}"></div>
+      <div class="field"><label>Especialidade médica</label>
+        <input class="input" id="epSpec" list="specList2" value="${esc(p.spec||"")}">
+        <datalist id="specList2">${specOptions()}</datalist></div>
+      <div class="field"><label>${p.hash?"Alterar senha (deixe em branco para manter)":"Definir senha (opcional)"}</label>
+        <input type="password" class="input" id="epPwd" placeholder="Nova senha">
+        ${p.hash?'<button id="epNoPwd" style="color:var(--crit-text);font-weight:700;font-size:12px;margin-top:8px">Remover senha</button>':""}</div>
+      <button class="btn btn-danger" id="epDel">Excluir este usuário e seus dados</button>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="epCancel">Cancelar</button>
+      <button class="btn btn-primary" id="epOk">Salvar</button>
+    </div>`,
+    el=>{
+      $("#epCancel",el).onclick=closeSheet;
+      const np=$("#epNoPwd",el); if(np) np.onclick=()=>{ delete p.hash; delete p.salt; saveReg(); closeSheet(); toast("Senha removida"); };
+      $("#epDel",el).onclick=()=>{
+        closeSheet();
+        confirmSheet("Excluir "+p.name+"?","Todos os dados deste usuário (lançamentos, locais, agenda) serão apagados deste aparelho. Exporte um backup antes, se quiser guardar.","Excluir usuário",()=>{
+          store.del(dbKey());
+          REG.list=REG.list.filter(x=>x.id!==p.id);
+          REG.last=null; saveReg(); PID=null;
+          showLogin(REG.list.length?"pick":"create");
+        });
+      };
+      $("#epOk",el).onclick=async ()=>{
+        const name=$("#epName",el).value.trim();
+        if(!name){ toast("Informe o nome"); return; }
+        p.name=name; p.crm=$("#epCrm",el).value.trim(); p.spec=$("#epSpec",el).value.trim();
+        const pwd=$("#epPwd",el).value;
+        if(pwd){ p.salt=randSalt(); p.hash=await hashPwd(p.salt,pwd); }
+        saveReg(); updateUserBtn(); closeSheet(); toast("Perfil atualizado");
+        if(tab==="cfg") renderCfg();
+      };
+    });
+}
+
 /* ================== NAVEGAÇÃO / INIT ================== */
 let tab="dash";
 function nav(t){ tab=t; render(); window.scrollTo({top:0}); }
@@ -3438,17 +3679,24 @@ function render(){
 $$(".tab,[data-tab='add']").forEach(b=> b.addEventListener("click",()=>nav(b.dataset.tab)));
 $("#cfgBtn").addEventListener("click",()=>nav("cfg"));
 $("#themeBtn").addEventListener("click",()=>{
+  if(!S) return;
   S.theme = S.theme==="dark"? "light":"dark";
   save(); applyTheme();
   toast(S.theme==="dark"? "Tema escuro":"Tema claro");
 });
+$("#userBtn").addEventListener("click",()=>{ if(S) userSheet(); });
 
 (function init(){
-  load();
-  applyTheme();
   const d=new Date();
   $("#appbarDate").innerHTML = `<b>${WEEKDAYS[d.getDay()]}</b>${d.getDate()} ${MONTHS_S[d.getMonth()]}`;
-  render();
+  applyTheme(); // tema padrão antes do login
+  loadReg();
+  legacyMigrate();
+  if(!REG.list.length){ showLogin("create"); return; }
+  const last = REG.list.find(p=>p.id===REG.last);
+  if(REG.list.length===1 && !REG.list[0].hash){ enterProfile(REG.list[0].id); return; }
+  if(last && !last.hash){ enterProfile(last.id); return; }
+  showLogin("pick");
 })();
 </script>
 </body>
