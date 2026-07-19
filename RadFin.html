@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="RadFin">
 <meta name="theme-color" content="#f4f5f8">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="48" x2="48" y2="0"><stop offset="0" stop-color="%230d9488"/><stop offset="1" stop-color="%2334d399"/></linearGradient></defs><circle cx="24" cy="24" r="21" fill="none" stroke="url(%23g)" stroke-width="3.6"/><g stroke="url(%23g)" stroke-width="3.6" stroke-linecap="round"><line x1="14" y1="34" x2="14" y2="27"/><line x1="19" y1="34" x2="19" y2="19"/><line x1="24" y1="34" x2="24" y2="14.5"/><line x1="29" y1="34" x2="29" y2="21.5"/><line x1="34" y1="34" x2="34" y2="25.5"/></g></svg>'>
 <title>RadFin — Honorários & Produtividade</title>
 <style>
 /* ================= TOKENS DE TEMA ================= */
@@ -24,29 +25,29 @@
   --muted:#98a2b3;
   --grid:#edeff4;
   --axis:#d5d9e2;
-  --accent:#6366f1;
-  --accent-2:#8b5cf6;
-  --accent-soft:#eef0fe;
-  --accent-text:#4f46e5;
-  --accent-brd:#c9cdfb;
-  --chip-on-bg:#eef0fe; --chip-on-brd:#c7cbfa; --chip-on-ink:#4f46e5;
+  --accent:#12b389;
+  --accent-2:#2ec4a5;
+  --accent-soft:#e5f7f1;
+  --accent-text:#0b7d61;
+  --accent-brd:#a4e5d3;
+  --chip-on-bg:#e5f7f1; --chip-on-brd:#9adfc9; --chip-on-ink:#0b7d61;
   --good:#16a34a; --up:#15803d; --down:#dc2626;
   --warn:#d97706; --crit:#dc2626; --crit-text:#dc2626;
   --crit-soft:#fee2e2; --crit-brd:#fecaca;
   --s1:#2a78d6; --s2:#008300; --s3:#e87ba4; --s4:#eda100;
   --s5:#1baf7a; --s6:#eb6834; --s7:#4a3aa7; --s8:#e34948;
-  --seq:#6366f1;
-  --hero-bg:linear-gradient(135deg,#6366f1 0%,#7c5cf3 55%,#9333ea 120%);
-  --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.78); --hero-hl:#e9fbf1;
+  --seq:#0d9488;
+  --hero-bg:linear-gradient(135deg,#0e9c7c 0%,#12b389 55%,#2ec4a5 120%);
+  --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.8); --hero-hl:#eafff6;
   --shadow:0 1px 2px rgba(16,24,40,.04), 0 6px 20px rgba(16,24,40,.05);
-  --shadow-lift:0 10px 30px rgba(79,70,229,.16);
+  --shadow-lift:0 10px 30px rgba(18,179,137,.2);
   --tab-bg:rgba(255,255,255,.86);
   --veil:rgba(15,23,42,.4);
   --pop-bg:#ffffff; --pop-brd:#e2e5ee;
   --toast-bg:#101828; --toast-ink:#ffffff; --toast-ok:#6ee7a0;
-  --glow1:rgba(99,102,241,.08); --glow2:rgba(147,51,234,.06);
-  --k1-bg:#eef0fe; --k1-ink:#4f46e5;
-  --k2-bg:#e7f7ee; --k2-ink:#15803d;
+  --glow1:rgba(18,179,137,.09); --glow2:rgba(46,196,165,.06);
+  --k1-bg:#e5f7f1; --k1-ink:#0b7d61;
+  --k2-bg:#eef0fe; --k2-ink:#4f46e5;
   --k3-bg:#fdf1e2; --k3-ink:#c2650a;
   --k4-bg:#f5ecfe; --k4-ink:#8b31d8;
 }
@@ -63,29 +64,29 @@
   --muted:#878da0;
   --grid:#262933;
   --axis:#363a48;
-  --accent:#818cf8;
-  --accent-2:#a78bfa;
-  --accent-soft:rgba(99,102,241,.17);
-  --accent-text:#aab3ff;
-  --accent-brd:rgba(129,140,248,.42);
-  --chip-on-bg:rgba(99,102,241,.18); --chip-on-brd:rgba(129,140,248,.5); --chip-on-ink:#b7befd;
+  --accent:#2dd4b3;
+  --accent-2:#4ade80;
+  --accent-soft:rgba(20,184,166,.16);
+  --accent-text:#8ceed7;
+  --accent-brd:rgba(45,212,179,.42);
+  --chip-on-bg:rgba(20,184,166,.18); --chip-on-brd:rgba(45,212,179,.5); --chip-on-ink:#9df0dd;
   --good:#22c55e; --up:#4ade80; --down:#f87171;
   --warn:#fbbf24; --crit:#ef4444; --crit-text:#fda4a4;
   --crit-soft:rgba(239,68,68,.14); --crit-brd:rgba(239,68,68,.4);
   --s1:#3987e5; --s2:#008300; --s3:#d55181; --s4:#c98500;
   --s5:#199e70; --s6:#d95926; --s7:#9085e9; --s8:#e66767;
-  --seq:#818cf8;
-  --hero-bg:linear-gradient(140deg,#312e81 0%,#3b2f86 45%,#181530 110%);
-  --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.68); --hero-hl:#8ef0b8;
+  --seq:#2dd4b3;
+  --hero-bg:linear-gradient(140deg,#0f3d34 0%,#11554a 45%,#101a19 110%);
+  --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.68); --hero-hl:#8ef0c9;
   --shadow:0 8px 28px rgba(0,0,0,.35);
-  --shadow-lift:0 10px 30px rgba(99,102,241,.3);
+  --shadow-lift:0 10px 30px rgba(45,212,179,.28);
   --tab-bg:rgba(12,13,18,.8);
   --veil:rgba(0,0,0,.58);
   --pop-bg:#262833; --pop-brd:rgba(255,255,255,.14);
   --toast-bg:#262833; --toast-ink:#f6f7fb; --toast-ok:#6ee7a0;
-  --glow1:rgba(99,102,241,.14); --glow2:rgba(167,139,250,.08);
-  --k1-bg:rgba(99,102,241,.18); --k1-ink:#aab3ff;
-  --k2-bg:rgba(34,197,94,.15); --k2-ink:#6ee7a0;
+  --glow1:rgba(45,212,179,.12); --glow2:rgba(74,222,128,.06);
+  --k1-bg:rgba(45,212,179,.16); --k1-ink:#8ceed7;
+  --k2-bg:rgba(129,140,248,.16); --k2-ink:#aab3ff;
   --k3-bg:rgba(251,191,36,.14); --k3-ink:#fcd34d;
   --k4-bg:rgba(167,139,250,.16); --k4-ink:#c4b5fd;
 }
@@ -122,9 +123,8 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 /* ================= APPBAR ================= */
 .appbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .appbar .brand{display:flex;align-items:center;gap:10px}
-.brand-logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow-lift)}
-.brand-logo svg{width:22px;height:22px}
+.brand-logo{width:42px;height:42px;display:grid;place-items:center}
+.brand-logo svg{width:42px;height:42px}
 .brand-name{font-size:19px;font-weight:800;letter-spacing:-.03em}
 .brand-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
 .appbar-right{display:flex;align-items:center;gap:8px}
@@ -498,8 +498,20 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
   <header class="appbar">
     <div class="brand">
       <div class="brand-logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 17l4-8 4 5 4-9 4 12"/>
+        <svg viewBox="0 0 48 48" fill="none">
+          <defs>
+            <linearGradient id="brandGrad" gradientUnits="userSpaceOnUse" x1="0" y1="48" x2="48" y2="0">
+              <stop offset="0" stop-color="#0d9488"/><stop offset="1" stop-color="#34d399"/>
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="24" r="21" stroke="url(#brandGrad)" stroke-width="3.4"/>
+          <g stroke="url(#brandGrad)" stroke-width="3.6" stroke-linecap="round">
+            <line x1="14" y1="34" x2="14" y2="27"/>
+            <line x1="19" y1="34" x2="19" y2="19"/>
+            <line x1="24" y1="34" x2="24" y2="14.5"/>
+            <line x1="29" y1="34" x2="29" y2="21.5"/>
+            <line x1="34" y1="34" x2="34" y2="25.5"/>
+          </g>
         </svg>
       </div>
       <div>
@@ -3342,7 +3354,7 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v1.9 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.0 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   $("#cfMods").onclick=()=> profileSheet(()=>renderCfg());
