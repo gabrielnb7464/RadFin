@@ -370,6 +370,38 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .wk-tot .wt b{display:block;font-size:15px;font-weight:800;letter-spacing:-.01em}
 .wk-tot .wt span{font-size:10px;color:var(--muted);font-weight:600}
 
+/* ============ VOZ & FAVORITOS ============ */
+.mic-btn{
+  width:52px;height:52px;border-radius:14px;flex:0 0 auto;
+  background:linear-gradient(135deg,#2bc9a4,#24a9c9);color:#052019;
+  display:grid;place-items:center;box-shadow:0 6px 18px rgba(43,201,164,.3);
+  transition:transform .12s;
+}
+.mic-btn:active{transform:scale(.94)}
+.mic-btn svg{width:22px;height:22px}
+.mic-live{
+  width:86px;height:86px;border-radius:50%;margin:10px auto 14px;
+  background:var(--accent-soft);display:grid;place-items:center;position:relative;
+}
+.mic-live svg{width:36px;height:36px;color:var(--accent)}
+.mic-live.rec::before{content:"";position:absolute;inset:-8px;border-radius:50%;
+  border:2px solid rgba(43,201,164,.5);animation:micpulse 1.4s ease-out infinite}
+@keyframes micpulse{0%{transform:scale(.85);opacity:1}100%{transform:scale(1.25);opacity:0}}
+.transcript{
+  background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:12px 14px;font-size:14px;line-height:1.5;min-height:64px;color:var(--text-2);
+}
+.transcript .interim{color:var(--muted);font-style:italic}
+.fav-btn{width:34px;height:38px;display:grid;place-items:center;color:var(--surface-3);flex:0 0 auto}
+.fav-btn svg{width:17px;height:17px}
+.fav-btn.on{color:#f5c451}
+.vc-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.vc-item:last-child{border-bottom:none}
+.vc-item .vc-main{flex:1;min-width:0}
+.vc-item .vc-name{font-size:13.5px;font-weight:700;white-space:normal;line-height:1.3}
+.vc-item .vc-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.vc-item.miss .vc-name{color:var(--warn)}
+
 /* ============ MODALIDADES (check cards) ============ */
 .modgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modcard{display:flex;align-items:center;gap:11px;background:var(--surface-2);border:1.5px solid var(--border);
@@ -638,15 +670,85 @@ const CATALOG_SEED = [
 const normName = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
 function activeMods(){ return (S.userMods && S.userMods.length)? S.userMods : MODS; }
 
+/* ---- Apelidos curtos (padr\u00e3o, edit\u00e1veis) para a nomenclatura TUSS longa ---- */
+const ALIAS_BY_CODE = {
+  "40901181":"Pelve / abd. inferior feminino","40901130":"Abdome superior",
+  "40901122":"Abdome total","40901769":"Aparelho urin\u00e1rio","40901220":"Articular",
+  "40901190":"Dermatol\u00f3gico","40901211":"Estruturas superficiais","40901033":"Gl\u00e2ndulas salivares",
+  "40901017":"Globo ocular","40901238":"Obst\u00e9trica","40901297":"Obst\u00e9trica 1\u00ba tri",
+  "40901254":"Transluc\u00eancia nucal","40901270":"Obst. gemelar (cada feto)",
+  "40901262":"Morfol\u00f3gica","40901505":"Perfil biof\u00edsico fetal",
+  "40901203":"Tireoide / escroto / p\u00eanis","40901335":"Pr\u00f3stata transretal",
+  "40901149":"Retroperit\u00f4nio","40901041":"Tor\u00e1cico extracard\u00edaco",
+  "40901300":"Transvaginal","40901319":"TVG controle de ovula\u00e7\u00e3o",
+  "40901491":"US 3D (adicional)","40901858":"Pesquisa de endometriose",
+  "40901459":"Doppler arterial MMII (uni)","40901475":"Doppler arterial MMSS (uni)",
+  "40901394":"Doppler aorta e renais","40901408":"Doppler aorta e il\u00edacas",
+  "40901386":"Doppler de \u00f3rg\u00e3o isolado","40901360":"Doppler de car\u00f3tidas",
+  "40901378":"Doppler venoso cervical","40901351":"Doppler transcraniano",
+  "40901483":"Doppler venoso MMII (uni)","40901467":"Doppler venoso MMSS (uni)",
+  "40901432":"Doppler venoso abd. / porta","40901246":"Obst\u00e9trica com Doppler",
+  "40901289":"Obst. gemelar c/ Doppler",
+  "41001117":"Pelve / abd. inferior","41001109 + 41001117":"Abdome total",
+  "41001141":"Articula\u00e7\u00e3o (unilateral)","41001125":"Coluna (at\u00e9 3 segmentos)",
+  "41001010":"Cr\u00e2nio / sela / \u00f3rbitas","41001036":"Seios da face","41001060":"Pesco\u00e7o",
+  "41001150":"Segmento apendicular","41001362":"Urotomografia","41001044":"ATM (bilateral)",
+  "40808033":"Mamografia bilateral","40808050":"Magnifica\u00e7\u00e3o de les\u00e3o mam\u00e1ria",
+  "40808203":"Marca\u00e7\u00e3o pr\u00e9-cir\u00fargica"
+};
+function applyAliases(exams){
+  exams.forEach(x=>{
+    if(x.alias) return;
+    const nn = normName(x.name);
+    if(x.code==="40901173"){ x.alias = nn.includes("prostata via abdominal")? "Pr\u00f3stata (via abdominal)":"Abd. inferior masculino"; return; }
+    const v2 = nn.includes("2a lesao")||nn.includes("2o nodulo")||nn.includes("2 lesao")||nn.includes("2 nodulo");
+    if(nn.includes("core biopsy")){ x.alias = v2? "Core biopsy (2\u00aa les\u00e3o+)":"Core biopsy de mama"; return; }
+    if(nn.includes("mamotomia")){ x.alias = v2? "Mamotomia (2\u00aa les\u00e3o+)":"Mamotomia"; return; }
+    if(nn.includes("agulha fina")){ x.alias = v2? "PAAF de mama (2\u00ba n\u00f3dulo+)":"PAAF de mama"; return; }
+    if(nn.includes("ato de coleta")){ x.alias = v2? "Coleta de PAAF (2\u00ba n\u00f3dulo+)":"Coleta de PAAF"; return; }
+    if(nn.includes("aspirativa de orgao")){ x.alias = v2? "Bi\u00f3psia/PAAF superficial (2\u00aa+)":"Bi\u00f3psia/PAAF superficial"; return; }
+    if(x.code && ALIAS_BY_CODE[x.code]) x.alias = ALIAS_BY_CODE[x.code];
+  });
+}
+const dispName = x => x? (x.alias || x.name) : "";
+
+/* ---- Busca com abrevia\u00e7\u00f5es do dia a dia ---- */
+const ABBR = {
+  tvg:"transvaginal", tv:"transvaginal", abd:"abdome", abdominal:"abdome",
+  usg:"", us:"", eco:"", ecografia:"",
+  mmii:"membro inferior", mmss:"membro superior",
+  carotida:"carotidas", carotidas:"carotidas",
+  obst:"obstetrica", obs:"obstetrica", ob:"obstetrica",
+  morfo:"morfologica", morfologico:"morfologica",
+  dopler:"doppler", doper:"doppler",
+  pelvica:"pelve", pelvico:"pelve",
+  urinarias:"urinario", rins:"rins",
+  tsh:"tireoide", tireoides:"tireoide",
+  tn:"translucencia", clipagem:"marcacao"
+};
+function examSearchText(x){ return normName(x.name+" "+(x.alias||"")+" "+(x.code||"")); }
+function expandTokens(q){
+  return normName(q).split(" ").map(t=> ABBR[t]!==undefined? ABBR[t] : t).filter(Boolean);
+}
+function matchExam(x,q){
+  if(!q||!q.trim()) return true;
+  const txt = examSearchText(x);
+  const toks = expandTokens(q);
+  if(!toks.length) return true;
+  return toks.every(t=> txt.includes(t));
+}
+
 /* ================== STATE ================== */
 const SLOTS = ["#3987e5","#008300","#d55181","#c98500","#199e70","#d95926","#9085e9","#e66767"];
 let S = null;
 
 function freshState(){
+  const exams = CATALOG_SEED.map((e,i)=>{ const o={id:"x"+(i+1), mod:e[0], name:e[1]}; if(e[2]) o.code=e[2]; return o; });
+  applyAliases(exams);
   return {
     version: 1,
     locations: [],           // {id,name,slot,convenios:[..]}
-    exams: CATALOG_SEED.map((e,i)=>{ const o={id:"x"+(i+1), mod:e[0], name:e[1]}; if(e[2]) o.code=e[2]; return o; }),
+    exams,
     examSeq: CATALOG_SEED.length,
     prices: {},              // "locId|examId|conv" -> number
     entries: [],             // {id,date,locId,examId,conv,qty,unit}
@@ -655,7 +757,7 @@ function freshState(){
     last: { locId:null, conv:null },
     agenda: { events:[], rules:[], skips:[], seq:0 },
     userMods: null,          // modalidades que o médico realiza (perfil)
-    catalogV: 4
+    catalogV: 5
   };
 }
 /* Renomeações de nomes antigos → nomenclatura oficial da tabela (preservando id, preços e lançamentos) */
@@ -746,6 +848,8 @@ function migrate(){
     });
     S.catalogV = 4;
   }
+  // v5: apelidos curtos padrão para nomes TUSS longos
+  if(S.catalogV<5){ applyAliases(S.exams); S.catalogV=5; }
   if(S.userMods===undefined) S.userMods = null;
   // v4: turnos matutino/vespertino/noturno + integração com agenda
   const perRemap = {"Manhã":"Matutino","Tarde":"Vespertino","Noite":"Noturno"};
@@ -756,6 +860,8 @@ function migrate(){
   if(S.cal.weekly===undefined) S.cal.weekly=false;
   if(S.cal.prompt===undefined) S.cal.prompt=true;
   S.locations.forEach(l=>{
+    if(l.gross===undefined) l.gross=false;      // honorários em valor bruto?
+    if(typeof l.taxPct!=="number") l.taxPct=0;  // % de desconto (impostos/NF)
     if(!Array.isArray(l.mods) || !l.mods.length){
       // infere pelas tabelas de preço já existentes; senão, todas
       const used = new Set();
@@ -793,13 +899,28 @@ function occurrences(date){
   const dow = fromISO(date).getDay();
   const evs = S.agenda.events.filter(e=>e.date===date)
     .map(e=>({id:e.id, date, locId:e.locId, period:e.period, start:e.start, end:e.end, note:e.note, type:"event"}));
-  const rls = S.agenda.rules.filter(r=>
-      r.dow===dow && r.from<=date && (!r.until || date<r.until) &&
-      !S.agenda.skips.some(s=>s.ruleId===r.id && s.date===date))
-    .map(r=>({id:r.id, date, locId:r.locId, period:r.period, start:r.start, end:r.end, note:r.note, type:"rule"}));
+  const rls = S.agenda.rules.filter(r=>{
+      if(r.from>date || (r.until && date>=r.until)) return false;
+      if(S.agenda.skips.some(s=>s.ruleId===r.id && s.date===date)) return false;
+      const f = r.freq||"w";
+      if(f==="m") return fromISO(date).getDate()===fromISO(r.from).getDate();
+      if(r.dow!==dow) return false;
+      if(f==="2w"){
+        const weeks = Math.round((fromISO(date)-fromISO(r.from))/(86400000*7));
+        return weeks%2===0;
+      }
+      return true;
+    })
+    .map(r=>({id:r.id, date, locId:r.locId, period:r.period, start:r.start, end:r.end, note:r.note, freq:r.freq||"w", type:"rule"}));
   return evs.concat(rls).filter(o=>locById(o.locId));
 }
 function hasAgendaData(){ return S.agenda.events.length>0 || S.agenda.rules.length>0; }
+/* bruto → líquido */
+function netFactor(locId){
+  const l = locById(locId);
+  return (l && l.gross && l.taxPct>0)? (1 - Math.min(99,l.taxPct)/100) : 1;
+}
+const FREQ_LABEL = { w:"semanal", "2w":"quinzenal", m:"mensal" };
 
 /* ================== HELPERS ================== */
 const $  = (s,el)=> (el||document).querySelector(s);
@@ -893,6 +1014,7 @@ function loadDemo(){
   const l1 = mkLoc("Hospital São Lucas", ["Particular","Unimed","Convênio X"], ["US","DO"]);
   const l2 = mkLoc("Clínica ImageCenter", ["Particular","Unimed"], ["US","DO"]);
   const l3 = mkLoc("UPA Norte (plantão)", ["SUS"], ["US"]);
+  locById(l3).gross = true; locById(l3).taxPct = 16;
   const X = n => S.exams.find(e=>e.name===n).id;
   const priceRows = [
     [l1,"ABDOME TOTAL (INCLUI ABDOME INFERIOR)",{Particular:110,Unimed:82,"Convênio X":74}],
@@ -1070,12 +1192,14 @@ function renderDash(){
     </section>`;
   }
 
-  // HERO
+  // HERO (com líquido estimado quando há locais com honorário bruto)
+  const totalNet = ent.reduce((s,e)=>s+entryValue(e)*netFactor(e.locId),0);
   html += `
   <section class="card hero">
     <div class="label">Faturamento · ${esc(label)}</div>
     <div class="value">${heroMoney(total)}</div>
     <div class="sub">${deltaHtml}</div>
+    ${total-totalNet>0.5?`<div class="period-note" style="margin-top:8px">Líquido estimado após descontos: <b style="color:#7fe7cd">${fmtBRL0(totalNet)}</b></div>`:""}
   </section>`;
 
   // KPIs
@@ -1149,7 +1273,7 @@ function renderDash(){
           <div class="rank-pos ${i===0?"first":""}">${i+1}</div>
           <div class="rank-info">
             <div class="rank-name"><span class="dot" style="background:${SLOTS[r.loc.slot]}"></span><span>${esc(r.loc.name)}</span></div>
-            <div class="rank-meta">${fmtN(r.q)} exames · total ${fmtBRL0(r.v)}</div>
+            <div class="rank-meta">${fmtN(r.q)} exames · total ${fmtBRL0(r.v)}${netFactor(r.loc.id)<1?` · líq. ${fmtBRL0(r.v*netFactor(r.loc.id))}`:""}</div>
           </div>
           <div class="rank-val"><b>${fmtBRL(r.v/r.q)}</b><small>por exame</small></div>
         </div>`).join("")
@@ -1181,7 +1305,7 @@ function renderDash(){
       <div class="rank-item">
         <div class="rank-pos ${i===0?"first":""}">${i+1}</div>
         <div class="rank-info">
-          <div class="rank-name"><span>${esc(r.x.name)}</span></div>
+          <div class="rank-name"><span>${esc(dispName(r.x))}</span></div>
           <div class="rank-meta">${esc(r.x.mod)} · ${fmtN(r.q)} exames</div>
         </div>
         <div class="rank-val"><b>${fmtBRL0(r.v)}</b><small>${fmtBRL(r.v/r.q)}/exame</small></div>
@@ -1240,7 +1364,7 @@ function insightsCard(ent, total, nEx, locRank){
   if(byExam.length){
     const topQ = byExam.slice().sort((a,b)=>b.q-a.q)[0];
     ins.push([icon('<path d="M3 17l4-8 4 5 4-9 4 12"/>'),
-      `O exame que você mais realiza é <b>${esc(topQ.x.name)}</b> (${fmtN(topQ.q)} no período), gerando <b>${fmtBRL0(topQ.v)}</b>.`]);
+      `O exame que você mais realiza é <b>${esc(dispName(topQ.x))}</b> (${fmtN(topQ.q)} no período), gerando <b>${fmtBRL0(topQ.v)}</b>.`]);
   }
   // concentração
   if(locRank.length>1){
@@ -1412,7 +1536,7 @@ function renderFilters(periodLabel){
   const periods = [["today","Hoje"],["7d","7 dias"],["month","Este mês"],["30d","30 dias"],["pmonth","Mês passado"],["90d","90 dias"],["year","Ano"],["all","Tudo"]];
   const fIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
   const locName = F.loc==="all"?"Local": (locById(F.loc)||{}).name||"Local";
-  const examName = F.exam==="all"?"Exame":(examById(F.exam)||{}).name||"Exame";
+  const examName = F.exam==="all"?"Exame":dispName(examById(F.exam))||"Exame";
   return `
   <div class="filters">
     <div class="chip-row">${periods.map(([k,l])=>`<button class="chip ${F.period===k?"on":""}" data-period="${k}">${l}</button>`).join("")}</div>
@@ -1439,7 +1563,7 @@ function bindFilters(){
   opt("#fMod","Filtrar por modalidade",[["all","Todas as modalidades"],...modsUsed.map(m=>[m,m+" · "+(MOD_LABELS[m]||m)])],F.mod,v=>F.mod=v);
   const usedExams = Array.from(new Set(S.entries.map(e=>e.examId))).map(examById).filter(Boolean).sort((a,b)=>a.name.localeCompare(b.name));
   const examOpts = usedExams.length? usedExams : S.exams;
-  opt("#fExam","Filtrar por exame",[["all","Todos os exames"],...examOpts.map(x=>[x.id,x.name+" · "+x.mod])],F.exam,v=>F.exam=v);
+  opt("#fExam","Filtrar por exame",[["all","Todos os exames"],...examOpts.map(x=>[x.id,dispName(x)+" · "+x.mod])],F.exam,v=>F.exam=v);
   const c=$("#fClear"); if(c) c.onclick=()=>{ F.loc=F.conv=F.mod=F.exam="all"; renderDash(); };
 }
 function pickerSheet(title, options, current, onPick){
@@ -1583,7 +1707,12 @@ function renderAdd(){
     $("#goLocs2").onclick=()=>nav("locs");
     return;
   }
-  if(!draft.locId || !locById(draft.locId)) draft.locId = S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id;
+  if(!draft.locId || !locById(draft.locId)){
+    // pré-seleciona o local do plantão de hoje (agenda) > último usado > primeiro
+    const todOcc = draft.date===todayISO()? occurrences(todayISO()) : [];
+    draft.locId = (todOcc[0] && todOcc[0].locId)
+      || (S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id);
+  }
   const loc = locById(draft.locId);
   const convs = loc.convenios.length? loc.convenios : ["Padrão"];
   if(!draft.conv || !convs.includes(draft.conv)) draft.conv = (S.last.conv && convs.includes(S.last.conv))? S.last.conv : convs[0];
@@ -1594,24 +1723,32 @@ function renderAdd(){
   const priced = x => getPrice(draft.locId,x.id,draft.conv)!=null;
   const included = x => (loc.examIds||[]).includes(x.id);
   const locMods = (loc.mods&&loc.mods.length)? loc.mods : MODS;
-  const q = draft.search.trim().toLowerCase();
-  let exams = S.exams.filter(x=> locMods.includes(x.mod) && (!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q) || (x.code||"").includes(q)));
+  const q = draft.search.trim();
+  let exams = S.exams.filter(x=> locMods.includes(x.mod) && matchExam(x,q));
   exams = exams.slice().sort((a,b)=>{
+    const fa=a.fav?1:0, fb=b.fav?1:0;
+    if(fa!==fb) return fb-fa;
     const ua=usage[a.id]||0, ub=usage[b.id]||0;
     if(ua!==ub) return ub-ua;
     const pa=(priced(a)?2:0)+(included(a)?1:0), pb=(priced(b)?2:0)+(included(b)?1:0);
     if(pa!==pb) return pb-pa;
-    return a.name.localeCompare(b.name);
+    return dispName(a).localeCompare(dispName(b));
   });
+  const favs = exams.filter(x=>x.fav);
+  const rest = exams.filter(x=>!x.fav);
   const grouped = q? [["Resultados",exams]] :
-    MODS.filter(m=>locMods.includes(m)).map(m=>[MOD_LABELS[m]||m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
+    (favs.length? [["★ Favoritos",favs]]:[]).concat(
+      MODS.filter(m=>locMods.includes(m)).map(m=>[MOD_LABELS[m]||m,rest.filter(x=>x.mod===m)]).filter(g=>g[1].length));
 
   const items = Object.entries(draft.qty).filter(([id,n])=>n>0);
   const totQ = items.reduce((s,[,n])=>s+n,0);
   const totV = items.reduce((s,[id,n])=>{ const p=getPrice(draft.locId,id,draft.conv)||0; return s+p*n; },0);
 
   $("#view").innerHTML = `<div class="page">
-    <div class="sec-head" style="margin-top:0"><h2>Lançar exames</h2></div>
+    <div class="sec-head" style="margin-top:0"><h2>Lançar exames</h2>
+      <button id="adRepeat" style="display:flex;align-items:center;gap:5px;color:var(--accent);font-weight:700;font-size:13px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M3 12a9 9 0 1 0 2.6-6.3L3 8"/><path d="M3 3v5h5"/></svg>Repetir dia</button>
+    </div>
     <div class="card" style="padding:15px">
       <div class="field"><label>Data</label><input type="date" class="input" id="adDate" value="${draft.date}" max="${todayISO()}"></div>
       <div class="field"><label>Local</label><div class="conv-chips">${
@@ -1622,8 +1759,13 @@ function renderAdd(){
       }</div></div>
     </div>
 
-    <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
-      <input class="input" id="adSearch" placeholder="Buscar exame…" value="${esc(draft.search)}"></div>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div class="search-box" style="flex:1;margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input class="input" id="adSearch" placeholder="Buscar (ex.: tvg, abd, mmii)…" value="${esc(draft.search)}" style="height:52px"></div>
+      <button class="mic-btn" id="micBtn" aria-label="Lançar por voz">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 18v4M8 22h8"/></svg>
+      </button>
+    </div>
 
     <div class="card" style="padding:6px 16px 10px">
       ${grouped.map(([m,list])=>`
@@ -1633,9 +1775,12 @@ function renderAdd(){
           const n = draft.qty[x.id]||0;
           return `<div class="lrow">
             <div class="lr-main">
-              <div class="lr-title" style="white-space:normal;line-height:1.35;font-size:13.5px">${esc(x.name)}</div>
+              <div class="lr-title" style="white-space:normal;line-height:1.35;font-size:13.5px">${esc(dispName(x))}</div>
               <div class="lr-sub">${p!=null? fmtBRL(p)+" / exame" : '<button data-setprice="'+x.id+'" style="color:var(--warn);font-weight:700;font-size:11.5px">definir preço</button>'}</div>
             </div>
+            <button class="fav-btn ${x.fav?"on":""}" data-fav="${x.id}" aria-label="favorito">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>
+            </button>
             <div class="stepper">
               <button data-dec="${x.id}" aria-label="menos">−</button>
               <span class="qty ${n===0?"zero":""}">${n}</span>
@@ -1646,7 +1791,7 @@ function renderAdd(){
     </div>
 
     ${totQ>0?`<button class="total-bar" id="adSave">
-      <span class="tb-l">Salvar ${totQ} exame${totQ===1?"":"s"}<small>${esc(loc.name)} · ${esc(draft.conv)}</small></span>
+      <span class="tb-l">Salvar ${totQ} exame${totQ===1?"":"s"}<small>${esc(loc.name)} · ${esc(draft.conv)}${loc.gross&&loc.taxPct?` · bruto (−${loc.taxPct}%)`:""}</small></span>
       <span class="tb-r">${fmtBRL(totV)}</span>
     </button>`:""}
   </div>`;
@@ -1659,7 +1804,211 @@ function renderAdd(){
   $$("[data-inc]").forEach(b=> b.onclick=()=>{ const id=b.dataset.inc; draft.qty[id]=(draft.qty[id]||0)+1; renderAdd(); });
   $$("[data-dec]").forEach(b=> b.onclick=()=>{ const id=b.dataset.dec; draft.qty[id]=Math.max(0,(draft.qty[id]||0)-1); renderAdd(); });
   $$("[data-setprice]").forEach(b=> b.onclick=()=> quickPriceSheet(b.dataset.setprice));
+  $$("[data-fav]").forEach(b=> b.onclick=()=>{ const x=examById(b.dataset.fav); if(x){ x.fav=!x.fav; save(); renderAdd(); } });
+  $("#adRepeat").onclick = repeatDaySheet;
+  $("#micBtn").onclick = voiceSheet;
   const sv=$("#adSave"); if(sv) sv.onclick = saveDraft;
+}
+
+/* ---------- Lançamento por voz ---------- */
+const NUMWORDS = {um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,
+  onze:11,doze:12,treze:13,quatorze:14,catorze:14,quinze:15,dezesseis:16,dezessete:17,dezoito:18,dezenove:19,
+  vinte:20,trinta:30,quarenta:40};
+const MONTH_WORDS = {janeiro:0,fevereiro:1,marco:2,abril:3,maio:4,junho:5,julho:6,agosto:7,setembro:8,outubro:9,novembro:10,dezembro:11};
+const TURNO_WORDS = {matutino:"Matutino",manha:"Matutino",vespertino:"Vespertino",tarde:"Vespertino",noturno:"Noturno",noite:"Noturno"};
+const VOICE_FILL = new Set(["de","do","da","dos","das","e","em","no","na","o","a","os","as","com","mais",
+  "exame","exames","laudo","laudos","laudei","fiz","realizei","atendi","foram","turno","convenio",
+  "local","atendimento","produtividade","plantao","x","vezes"]);
+
+function parseVoiceText(text){
+  const toks = normName(text).split(" ").filter(Boolean);
+  const used = new Array(toks.length).fill(false);
+  const res = { date:null, locId:null, conv:null, turno:null, items:[], leftovers:[] };
+  const numAt = i => /^\d+$/.test(toks[i]) ? parseInt(toks[i],10) : (NUMWORDS[toks[i]] ?? null);
+
+  // 1. DATA: hoje / ontem / anteontem / "dia N" / "N de <mês>"
+  for(let i=0;i<toks.length;i++){
+    if(toks[i]==="hoje"){ res.date=todayISO(); used[i]=true; break; }
+    if(toks[i]==="ontem"){ res.date=addDays(todayISO(),-1); used[i]=true; break; }
+    if(toks[i]==="anteontem"){ res.date=addDays(todayISO(),-2); used[i]=true; break; }
+    if(toks[i]==="dia" && numAt(i+1)!=null){
+      const dnum=numAt(i+1); used[i]=used[i+1]=true;
+      let mIdx=new Date().getMonth(), yr=new Date().getFullYear();
+      if(toks[i+2]==="de" && MONTH_WORDS[toks[i+3]]!=null){ mIdx=MONTH_WORDS[toks[i+3]]; used[i+2]=used[i+3]=true; }
+      let d=toISO(new Date(yr,mIdx,Math.min(dnum,31)));
+      if(d>todayISO()){ const dd=new Date(yr,mIdx-1,Math.min(dnum,31)); d=toISO(dd); }
+      res.date=d; break;
+    }
+    if(numAt(i)!=null && toks[i+1]==="de" && MONTH_WORDS[toks[i+2]]!=null){
+      const dnum=numAt(i); used[i]=used[i+1]=used[i+2]=true;
+      let d=toISO(new Date(new Date().getFullYear(),MONTH_WORDS[toks[i+2]],Math.min(dnum,31)));
+      if(d>todayISO()) d=toISO(new Date(new Date().getFullYear()-1,MONTH_WORDS[toks[i+2]],Math.min(dnum,31)));
+      res.date=d; break;
+    }
+  }
+
+  // 2. LOCAL: melhor cobertura de tokens significativos do nome
+  let bestLoc=null, bestLocScore=0;
+  S.locations.forEach(l=>{
+    const lt = normName(l.name).split(" ").filter(t=>t.length>=3);
+    if(!lt.length) return;
+    const hits = lt.filter(t=> toks.some((tk,i)=>!used[i] && tk===t));
+    const score = hits.length/lt.length;
+    if(hits.length && score>bestLocScore){ bestLocScore=score; bestLoc={l,hits}; }
+  });
+  if(bestLoc && (bestLocScore>=0.5 || bestLoc.hits.some(t=>t.length>=5))){
+    res.locId=bestLoc.l.id;
+    bestLoc.hits.forEach(t=>{ const i=toks.findIndex((tk,j)=>!used[j]&&tk===t); if(i>=0) used[i]=true; });
+  }
+  // 3. CONVÊNIO do local
+  const loc4 = locById(res.locId||draft.locId);
+  if(loc4){
+    (loc4.convenios||[]).forEach(c=>{
+      const ct=normName(c).split(" ").filter(Boolean);
+      const ok=ct.every(t=>toks.some((tk,i)=>!used[i]&&tk===t));
+      if(ok && !res.conv){ res.conv=c; ct.forEach(t=>{ const i=toks.findIndex((tk,j)=>!used[j]&&tk===t); if(i>=0) used[i]=true; }); }
+    });
+  }
+  // 4. TURNO (informativo)
+  toks.forEach((t,i)=>{ if(!used[i] && TURNO_WORDS[t] && !res.turno){ res.turno=TURNO_WORDS[t]; used[i]=true; } });
+
+  // 5. EXAMES: [quantidade] descrição …
+  const locF = locById(res.locId||draft.locId);
+  const locMods = (locF&&locF.mods&&locF.mods.length)? locF.mods : MODS;
+  const pool = S.exams.filter(x=>locMods.includes(x.mod));
+  const segs=[]; let cur=null;
+  for(let i=0;i<toks.length;i++){
+    if(used[i]) continue;
+    const n=numAt(i);
+    if(n!=null){ if(cur&&cur.words.length) segs.push(cur); cur={qty:n,words:[]}; continue; }
+    if(VOICE_FILL.has(toks[i])) continue;
+    if(!cur) cur={qty:1,words:[]};
+    cur.words.push(toks[i]);
+  }
+  if(cur&&cur.words.length) segs.push(cur);
+  segs.forEach(sg=>{
+    const toks2 = sg.words.map(t=> ABBR[t]!==undefined? ABBR[t]:t).filter(Boolean);
+    if(!toks2.length) return;
+    let best=null,bestS=0;
+    pool.forEach(x=>{
+      const txt=examSearchText(x);
+      let hit=0; toks2.forEach(t=>{ if(txt.includes(t)) hit++; });
+      let sc=hit/toks2.length;
+      if(sc>0){
+        if(getPrice((locF||{}).id, x.id, res.conv||draft.conv)!=null) sc+=0.15;
+        if(x.fav) sc+=0.08;
+      }
+      if(sc>bestS){ bestS=sc; best=x; }
+    });
+    if(best && bestS>=0.6) res.items.push({qty:sg.qty, text:sg.words.join(" "), exam:best});
+    else res.leftovers.push((sg.qty>1? sg.qty+" ":"")+sg.words.join(" "));
+  });
+  return res;
+}
+
+let recRef=null;
+function voiceSheet(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let finalTxt="", parsed=null;
+  openSheet(`
+    <h3>Lançar por voz</h3>
+    <div class="sheet-body" id="vcBody">
+      <div class="mic-live rec" id="vcLive">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 18v4M8 22h8"/></svg>
+      </div>
+      <div class="card" style="padding:12px 14px;margin-bottom:12px">
+        <p class="note" style="font-size:12.5px"><b style="color:var(--text)">Recomendado — fale nesta ordem:</b><br>
+        1️⃣ data → 2️⃣ local de atendimento → 3️⃣ turno/convênio → 4️⃣ produtividade (quantidade + exame)</p>
+        <p class="note" style="margin-top:8px;font-size:12px">Ex.: <i>"Hoje, Hospital São Lucas, turno matutino, convênio Unimed: cinco abdome total, três transvaginal e dois doppler de carótidas"</i></p>
+      </div>
+      <div class="transcript" id="vcText">${SR? '<span class="interim">Ouvindo… pode falar.</span>' : '⚠️ Reconhecimento de voz não disponível neste navegador. No iPhone, use o Safari (iOS 14.5+); você também pode tocar no microfone do teclado e ditar na busca.'}</div>
+      <div id="vcResult"></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="vcCancel">Cancelar</button>
+      <button class="btn btn-primary" id="vcDone" ${SR?"":"disabled"}>Concluir e revisar</button>
+    </div>`,
+    el=>{
+      const tEl=$("#vcText",el);
+      if(SR){
+        recRef = new SR();
+        recRef.lang="pt-BR"; recRef.continuous=true; recRef.interimResults=true;
+        recRef.onresult = ev=>{
+          let interim="";
+          for(let i=ev.resultIndex;i<ev.results.length;i++){
+            if(ev.results[i].isFinal) finalTxt += ev.results[i][0].transcript+" ";
+            else interim += ev.results[i][0].transcript;
+          }
+          tEl.innerHTML = esc(finalTxt)+(interim?`<span class="interim">${esc(interim)}</span>`:"");
+        };
+        recRef.onerror = e=>{ tEl.innerHTML = "⚠️ Erro no microfone ("+esc(e.error)+"). Verifique a permissão do microfone e tente de novo."; };
+        try{ recRef.start(); }catch(_){}
+      }
+      const stopRec=()=>{ if(recRef){ try{recRef.stop();}catch(_){} recRef=null; } $("#vcLive",el).classList.remove("rec"); };
+      $("#vcCancel",el).onclick=()=>{ stopRec(); closeSheet(); };
+      $("#vcDone",el).onclick=()=>{
+        stopRec();
+        if(!finalTxt.trim()){ toast("Não ouvi nada ainda"); return; }
+        parsed = parseVoiceText(finalTxt);
+        showVoiceReview(el, parsed);
+      };
+    },
+    ()=>{ if(recRef){ try{recRef.stop();}catch(_){} recRef=null; } });
+}
+function showVoiceReview(el, p){
+  const ctx=[];
+  if(p.date) ctx.push(fmtDateShort(p.date));
+  if(p.locId) ctx.push((locById(p.locId)||{}).name);
+  if(p.conv) ctx.push(p.conv);
+  if(p.turno) ctx.push(p.turno);
+  $("#vcResult",el).innerHTML = `
+    <div class="card" style="padding:12px 14px;margin-top:12px">
+      <div class="card-title" style="margin-bottom:8px">Entendi assim ↓ <span class="hint">ajuste se precisar</span></div>
+      ${ctx.length?`<p class="note" style="margin-bottom:8px">📍 ${esc(ctx.join(" · "))}</p>`:""}
+      ${p.items.length? p.items.map((it,i)=>`
+        <div class="vc-item">
+          <div class="vc-main"><div class="vc-name">${esc(dispName(it.exam))}</div>
+          <div class="vc-sub">ouvi: "${esc(it.text)}"</div></div>
+          <div class="stepper">
+            <button data-vdec="${i}">−</button><span class="qty">${it.qty}</span><button data-vinc="${i}">+</button>
+          </div>
+        </div>`).join("") : '<p class="note">Nenhum exame reconhecido — tente falar "quantidade + nome do exame".</p>'}
+      ${p.leftovers.length?`<p class="note" style="margin-top:8px;color:var(--warn)">Não reconheci: ${esc(p.leftovers.join("; "))}</p>`:""}
+    </div>`;
+  $("#vcDone",el).textContent = p.items.length? "Adicionar ao lançamento":"Tentar de novo";
+  $("#vcDone",el).onclick = ()=>{
+    if(!p.items.length){ closeSheet(); voiceSheet(); return; }
+    if(p.date) draft.date=p.date;
+    if(p.locId){ draft.locId=p.locId; draft.conv=null; }
+    if(p.conv) draft.conv=p.conv;
+    p.items.forEach(it=>{ draft.qty[it.exam.id]=(draft.qty[it.exam.id]||0)+it.qty; });
+    closeSheet();
+    const n=p.items.reduce((s,i)=>s+i.qty,0);
+    toast(n+" exame"+(n===1?"":"s")+" adicionado"+(n===1?"":"s")+" — revise e salve");
+    renderAdd();
+  };
+  $$("[data-vinc]",el).forEach(b=> b.onclick=()=>{ p.items[+b.dataset.vinc].qty++; showVoiceReview(el,p); });
+  $$("[data-vdec]",el).forEach(b=> b.onclick=()=>{ const it=p.items[+b.dataset.vdec]; it.qty=Math.max(0,it.qty-1); if(it.qty===0) p.items.splice(+b.dataset.vdec,1); showVoiceReview(el,p); });
+}
+
+/* ---------- Repetir dia anterior ---------- */
+function repeatDaySheet(){
+  const prev = Array.from(new Set(S.entries.map(e=>e.date))).filter(d=>d<draft.date).sort().reverse()[0];
+  if(!prev){ toast("Nenhum dia anterior com produção"); return; }
+  const list = S.entries.filter(e=>e.date===prev);
+  const tot = list.reduce((s,e)=>s+entryValue(e),0);
+  const nq = list.reduce((s,e)=>s+e.qty,0);
+  const byLoc = {};
+  list.forEach(e=>{ const l=locById(e.locId); const k=l?l.name:"?"; byLoc[k]=(byLoc[k]||0)+e.qty; });
+  confirmSheet("Repetir "+fmtDateLong(prev)+"?",
+    `Copia ${nq} exames (${fmtBRL0(tot)}) para ${fmtDateLong(draft.date).toLowerCase()}: ${Object.entries(byLoc).map(([k,v])=>v+"× "+k).join(", ")}. Você pode editar depois no Histórico.`,
+    "Copiar lançamentos",
+    ()=>{
+      list.forEach(e=>{
+        S.entries.push({id:"e"+(++S.entrySeq), date:draft.date, locId:e.locId, examId:e.examId, conv:e.conv, qty:e.qty, unit:e.unit});
+      });
+      save(); toast(nq+" exames copiados para "+fmtDateShort(draft.date)); render();
+    }, false);
 }
 
 function quickPriceSheet(examId){
@@ -1667,7 +2016,7 @@ function quickPriceSheet(examId){
   openSheet(`
     <h3>Definir honorário</h3>
     <div class="sheet-body">
-      <p class="note" style="margin-bottom:14px">${esc(x.name)} · ${esc(loc.name)} · ${esc(draft.conv)}</p>
+      <p class="note" style="margin-bottom:14px">${esc(dispName(x))} · ${esc(loc.name)} · ${esc(draft.conv)}</p>
       <div class="field"><label>Valor do honorário (R$)</label>
         <input class="input" id="qpVal" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
     </div>
@@ -1692,7 +2041,7 @@ function saveDraft(){
   if(!items.length) return;
   const missing = items.filter(([id])=>getPrice(draft.locId,id,draft.conv)==null);
   if(missing.length){
-    toast("Defina o preço de "+examById(missing[0][0]).name);
+    toast("Defina o preço de "+dispName(examById(missing[0][0])));
     return;
   }
   items.forEach(([id,n])=>{
@@ -1733,7 +2082,7 @@ function renderHist(){
           const x=examById(e.examId)||{name:"Exame removido",mod:""}, l=locById(e.locId);
           return `<button class="lrow" style="width:100%;text-align:left" data-edit="${e.id}">
             <div class="lr-main">
-              <div class="lr-title">${e.qty}× ${esc(x.name)}</div>
+              <div class="lr-title">${e.qty}× ${esc(dispName(x))}</div>
               <div class="lr-sub">${l?`<span class="dot" style="background:${SLOTS[l.slot]};display:inline-block;width:7px;height:7px;margin-right:4px"></span>`+esc(l.name)+" · ":""}${esc(e.conv)} · ${fmtBRL(e.unit)}/un</div>
             </div>
             <div class="lr-side"><b>${fmtBRL(entryValue(e))}</b></div>
@@ -1754,7 +2103,7 @@ function editEntrySheet(id){
   openSheet(`
     <h3>Editar lançamento</h3>
     <div class="sheet-body">
-      <p class="note" style="margin-bottom:14px">${esc(x.name)} · ${esc((locById(e.locId)||{}).name||"")} · ${esc(e.conv)} · ${esc(fmtDateLong(e.date))}</p>
+      <p class="note" style="margin-bottom:14px">${esc(dispName(x))} · ${esc((locById(e.locId)||{}).name||"")} · ${esc(e.conv)} · ${esc(fmtDateLong(e.date))}</p>
       <div class="input-row">
         <div class="field"><label>Quantidade</label><input class="input" id="eeQty" inputmode="numeric" value="${e.qty}"></div>
         <div class="field"><label>Valor unitário (R$)</label><input class="input" id="eeUnit" inputmode="decimal" value="${String(e.unit).replace(".",",")}"></div>
@@ -1808,8 +2157,7 @@ function gcalOpen(o){
     + "&details=" + encodeURIComponent(eventDetails(o));
   if(o.type==="rule"){
     const r = S.agenda.rules.find(x=>x.id===o.id);
-    let rr = "RRULE:FREQ=WEEKLY;BYDAY=" + BYDAY[fromISO(o.date).getDay()];
-    if(r && r.until) rr += ";UNTIL=" + icsDT(addDays(r.until,-1),"23:59");
+    let rr = ruleRRule(r||{dow:fromISO(o.date).getDay(), from:o.date});
     url += "&recur=" + encodeURIComponent(rr);
   }
   window.open(url, "_blank");
@@ -1818,6 +2166,29 @@ function nextDowFrom(iso, dow){
   let d = iso;
   while(fromISO(d).getDay()!==dow) d = addDays(d,1);
   return d;
+}
+function ruleRRule(r){
+  const f = r.freq||"w";
+  let rr;
+  if(f==="m") rr = "RRULE:FREQ=MONTHLY;BYMONTHDAY=" + fromISO(r.from).getDate();
+  else if(f==="2w") rr = "RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=" + BYDAY[r.dow];
+  else rr = "RRULE:FREQ=WEEKLY;BYDAY=" + BYDAY[r.dow];
+  if(r.until) rr += ";UNTIL=" + icsDT(addDays(r.until,-1),"23:59");
+  return rr;
+}
+function ruleFirstOcc(r, startBase){
+  const f = r.freq||"w";
+  if(f==="m"){
+    const dom = fromISO(r.from).getDate();
+    for(let i=0;i<62;i++){ const cand=addDays(startBase,i); if(fromISO(cand).getDate()===dom) return cand; }
+    return null;
+  }
+  let first = nextDowFrom(startBase, r.dow);
+  if(f==="2w"){
+    const weeks = Math.round((fromISO(first)-fromISO(r.from))/(86400000*7));
+    if(weeks%2!==0) first = addDays(first,7);
+  }
+  return first;
 }
 function buildICS(){
   const t = todayISO();
@@ -1839,14 +2210,13 @@ function buildICS(){
       d.allDay? ["DTSTART;VALUE=DATE:"+d.s,"DTEND;VALUE=DATE:"+d.e] : ["DTSTART:"+d.s,"DTEND:"+d.e],
       eventTitle(o), eventDetails(o));
   });
-  // recorrências semanais
+  // recorrências (semanal, quinzenal, mensal)
   S.agenda.rules.filter(r=> locById(r.locId) && (!r.until || r.until>t)).forEach(r=>{
-    const first = nextDowFrom(r.from>t? r.from : t, r.dow);
-    if(r.until && first>=r.until) return;
+    const first = ruleFirstOcc(r, r.from>t? r.from : t);
+    if(!first || (r.until && first>=r.until)) return;
     const o = {...r, date:first, type:"rule"};
     const d = occDates(o);
-    let rr = "RRULE:FREQ=WEEKLY;BYDAY="+BYDAY[r.dow];
-    if(r.until) rr += ";UNTIL="+icsDT(addDays(r.until,-1),"23:59");
+    const rr = ruleRRule(r);
     const ex = S.agenda.skips.filter(s=>s.ruleId===r.id && s.date>=first)
       .map(s=> d.allDay? "EXDATE;VALUE=DATE:"+icsD(s.date) : "EXDATE:"+icsDT(s.date, occTimes(o).start));
     push("ru-"+r.id,
@@ -2080,8 +2450,10 @@ function commitmentSheet(date){
       <div class="field"><label>Observação (opcional)</label>
         <input class="input" id="cmNote" placeholder="Ex.: plantão 12h, cobrindo colega…"></div>
       <div class="field"><label>Recorrência</label><div class="conv-chips" id="cmRep">
-        <button class="chip on" data-r="1">${dow===0||dow===6?"Todo":"Toda"} ${WEEKDAYS[dow]}</button>
-        <button class="chip" data-r="0">Só neste dia</button>
+        <button class="chip on" data-r="w">${dow===0||dow===6?"Todo":"Toda"} ${WEEKDAYS[dow]}</button>
+        <button class="chip" data-r="2w">Quinzenal</button>
+        <button class="chip" data-r="m">Mensal (dia ${fromISO(date).getDate()})</button>
+        <button class="chip" data-r="once">Só neste dia</button>
       </div></div>
     </div>
     <div class="sheet-foot">
@@ -2099,7 +2471,8 @@ function commitmentSheet(date){
         timeMode=true; timeBox.classList.remove("hidden");
         $$("#cmPer .chip",el).forEach(x=>x.classList.toggle("on",x===timeBtn));
       };
-      $$("#cmRep .chip",el).forEach(c=> c.onclick=()=>{ repeat=c.dataset.r==="1"; $$("#cmRep .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
+      let freq="w";
+      $$("#cmRep .chip",el).forEach(c=> c.onclick=()=>{ freq=c.dataset.r; $$("#cmRep .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
       $("#cmCancel",el).onclick=closeSheet;
       $("#cmOk",el).onclick=()=>{
         const note=$("#cmNote",el).value.trim();
@@ -2110,10 +2483,10 @@ function commitmentSheet(date){
           if(!st||!en){ toast("Informe início e fim"); return; }
           base.period="Horário"; base.start=st; base.end=en;
         } else base.period=period;
-        if(repeat) S.agenda.rules.push({...base, dow, from:date});
+        if(freq!=="once") S.agenda.rules.push({...base, dow, from:date, freq});
         else S.agenda.events.push({...base, date});
         save(); closeSheet();
-        toast(repeat? "Compromisso semanal criado":"Compromisso adicionado");
+        toast(freq==="once"? "Compromisso adicionado" : "Compromisso "+FREQ_LABEL[freq]+" criado");
         renderAgenda();
       };
     });
@@ -2125,7 +2498,7 @@ function occDetailSheet(occ){
   openSheet(`
     <h3>${esc(l.name)}</h3>
     <div class="sheet-body">
-      <p class="note" style="margin-bottom:16px">${esc(occLabel(occ))} · ${esc(fmtDateLong(occ.date))}${isRule?` · repete ${[0,6].includes(fromISO(occ.date).getDay())?"todo":"toda"} ${WEEKDAYS[fromISO(occ.date).getDay()]}`:""}${occ.note?"<br>"+esc(occ.note):""}</p>
+      <p class="note" style="margin-bottom:16px">${esc(occLabel(occ))} · ${esc(fmtDateLong(occ.date))}${isRule?` · ${occ.freq==="m"? "repete mensalmente (dia "+fromISO(occ.date).getDate()+")" : occ.freq==="2w"? "repete quinzenalmente" : `repete ${[0,6].includes(fromISO(occ.date).getDay())?"todo":"toda"} ${WEEKDAYS[fromISO(occ.date).getDay()]}`}`:""}${occ.note?"<br>"+esc(occ.note):""}</p>
       <button class="btn" id="ocGcal" style="margin-bottom:10px;border-color:rgba(57,135,229,.45)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 9h18"/></svg>
         Adicionar ao Google Agenda</button>
@@ -2200,10 +2573,10 @@ function profileSheet(onDone){
 }
 
 /* ---------- WIZARD: nova instituição ---------- */
-const wiz = { name:"", convs:"", mods:new Set(), checks:{}, prices:{}, search:"" };
+const wiz = { name:"", convs:"", mods:new Set(), checks:{}, prices:{}, search:"", gross:false, taxPct:"" };
 function startWizard(){
   if(S.userMods===null){ profileSheet(()=>startWizard()); return; }
-  wiz.name=""; wiz.convs=""; wiz.mods=new Set(); wiz.checks={}; wiz.prices={}; wiz.search="";
+  wiz.name=""; wiz.convs=""; wiz.mods=new Set(); wiz.checks={}; wiz.prices={}; wiz.search=""; wiz.gross=false; wiz.taxPct="";
   const am = activeMods();
   if(am.length===1) wiz.mods.add(am[0]);
   locView = { locId:null, conv:null, search:"", mode:"wiz1" };
@@ -2226,8 +2599,18 @@ function renderWiz1(){
     <div class="card">
       <div class="field"><label>Nome da instituição</label>
         <input class="input" id="wzName" placeholder="Ex.: Hospital São Lucas" value="${esc(wiz.name)}"></div>
-      <div class="field mb0"><label>Convênios atendidos (separe por vírgula)</label>
+      <div class="field"><label>Convênios atendidos (separe por vírgula)</label>
         <input class="input" id="wzConvs" placeholder="Ex.: Particular, Unimed, SUS" value="${esc(wiz.convs)}"></div>
+      <div class="field mb0"><label>Os honorários desta instituição são…</label>
+        <div class="conv-chips">
+          <button class="chip ${!wiz.gross?"on":""}" id="wzNet">Líquidos (valor que recebo)</button>
+          <button class="chip ${wiz.gross?"on":""}" id="wzGross">Brutos (com descontos)</button>
+        </div>
+        <div id="wzTaxBox" class="${wiz.gross?"":"hidden"}" style="margin-top:10px">
+          <input class="input" id="wzTax" inputmode="decimal" placeholder="% de desconto médio — ex.: 16" value="${esc(String(wiz.taxPct||""))}">
+          <p class="note" style="margin-top:6px">Instituições que descontam impostos/RPA ou não emitem nota: informe o desconto médio para o app estimar o valor líquido no dashboard.</p>
+        </div>
+      </div>
     </div>
     <div class="card">
       <div class="card-title">Modalidades presentes nesta instituição</div>
@@ -2243,6 +2626,9 @@ function renderWiz1(){
   $("#wzBack").onclick=()=>{ locView={locId:null,mode:null}; renderLocs(); };
   $("#wzName").oninput = e=> wiz.name=e.target.value;
   $("#wzConvs").oninput = e=> wiz.convs=e.target.value;
+  $("#wzNet").onclick=()=>{ wiz.gross=false; $("#wzNet").classList.add("on"); $("#wzGross").classList.remove("on"); $("#wzTaxBox").classList.add("hidden"); };
+  $("#wzGross").onclick=()=>{ wiz.gross=true; $("#wzGross").classList.add("on"); $("#wzNet").classList.remove("on"); $("#wzTaxBox").classList.remove("hidden"); };
+  $("#wzTax").oninput = e=> wiz.taxPct=e.target.value;
   $$("[data-wm]").forEach(c=> c.onclick=()=>{
     const m=c.dataset.wm;
     wiz.mods.has(m)? wiz.mods.delete(m) : wiz.mods.add(m);
@@ -2320,8 +2706,10 @@ function finishWizard(){
   const firstConv = list[0];
   const id = "l"+(++S.locSeq);
   const examIds = Object.keys(wiz.checks).filter(k=>wiz.checks[k]);
+  const taxV = parseMoney(String(wiz.taxPct||"")) || 0;
   S.locations.push({ id, name:wiz.name.trim(), slot:(S.locSeq-1)%8,
-    convenios:list, mods:MODS.filter(m=>wiz.mods.has(m)), examIds });
+    convenios:list, mods:MODS.filter(m=>wiz.mods.has(m)), examIds,
+    gross: !!wiz.gross, taxPct: wiz.gross? taxV : 0 });
   let nPriced=0;
   examIds.forEach(xid=>{
     const v = parseMoney(wiz.prices[xid]||"");
@@ -2381,6 +2769,15 @@ function newLocSheet(editId){
         <input class="input" id="nlConvs" placeholder="Ex.: Particular, Unimed, SUS" value="${esc(l.convenios.join(", "))}">
         <p class="note" style="margin-top:7px">Se os honorários não variam por convênio neste local, deixe em branco — será usado o convênio "Padrão".</p></div>
       <div class="field"><label>Modalidades presentes</label>${modCards(selMods,"nlm")}</div>
+      <div class="field"><label>Os honorários são…</label>
+        <div class="conv-chips">
+          <button class="chip ${!l.gross?"on":""}" id="nlNet">Líquidos</button>
+          <button class="chip ${l.gross?"on":""}" id="nlGross">Brutos (com descontos)</button>
+        </div>
+        <div id="nlTaxBox" class="${l.gross?"":"hidden"}" style="margin-top:10px">
+          <input class="input" id="nlTax" inputmode="decimal" placeholder="% de desconto médio — ex.: 16" value="${l.taxPct||""}">
+        </div>
+      </div>
       <button class="btn btn-danger" id="nlDel">Excluir local</button>
     </div>
     <div class="sheet-foot">
@@ -2393,6 +2790,9 @@ function newLocSheet(editId){
         selMods.has(m)? selMods.delete(m) : selMods.add(m);
         c.classList.toggle("on", selMods.has(m));
       });
+      let nlGross = !!l.gross;
+      $("#nlNet",el).onclick=()=>{ nlGross=false; $("#nlNet",el).classList.add("on"); $("#nlGross",el).classList.remove("on"); $("#nlTaxBox",el).classList.add("hidden"); };
+      $("#nlGross",el).onclick=()=>{ nlGross=true; $("#nlGross",el).classList.add("on"); $("#nlNet",el).classList.remove("on"); $("#nlTaxBox",el).classList.remove("hidden"); };
       $("#nlCancel",el).onclick=closeSheet;
       $("#nlDel",el).onclick=()=>{
         closeSheet();
@@ -2414,6 +2814,8 @@ function newLocSheet(editId){
         l.name=name;
         l.convenios=convs.length?Array.from(new Set(convs)):["Padrão"]; // preços de convênios removidos são preservados
         l.mods=MODS.filter(m=>selMods.has(m));
+        l.gross=nlGross;
+        l.taxPct=nlGross? (parseMoney($("#nlTax",el).value)||0) : 0;
         save(); closeSheet(); toast("Local atualizado"); render();
       };
     });
@@ -2482,8 +2884,10 @@ function renderLocDetail(){
         ${list.map(x=>{
           const v = S.prices[pKey(l.id,x.id,locView.conv)];
           return `<div class="lrow">
-            <div class="lr-main"><div class="lr-title" style="font-size:13px;white-space:normal;line-height:1.35">${esc(x.name)}</div>
-              ${x.code?`<div class="lr-sub">TUSS ${esc(x.code)}</div>`:""}</div>
+            <button class="lr-main" data-aled="${x.id}" style="text-align:left;background:none;min-width:0">
+              <div class="lr-title" style="font-size:13px;white-space:normal;line-height:1.35">${esc(dispName(x))}</div>
+              <div class="lr-sub" style="white-space:normal">${x.alias?esc(x.name)+" · ":""}${x.code?"TUSS "+esc(x.code):""}</div>
+            </button>
             <input class="price-input ${v==null?"noval":""}" inputmode="decimal" placeholder="—"
               data-px="${x.id}" value="${v==null?"":v.toLocaleString("pt-BR",{minimumFractionDigits:2})}">
           </div>`;
@@ -2508,7 +2912,32 @@ function renderLocDetail(){
     };
   });
   $("#newExam2").onclick=()=> newExamSheet(()=>renderLocDetail());
+  $$("[data-aled]").forEach(b=> b.onclick=()=> aliasSheet(b.dataset.aled));
   const cp=$("#copyPrices"); if(cp) cp.onclick=copyPricesSheet;
+}
+
+function aliasSheet(examId){
+  const x = examById(examId); if(!x) return;
+  openSheet(`
+    <h3>Apelido do exame</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:14px">Nome oficial: <b style="color:var(--text)">${esc(x.name)}</b>${x.code?" · TUSS "+esc(x.code):""}</p>
+      <div class="field"><label>Apelido curto (como você chama no dia a dia)</label>
+        <input class="input" id="alVal" placeholder="Ex.: Abdome total" value="${esc(x.alias||"")}"></div>
+      <p class="note">O apelido aparece nas listas e na busca; o nome oficial e o código TUSS continuam registrados.</p>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="alCancel">Cancelar</button>
+      <button class="btn btn-primary" id="alOk">Salvar</button>
+    </div>`,
+    el=>{
+      $("#alCancel",el).onclick=closeSheet;
+      $("#alOk",el).onclick=()=>{
+        const v=$("#alVal",el).value.trim();
+        if(v) x.alias=v; else delete x.alias;
+        save(); closeSheet(); toast(v?"Apelido salvo":"Apelido removido"); renderLocDetail();
+      };
+    });
 }
 
 function copyPricesSheet(){
@@ -2531,6 +2960,84 @@ function copyPricesSheet(){
     });
     save(); toast(n+" preços copiados — ajuste o que precisar"); renderLocDetail();
   });
+}
+
+/* ================== SINCRONIZAÇÃO (merge de dados) ================== */
+function mergeData(inc){
+  const rep = {entries:0, locs:0, exams:0, prices:0, agenda:0};
+  const mapExam = {}, mapLoc = {};
+  // exames: casa por modalidade + nome normalizado
+  (inc.exams||[]).forEach(xe=>{
+    const mine = S.exams.find(x=>x.mod===xe.mod && normName(x.name)===normName(xe.name));
+    if(mine){
+      mapExam[xe.id]=mine.id;
+      if(!mine.code && xe.code) mine.code=xe.code;
+      if(!mine.alias && xe.alias) mine.alias=xe.alias;
+      if(xe.fav) mine.fav=true;
+    } else {
+      const nid="x"+(++S.examSeq);
+      S.exams.push({...xe, id:nid}); mapExam[xe.id]=nid; rep.exams++;
+    }
+  });
+  // locais: casa por nome
+  (inc.locations||[]).forEach(le=>{
+    const mine = S.locations.find(l=>normName(l.name)===normName(le.name));
+    if(mine){
+      mapLoc[le.id]=mine.id;
+      (le.convenios||[]).forEach(c=>{ if(!mine.convenios.includes(c)) mine.convenios.push(c); });
+      (le.mods||[]).forEach(m=>{ if(!mine.mods.includes(m)) mine.mods.push(m); });
+      (le.examIds||[]).forEach(i=>{ const mi=mapExam[i]; if(mi && !mine.examIds.includes(mi)) mine.examIds.push(mi); });
+      if(le.gross && !mine.gross){ mine.gross=true; mine.taxPct=le.taxPct||0; }
+    } else {
+      const nid="l"+(++S.locSeq);
+      S.locations.push({...le, id:nid, slot:(S.locSeq-1)%8,
+        examIds:(le.examIds||[]).map(i=>mapExam[i]).filter(Boolean)});
+      mapLoc[le.id]=nid; rep.locs++;
+    }
+  });
+  // preços: preenche o que falta (valores locais têm prioridade)
+  Object.entries(inc.prices||{}).forEach(([k,v])=>{
+    const p=k.split("|");
+    const nk=pKey(mapLoc[p[0]]||p[0], mapExam[p[1]]||p[1], p[2]);
+    if(S.prices[nk]==null && locById(mapLoc[p[0]]||p[0])){ S.prices[nk]=v; rep.prices++; }
+  });
+  // lançamentos: união por assinatura (multiconjunto — não duplica, não perde)
+  const sig=e=>[e.date,e.locId,e.examId,e.conv,e.qty,e.unit].join("|");
+  const cnt=new Map();
+  S.entries.forEach(e=>{ const k=sig(e); cnt.set(k,(cnt.get(k)||0)+1); });
+  const incBy=new Map();
+  (inc.entries||[]).forEach(ee=>{
+    const ne={...ee, locId:mapLoc[ee.locId]||ee.locId, examId:mapExam[ee.examId]||ee.examId};
+    if(!locById(ne.locId)) return;
+    const k=sig(ne);
+    if(!incBy.has(k)) incBy.set(k,[]);
+    incBy.get(k).push(ne);
+  });
+  incBy.forEach((list,k)=>{
+    const need = list.length - (cnt.get(k)||0);
+    for(let i=0;i<need;i++){
+      S.entries.push({...list[i], id:"e"+(++S.entrySeq)}); rep.entries++;
+    }
+  });
+  // agenda: regras e eventos por assinatura
+  const ag = inc.agenda||{};
+  const rsig=r=>[r.dow,r.locId,r.period,r.start||"",r.end||"",r.from,r.freq||"w"].join("|");
+  const rhave=new Set(S.agenda.rules.map(rsig));
+  (ag.rules||[]).forEach(r=>{
+    const nr={...r, id:"a"+(++S.agenda.seq), locId:mapLoc[r.locId]||r.locId};
+    if(!locById(nr.locId) || rhave.has(rsig(nr))) return;
+    rhave.add(rsig(nr)); S.agenda.rules.push(nr); rep.agenda++;
+  });
+  const esig=e=>[e.date,e.locId,e.period,e.start||""].join("|");
+  const ehave=new Set(S.agenda.events.map(esig));
+  (ag.events||[]).forEach(ev=>{
+    const ne={...ev, id:"a"+(++S.agenda.seq), locId:mapLoc[ev.locId]||ev.locId};
+    if(!locById(ne.locId) || ehave.has(esig(ne))) return;
+    ehave.add(esig(ne)); S.agenda.events.push(ne); rep.agenda++;
+  });
+  if(inc.goal && !S.goal) S.goal=inc.goal;
+  if(inc.userMods && !S.userMods) S.userMods=inc.userMods;
+  return rep;
 }
 
 /* ================== AJUSTES ================== */
@@ -2569,8 +3076,8 @@ function renderCfg(){
       <p class="note" style="margin-top:9px">A meta aparece no dashboard com barra de progresso e projeção do mês.</p>
     </div>
     <div class="card">
-      <div class="card-title">Backup dos dados</div>
-      <p class="note" style="margin-bottom:12px">Seus dados ficam salvos apenas neste aparelho${store.ok?"":" (⚠️ armazenamento indisponível neste navegador — use o backup!)"}. Exporte um arquivo de backup periodicamente e ao trocar de celular.</p>
+      <div class="card-title">Backup &amp; sincronização entre aparelhos</div>
+      <p class="note" style="margin-bottom:12px">Seus dados ficam salvos neste aparelho${store.ok?"":" (⚠️ armazenamento indisponível neste navegador — use o backup!)"}. Para ver tudo atualizado em outro aparelho: <b style="color:var(--text)">Exportar</b> aqui → enviar o arquivo (iCloud Drive, Google Drive, WhatsApp…) → <b style="color:var(--text)">Importar</b> lá escolhendo <b style="color:var(--text)">Combinar</b>. A combinação junta lançamentos, preços e agenda dos dois aparelhos sem duplicar nem apagar nada. Sincronização automática em nuvem virá na versão de loja (etapa 2).</p>
       <div class="input-row">
         <button class="btn" id="cfExport">↓ Exportar</button>
         <button class="btn" id="cfImport">↑ Importar</button>
@@ -2582,7 +3089,7 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v1.5 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v1.7 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   $("#cfMods").onclick=()=> profileSheet(()=>renderCfg());
@@ -2609,11 +3116,34 @@ function renderCfg(){
     const r=new FileReader();
     r.onload=()=>{
       try{
-        const data=JSON.parse(r.result);
+        let data=JSON.parse(r.result);
         if(!data||!Array.isArray(data.entries)||!Array.isArray(data.locations)) throw 0;
-        confirmSheet("Importar backup?",
-          `O backup contém ${data.entries.length} lançamentos e ${data.locations.length} locais. Ele substituirá TODOS os dados atuais.`,
-          "Importar", ()=>{ S=data; migrate(); save(); toast("Backup importado"); render(); });
+        // normaliza o arquivo para o formato atual (migração em memória)
+        const keep=S; S=data; migrate(); data=S; S=keep;
+        openSheet(`
+          <h3>Importar dados</h3>
+          <div class="sheet-body">
+            <p class="note" style="margin-bottom:14px">O arquivo contém <b style="color:var(--text)">${data.entries.length} lançamentos</b>, ${data.locations.length} locais e ${(data.agenda.rules||[]).length + (data.agenda.events||[]).length} compromissos.</p>
+            <button class="btn btn-primary" id="impMerge" style="margin-bottom:10px">Combinar com os dados deste aparelho</button>
+            <p class="note" style="margin-bottom:14px">Recomendado para sincronizar: junta tudo, sem duplicar nem apagar o que já existe aqui.</p>
+            <button class="btn btn-danger" id="impReplace">Substituir TODOS os dados</button>
+            <p class="note" style="margin-top:10px">Apaga o que está neste aparelho e usa apenas o arquivo.</p>
+          </div>
+          <div class="sheet-foot"><button class="btn" id="impCancel">Cancelar</button></div>`,
+          el=>{
+            $("#impCancel",el).onclick=closeSheet;
+            $("#impMerge",el).onclick=()=>{
+              const rep=mergeData(data); save(); closeSheet();
+              toast(`Combinado: +${rep.entries} lançamentos, +${rep.locs} locais, +${rep.prices} preços`);
+              render();
+            };
+            $("#impReplace",el).onclick=()=>{
+              closeSheet();
+              confirmSheet("Substituir tudo?","Os dados atuais deste aparelho serão apagados e substituídos pelo arquivo.","Substituir",()=>{
+                S=data; migrate(); save(); toast("Backup importado"); render();
+              });
+            };
+          });
       }catch(_){ toast("Arquivo de backup inválido"); }
     };
     r.readAsText(f);
