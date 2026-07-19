@@ -851,6 +851,7 @@ function migrate(){
   // v5: apelidos curtos padrão para nomes TUSS longos
   if(S.catalogV<5){ applyAliases(S.exams); S.catalogV=5; }
   if(S.userMods===undefined) S.userMods = null;
+  S.entries.forEach(e=>{ if(e.paid===undefined) e.paid=false; });
   // v4: turnos matutino/vespertino/noturno + integração com agenda
   const perRemap = {"Manhã":"Matutino","Tarde":"Vespertino","Noite":"Noturno"};
   S.agenda.rules.forEach(r=>{ if(perRemap[r.period]) r.period=perRemap[r.period]; });
@@ -1070,6 +1071,9 @@ function loadDemo(){
   S.goal = 22000;
   S.last = {locId:l1, conv:"Unimed"};
   S.cal = { reminder:60, weekly:true, prompt:true };
+  // demo: meses anteriores já recebidos; mês atual pendente
+  const mStart = toISO(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  S.entries.forEach(e=>{ e.paid = e.date < mStart; });
   // agenda de exemplo: espelha o padrão de plantões acima
   const rFrom = addDays(today,-75);
   S.agenda = { events:[], skips:[], seq:6, rules:[
@@ -1241,6 +1245,7 @@ function renderDash(){
     </section>`;
   }
   html += projectionCard(mp);
+  html += paymentsCard(ent, from, to);
   html += monthCompareCard();
 
   // GRÁFICO DE FATURAMENTO NO TEMPO
@@ -1317,6 +1322,7 @@ function renderDash(){
 
   $("#view").innerHTML = html;
   bindFilters();
+  bindPayments(from, to);
   const wg=$("#wkGo"); if(wg) wg.onclick=()=>nav("agenda");
   drawTimeSeries(ent, from, to);
 }
@@ -1474,6 +1480,53 @@ function projectionCard(mp){
     <div class="proj-leg">${segs.map(s=>`<div class="pl"><span class="dot" style="background:${s.c}"></span>${esc(s.l)}<b>${fmtBRL0(s.v)}</b></div>`).join("")}</div>`:""}
     <p class="note" style="margin-top:12px">${esc(note)}</p>
   </section>`;
+}
+
+/* ================== RECEBIMENTOS (pago × pendente) ================== */
+function paymentsCard(ent, from, to){
+  const received = ent.filter(e=>e.paid).reduce((s,e)=>s+entryValue(e),0);
+  const pending  = ent.filter(e=>!e.paid).reduce((s,e)=>s+entryValue(e),0);
+  const tot = received+pending;
+  if(tot<=0) return "";
+  const byLoc = new Map();
+  ent.filter(e=>!e.paid).forEach(e=>{
+    byLoc.set(e.locId,(byLoc.get(e.locId)||0)+entryValue(e));
+  });
+  const pendRows = Array.from(byLoc.entries())
+    .map(([id,v])=>({loc:locById(id),v})).filter(r=>r.loc&&r.v>0.5)
+    .sort((a,b)=>b.v-a.v);
+  return `
+  <section class="card">
+    <div class="card-title">Recebimentos <span class="hint">período e filtros atuais</span></div>
+    <div class="share-bar" style="margin-bottom:10px">
+      ${received>0?`<div class="seg-fill" style="flex:${received};background:var(--accent)"></div>`:""}
+      ${pending>0?`<div class="seg-fill" style="flex:${pending};background:var(--warn)"></div>`:""}
+    </div>
+    <div class="proj-leg" style="margin-bottom:${pendRows.length?"14px":"0"}">
+      <div class="pl"><span class="dot" style="background:var(--accent)"></span>✓ Recebido<b>${fmtBRL0(received)}</b></div>
+      <div class="pl"><span class="dot" style="background:var(--warn)"></span>⏳ Pendente<b>${fmtBRL0(pending)}</b></div>
+    </div>
+    ${pendRows.map((r,i)=>`
+      <div class="lrow" style="padding:10px 0">
+        <span class="dot" style="background:${SLOTS[r.loc.slot]}"></span>
+        <div class="lr-main">
+          <div class="lr-title" style="font-size:13px">${esc(r.loc.name)}</div>
+          <div class="lr-sub">pendente: <b style="color:var(--warn)">${fmtBRL0(r.v)}</b>${netFactor(r.loc.id)<1?` · líq. ${fmtBRL0(r.v*netFactor(r.loc.id))}`:""}</div>
+        </div>
+        <button class="btn btn-sm" data-paymark="${r.loc.id}" style="flex:0 0 auto">✓ Recebi</button>
+      </div>`).join("")}
+  </section>`;
+}
+function bindPayments(from, to){
+  $$("[data-paymark]").forEach(b=> b.onclick=()=>{
+    const locId=b.dataset.paymark, l=locById(locId);
+    const list = filteredEntries([from,to]).filter(e=>e.locId===locId && !e.paid);
+    const v = list.reduce((s,e)=>s+entryValue(e),0);
+    confirmSheet("Marcar como recebido?",
+      `${list.length} lançamentos de ${l?l.name:""} no período filtrado (${fmtBRL0(v)}) serão marcados como pagos.`,
+      "✓ Marcar como recebido",
+      ()=>{ list.forEach(e=>e.paid=true); save(); toast("Recebimento registrado"); renderDash(); }, false);
+  });
 }
 
 /* ================== COMPARATIVO MÊS A MÊS ================== */
@@ -1765,6 +1818,9 @@ function renderAdd(){
       <button class="mic-btn" id="micBtn" aria-label="Lançar por voz">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 18v4M8 22h8"/></svg>
       </button>
+      <button class="mic-btn" id="camBtn" aria-label="Lançar por imagem" style="background:var(--surface);border:1px solid var(--border);color:var(--accent);box-shadow:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7.5 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      </button>
     </div>
 
     <div class="card" style="padding:6px 16px 10px">
@@ -1807,6 +1863,7 @@ function renderAdd(){
   $$("[data-fav]").forEach(b=> b.onclick=()=>{ const x=examById(b.dataset.fav); if(x){ x.fav=!x.fav; save(); renderAdd(); } });
   $("#adRepeat").onclick = repeatDaySheet;
   $("#micBtn").onclick = voiceSheet;
+  $("#camBtn").onclick = imageSheet;
   const sv=$("#adSave"); if(sv) sv.onclick = saveDraft;
 }
 
@@ -1991,6 +2048,122 @@ function showVoiceReview(el, p){
   $$("[data-vdec]",el).forEach(b=> b.onclick=()=>{ const it=p.items[+b.dataset.vdec]; it.qty=Math.max(0,it.qty-1); if(it.qty===0) p.items.splice(+b.dataset.vdec,1); showVoiceReview(el,p); });
 }
 
+/* ---------- Lançamento por imagem (OCR) ---------- */
+let tessPromise = null;
+function ensureTesseract(){
+  if(window.Tesseract) return Promise.resolve();
+  if(tessPromise) return tessPromise;
+  tessPromise = new Promise((res,rej)=>{
+    const sc=document.createElement("script");
+    sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+    sc.onload=()=>res();
+    sc.onerror=()=>{ tessPromise=null; rej(new Error("offline")); };
+    document.head.appendChild(sc);
+  });
+  return tessPromise;
+}
+async function runOCR(file, onProg){
+  await ensureTesseract();
+  const worker = await Tesseract.createWorker("por", 1, {
+    logger: m=>{ if(m.status==="recognizing text") onProg(Math.round((m.progress||0)*100)); }
+  });
+  const { data } = await worker.recognize(file);
+  await worker.terminate();
+  return data.text||"";
+}
+function parseImageText(text){
+  const loc = locById(draft.locId);
+  const locMods = (loc&&loc.mods&&loc.mods.length)? loc.mods : MODS;
+  const pool = S.exams.filter(x=>locMods.includes(x.mod));
+  const agg = new Map(); const leftovers=[];
+  String(text).split(/\n+/).forEach(line=>{
+    const raw = line.trim();
+    let ln = normName(raw);
+    if(ln.replace(/[^a-z]/g,"").length<3) return;
+    // quantidade: número no início ("5 abdome…"), no fim ("abdome … 5") ou "x5"
+    let qty=1, m;
+    if((m=ln.match(/^(\d{1,3})\b/))){ qty=+m[1]; ln=ln.slice(m[0].length); }
+    else if((m=ln.match(/\bx\s?(\d{1,3})$/))){ qty=+m[1]; ln=ln.slice(0,ln.length-m[0].length); }
+    else if((m=ln.match(/\b(\d{1,3})$/))){ qty=+m[1]; ln=ln.slice(0,ln.length-m[0].length); }
+    if(qty<1||qty>200) qty=1;
+    const toks = ln.split(" ").filter(t=>t && !VOICE_FILL.has(t) && !/^\d+$/.test(t))
+      .map(t=> ABBR[t]!==undefined? ABBR[t]:t).filter(Boolean);
+    if(!toks.length) return;
+    let best=null, bestS=0;
+    pool.forEach(x=>{
+      const txt=examSearchText(x);
+      let hit=0; toks.forEach(t=>{ if(txt.includes(t)) hit++; });
+      let sc=hit/toks.length;
+      if(sc>0 && getPrice(draft.locId,x.id,draft.conv)!=null) sc+=0.12;
+      if(sc>bestS){ bestS=sc; best=x; }
+    });
+    if(best && bestS>=0.55){
+      if(!agg.has(best.id)) agg.set(best.id,{qty:0, exam:best, n:0, first:raw.slice(0,42)});
+      const a=agg.get(best.id); a.qty+=qty; a.n++;
+    } else leftovers.push(raw.slice(0,48));
+  });
+  return {
+    items: Array.from(agg.values()).map(a=>({qty:a.qty, exam:a.exam, text:a.first+(a.n>1?` (+${a.n-1} linhas)`:"")})),
+    leftovers: leftovers.slice(0,8)
+  };
+}
+function imageSheet(){
+  const loc = locById(draft.locId);
+  let file=null;
+  openSheet(`
+    <h3>Lançar por imagem</h3>
+    <div class="sheet-body">
+      <div class="card" style="padding:12px 14px;margin-bottom:12px">
+        <p class="note" style="font-size:12.5px"><b style="color:var(--text)">Passo a passo:</b><br>
+        1️⃣ Confira o contexto abaixo (definido na tela anterior) → 2️⃣ envie a foto ou print da lista de produtividade → 3️⃣ o app lê a imagem, reconhece exames e quantidades → 4️⃣ revise e confirme.</p>
+        <p class="note" style="margin-top:8px;font-size:12px">📍 <b style="color:var(--text)">${esc(fmtDateShort(draft.date))} · ${esc(loc?loc.name:"")} · ${esc(draft.conv||"")}</b></p>
+        <p class="note" style="margin-top:8px;font-size:11.5px">Funciona melhor com prints do sistema (RIS/PACS) ou listas impressas. Requer internet na primeira leitura (baixa o leitor OCR).</p>
+      </div>
+      <input type="file" id="imFile" accept="image/*" class="hidden">
+      <button class="btn" id="imPick" style="margin-bottom:10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M14.5 4h-5L7.5 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Escolher foto ou print…</button>
+      <div id="imPrev" class="txt-c"></div>
+      <div id="imProg"></div>
+      <div id="vcResult"></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="imCancel">Cancelar</button>
+      <button class="btn btn-primary" id="vcDone" disabled>Interpretar imagem</button>
+    </div>`,
+    el=>{
+      $("#imCancel",el).onclick=closeSheet;
+      $("#imPick",el).onclick=()=>$("#imFile",el).click();
+      $("#imFile",el).onchange=e=>{
+        file=e.target.files[0];
+        if(!file) return;
+        $("#imPrev",el).innerHTML=`<img src="${URL.createObjectURL(file)}" style="max-width:100%;max-height:180px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px">`;
+        $("#vcDone",el).disabled=false;
+      };
+      $("#vcDone",el).onclick=async ()=>{
+        if(!file) return;
+        const prog=$("#imProg",el), btn=$("#vcDone",el);
+        btn.disabled=true;
+        prog.innerHTML='<p class="note txt-c" style="margin-bottom:10px">Lendo a imagem… <b id="imPct" style="color:var(--accent)">0%</b></p>';
+        try{
+          const text = await runOCR(file, p=>{ const e2=$("#imPct"); if(e2) e2.textContent=p+"%"; });
+          prog.innerHTML="";
+          const parsed = parseImageText(text);
+          if(!parsed.items.length){
+            prog.innerHTML='<p class="note" style="color:var(--warn);margin-bottom:10px">Não reconheci exames na imagem. Tente uma foto mais nítida/recortada, ou use a busca e o microfone.</p>';
+            btn.disabled=false;
+            return;
+          }
+          btn.disabled=false;
+          showVoiceReview(el, parsed);
+        }catch(err){
+          prog.innerHTML='<p class="note" style="color:var(--warn);margin-bottom:10px">⚠️ Não consegui carregar o leitor de imagem. Verifique sua conexão com a internet e tente novamente.</p>';
+          btn.disabled=false;
+        }
+      };
+    });
+}
+
 /* ---------- Repetir dia anterior ---------- */
 function repeatDaySheet(){
   const prev = Array.from(new Set(S.entries.map(e=>e.date))).filter(d=>d<draft.date).sort().reverse()[0];
@@ -2005,7 +2178,7 @@ function repeatDaySheet(){
     "Copiar lançamentos",
     ()=>{
       list.forEach(e=>{
-        S.entries.push({id:"e"+(++S.entrySeq), date:draft.date, locId:e.locId, examId:e.examId, conv:e.conv, qty:e.qty, unit:e.unit});
+        S.entries.push({id:"e"+(++S.entrySeq), date:draft.date, locId:e.locId, examId:e.examId, conv:e.conv, qty:e.qty, unit:e.unit, paid:false});
       });
       save(); toast(nq+" exames copiados para "+fmtDateShort(draft.date)); render();
     }, false);
@@ -2046,7 +2219,7 @@ function saveDraft(){
   }
   items.forEach(([id,n])=>{
     S.entries.push({ id:"e"+(++S.entrySeq), date:draft.date, locId:draft.locId,
-      examId:id, conv:draft.conv, qty:n, unit:getPrice(draft.locId,id,draft.conv) });
+      examId:id, conv:draft.conv, qty:n, unit:getPrice(draft.locId,id,draft.conv), paid:false });
   });
   S.last = {locId:draft.locId, conv:draft.conv};
   save();
@@ -2085,7 +2258,7 @@ function renderHist(){
               <div class="lr-title">${e.qty}× ${esc(dispName(x))}</div>
               <div class="lr-sub">${l?`<span class="dot" style="background:${SLOTS[l.slot]};display:inline-block;width:7px;height:7px;margin-right:4px"></span>`+esc(l.name)+" · ":""}${esc(e.conv)} · ${fmtBRL(e.unit)}/un</div>
             </div>
-            <div class="lr-side"><b>${fmtBRL(entryValue(e))}</b></div>
+            <div class="lr-side"><b>${fmtBRL(entryValue(e))}</b><small style="color:${e.paid?"var(--good)":"var(--warn)"};font-weight:700">${e.paid?"✓ pago":"pendente"}</small></div>
             <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>`;
         }).join("")}
@@ -2109,6 +2282,10 @@ function editEntrySheet(id){
         <div class="field"><label>Valor unitário (R$)</label><input class="input" id="eeUnit" inputmode="decimal" value="${String(e.unit).replace(".",",")}"></div>
       </div>
       <div class="field"><label>Data</label><input type="date" class="input" id="eeDate" value="${e.date}"></div>
+      <div class="field"><label>Pagamento</label><div class="conv-chips" id="eePay">
+        <button class="chip ${e.paid?"on":""}" data-p="1">✓ Pago</button>
+        <button class="chip ${!e.paid?"on":""}" data-p="0">Pendente</button>
+      </div></div>
     </div>
     <div class="sheet-foot">
       <button class="btn btn-danger" id="eeDel" style="flex:0 0 auto;width:auto;padding:0 18px">Excluir</button>
@@ -2121,13 +2298,15 @@ function editEntrySheet(id){
           S.entries = S.entries.filter(a=>a.id!==id); save(); toast("Lançamento excluído"); render();
         });
       };
+      let eePaid = !!e.paid;
+      $$("#eePay .chip",el).forEach(c=> c.onclick=()=>{ eePaid=c.dataset.p==="1"; $$("#eePay .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
       $("#eeOk",el).onclick=()=>{
         const q=parseInt($("#eeQty",el).value,10);
         const u=parseMoney($("#eeUnit",el).value);
         const d=$("#eeDate",el).value;
         if(!q||q<1){ toast("Quantidade inválida"); return; }
         if(u==null||u<0){ toast("Valor inválido"); return; }
-        e.qty=q; e.unit=u; if(d) e.date=d;
+        e.qty=q; e.unit=u; e.paid=eePaid; if(d) e.date=d;
         save(); closeSheet(); toast("Lançamento atualizado"); render();
       };
     });
@@ -3089,7 +3268,7 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v1.7 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v1.8 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   $("#cfMods").onclick=()=> profileSheet(()=>renderCfg());
