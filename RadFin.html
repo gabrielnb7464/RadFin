@@ -943,6 +943,9 @@ function freshState(){
     agenda: { events:[], rules:[], skips:[], seq:0 },
     userMods: null,          // modalidades que o médico realiza (perfil)
     learn: {},               // frases aprendidas (voz/imagem) -> examId
+    expenses: [], expSeq: 0, // despesas {id,name,value,recur,date}
+    tax: { pct:0, label:"" },// reserva de impostos
+    glosas: [], glosaSeq: 0, // conferência de repasse {id,date,locId,expected,received}
     catalogV: 6
   };
 }
@@ -1050,6 +1053,12 @@ function migrate(){
   }
   applySynonyms(S.exams);
   if(!S.learn || typeof S.learn!=="object") S.learn={};
+  if(!Array.isArray(S.expenses)) S.expenses=[];
+  if(typeof S.expSeq!=="number") S.expSeq=S.expenses.length;
+  if(!S.tax || typeof S.tax!=="object") S.tax={pct:0,label:""};
+  if(typeof S.tax.pct!=="number") S.tax.pct=0;
+  if(!Array.isArray(S.glosas)) S.glosas=[];
+  if(typeof S.glosaSeq!=="number") S.glosaSeq=S.glosas.length;
   if(S.userMods===undefined) S.userMods = null;
   if(S.theme!=="dark" && S.theme!=="light") S.theme="light";
   S.entries.forEach(e=>{ if(e.paid===undefined) e.paid=false; });
@@ -1307,6 +1316,16 @@ function loadDemo(){
     {id:"r5",dow:4,locId:l2,period:"Vespertino",note:"",from:rFrom},
     {id:"r6",dow:6,locId:l3,period:"Noturno",note:"plantão 12h",from:rFrom}
   ]};
+  // demo: impostos, despesas e uma glosa registrada
+  S.tax = { pct:13.3, label:"PJ · Lucro Presumido" };
+  S.expenses = [
+    {id:"d1", name:"Contador (PJ)", value:420, recur:true,  date:addDays(today,-60)},
+    {id:"d2", name:"Seguro de responsabilidade civil", value:180, recur:true, date:addDays(today,-60)},
+    {id:"d3", name:"Congresso de radiologia", value:950, recur:false, date:addDays(today,-8)}
+  ];
+  S.expSeq = 3;
+  S.glosas = [{id:"g1", date:addDays(today,-12), locId:l1, expected:6480, received:6220}];
+  S.glosaSeq = 1;
   save();
   function getPriceRaw(l,x,c){ return S.prices[pKey(l,x,c)] ?? 0; }
 }
@@ -1413,7 +1432,7 @@ function renderDash(){
     <section class="card" style="border-color:var(--accent-brd);display:flex;align-items:center;gap:13px;padding:15px 16px">
       <div class="insight" style="border:none;padding:0;flex:1">
         <div class="ic" style="background:var(--accent-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 9h18"/></svg></div>
-        <div class="tx">Sua semana: <b>${nOcc} plantã${nOcc===1?"o":"es"}</b> agendado${nOcc===1?"":"s"}, previsto <b>${compact(exp)}</b>.</div>
+        <div class="tx">Sua semana: <b>${nOcc} plant${nOcc===1?"ão":"ões"}</b> agendado${nOcc===1?"":"s"}, previsto <b>${compact(exp)}</b>.</div>
       </div>
       <button id="wkGo" class="btn btn-sm" style="flex:0 0 auto">Ver agenda</button>
     </section>`;
@@ -1473,8 +1492,12 @@ function renderDash(){
     </section>`;
   }
   html += projectionCard(mp);
+  html += profitCard(mp);
   html += paymentsCard(ent, from, to);
+  html += glosasCard(from, to);
+  html += hourlyCard(from, to);
   html += monthCompareCard();
+  html += reportCard();
 
   // GRÁFICO DE FATURAMENTO NO TEMPO
   html += `
@@ -1551,6 +1574,7 @@ function renderDash(){
   $("#view").innerHTML = html;
   bindFilters();
   bindPayments(from, to);
+  bindReport();
   const wg=$("#wkGo"); if(wg) wg.onclick=()=>nav("agenda");
   drawTimeSeries(ent, from, to);
 }
@@ -1718,14 +1742,24 @@ function paymentsCard(ent, from, to){
   if(tot<=0) return "";
   const byLoc = new Map();
   ent.filter(e=>!e.paid).forEach(e=>{
-    byLoc.set(e.locId,(byLoc.get(e.locId)||0)+entryValue(e));
+    const c = byLoc.get(e.locId)||{v:0,oldest:e.date};
+    c.v += entryValue(e);
+    if(e.date<c.oldest) c.oldest=e.date;
+    byLoc.set(e.locId,c);
   });
+  const t = todayISO();
+  const ageOf = iso => Math.max(0, Math.round((fromISO(t)-fromISO(iso))/86400000));
   const pendRows = Array.from(byLoc.entries())
-    .map(([id,v])=>({loc:locById(id),v})).filter(r=>r.loc&&r.v>0.5)
+    .map(([id,c])=>({loc:locById(id),v:c.v,age:ageOf(c.oldest)})).filter(r=>r.loc&&r.v>0.5)
     .sort((a,b)=>b.v-a.v);
+  const late = pendRows.filter(r=>r.age>=45).sort((a,b)=>b.age-a.age);
   return `
   <section class="card">
     <div class="card-title">Recebimentos <span class="hint">período e filtros atuais</span></div>
+    ${late.length?`<div class="insight" style="border-color:var(--crit-brd);background:var(--crit-soft);border-radius:12px;padding:10px 12px;margin-bottom:12px">
+      <div class="ic" style="background:transparent"><svg viewBox="0 0 24 24" fill="none" stroke="var(--crit-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+      <div class="tx" style="color:var(--crit-text)"><b>${esc(late[0].loc.name)}</b> está há <b>${late[0].age} dias</b> com ${fmtBRL0(late[0].v)} pendentes${late.length>1?` — e mais ${late.length-1} loca${late.length-1===1?"l":"is"} em atraso`:""}. Vale cobrar o repasse.</div>
+    </div>`:""}
     <div class="share-bar" style="margin-bottom:10px">
       ${received>0?`<div class="seg-fill" style="flex:${received};background:var(--accent)"></div>`:""}
       ${pending>0?`<div class="seg-fill" style="flex:${pending};background:var(--warn)"></div>`:""}
@@ -1739,7 +1773,7 @@ function paymentsCard(ent, from, to){
         <span class="dot" style="background:${SLOTS[r.loc.slot]}"></span>
         <div class="lr-main">
           <div class="lr-title" style="font-size:13px">${esc(r.loc.name)}</div>
-          <div class="lr-sub">pendente: <b style="color:var(--warn)">${fmtBRL0(r.v)}</b>${netFactor(r.loc.id)<1?` · líq. ${fmtBRL0(r.v*netFactor(r.loc.id))}`:""}</div>
+          <div class="lr-sub">pendente: <b style="color:var(--warn)">${fmtBRL0(r.v)}</b>${netFactor(r.loc.id)<1?` · líq. ${fmtBRL0(r.v*netFactor(r.loc.id))}`:""}${r.age>0?` · <span style="color:${r.age>=45?"var(--crit-text)":(r.age>=30?"var(--warn)":"inherit")};font-weight:${r.age>=30?"700":"500"}">há ${r.age}d</span>`:""}</div>
         </div>
         <button class="btn btn-sm" data-paymark="${r.loc.id}" style="flex:0 0 auto">✓ Recebi</button>
       </div>`).join("")}
@@ -1749,12 +1783,258 @@ function bindPayments(from, to){
   $$("[data-paymark]").forEach(b=> b.onclick=()=>{
     const locId=b.dataset.paymark, l=locById(locId);
     const list = filteredEntries([from,to]).filter(e=>e.locId===locId && !e.paid);
-    const v = list.reduce((s,e)=>s+entryValue(e),0);
-    confirmSheet("Marcar como recebido?",
-      `${list.length} lançamentos de ${l?l.name:""} no período filtrado (${fmtBRL0(v)}) serão marcados como pagos.`,
-      "✓ Marcar como recebido",
-      ()=>{ list.forEach(e=>e.paid=true); save(); toast("Recebimento registrado"); renderDash(); }, false);
+    if(!list.length) return;
+    const gross = list.reduce((s,e)=>s+entryValue(e),0);
+    const expected = Math.round(gross*netFactor(locId)*100)/100;
+    openSheet(`
+      <h3>Registrar recebimento</h3>
+      <div class="sheet-body">
+        <p class="note" style="margin-bottom:14px">${list.length} lançamento${list.length===1?"":"s"} de <b style="color:var(--text)">${esc(l?l.name:"")}</b> no período filtrado. Previsto pela tabela: <b style="color:var(--text)">${fmtBRL(gross)}</b>${expected<gross-0.005?` · líquido estimado <b style="color:var(--text)">${fmtBRL(expected)}</b>`:""}.</p>
+        <div class="field mb0"><label>Valor efetivamente recebido (R$)</label>
+          <input class="input" id="rcVal" inputmode="decimal" value="${expected.toLocaleString("pt-BR",{minimumFractionDigits:2})}">
+          <p class="note" style="margin-top:7px">Recebeu menos que o previsto? A diferença fica registrada como <b style="color:var(--text)">glosa</b>, para você conferir o repasse e cobrar o que faltou.</p></div>
+      </div>
+      <div class="sheet-foot">
+        <button class="btn" id="rcCancel">Cancelar</button>
+        <button class="btn btn-primary" id="rcOk">✓ Confirmar</button>
+      </div>`,
+      el=>{
+        $("#rcCancel",el).onclick=closeSheet;
+        $("#rcOk",el).onclick=()=>{
+          const recv = parseMoney($("#rcVal",el).value);
+          list.forEach(e=>e.paid=true);
+          let msg = "Recebimento registrado";
+          if(recv!=null && recv < expected-0.005){
+            S.glosas.push({id:"g"+(++S.glosaSeq), date:todayISO(), locId,
+              expected, received:Math.round(recv*100)/100});
+            msg = "Recebido · glosa de "+fmtBRL(expected-recv)+" registrada";
+          }
+          save(); closeSheet(); toast(msg); renderDash();
+        };
+      });
   });
+}
+
+/* ================== CONFERÊNCIA DE REPASSE (glosas) ================== */
+function glosasCard(from,to){
+  const gs = S.glosas.filter(g=> g.date>=from && g.date<=to && (F.loc==="all"||g.locId===F.loc));
+  if(!gs.length) return "";
+  const exp = gs.reduce((s,g)=>s+g.expected,0), rec = gs.reduce((s,g)=>s+g.received,0);
+  const dif = exp-rec, pct = exp>0? dif/exp*100 : 0;
+  const byLoc = new Map();
+  gs.forEach(g=>{ const c=byLoc.get(g.locId)||{e:0,r:0,n:0}; c.e+=g.expected; c.r+=g.received; c.n++; byLoc.set(g.locId,c); });
+  return `
+  <section class="card">
+    <div class="card-title">Conferência de repasse <span class="hint">glosas no período</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+      <b style="font-size:20px;letter-spacing:-.02em;color:${dif>0.5?"var(--crit-text)":"var(--up)"}">${dif>0.5?"− ":""}${fmtBRL0(Math.abs(dif))}</b>
+      <span class="mut" style="font-size:12px">${pct.toLocaleString("pt-BR",{maximumFractionDigits:1})}% do previsto</span>
+    </div>
+    <p class="note" style="margin-bottom:10px">Previsto ${fmtBRL0(exp)} · recebido ${fmtBRL0(rec)} em ${gs.length} repasse${gs.length===1?"":"s"} conferido${gs.length===1?"":"s"}.</p>
+    ${Array.from(byLoc.entries()).map(([id,c])=>{
+      const l=locById(id); if(!l) return "";
+      const d=c.e-c.r;
+      return `<div class="lrow" style="padding:9px 0">
+        <span class="dot" style="background:${SLOTS[l.slot]}"></span>
+        <div class="lr-main"><div class="lr-title" style="font-size:13px">${esc(l.name)}</div>
+          <div class="lr-sub">${c.n} repasse${c.n===1?"":"s"} · glosa média ${(c.e>0?(c.e-c.r)/c.e*100:0).toLocaleString("pt-BR",{maximumFractionDigits:1})}%</div></div>
+        <div class="lr-side"><b style="color:${d>0.5?"var(--crit-text)":"var(--up)"}">${d>0.5?"− "+fmtBRL0(d):"sem glosa"}</b></div>
+      </div>`;}).join("")}
+  </section>`;
+}
+
+/* ================== R$/HORA POR PLANTÃO ================== */
+function occMinutes(o){
+  const t = occTimes(o);
+  if(t.allDay) return 12*60;
+  const [sh,sm]=t.start.split(":").map(Number), [eh,em]=t.end.split(":").map(Number);
+  let m=(eh*60+em)-(sh*60+sm); if(m<=0) m+=24*60;
+  return m;
+}
+function hourlyStats(from,to){
+  const dayMap = new Map();
+  S.entries.forEach(e=>{
+    if(e.date<from||e.date>to) return;
+    if(F.loc!=="all" && e.locId!==F.loc) return;
+    const k=e.date+"|"+e.locId;
+    const c=dayMap.get(k)||{v:0,q:0};
+    c.v+=entryValue(e); c.q+=e.qty; dayMap.set(k,c);
+  });
+  const byLoc = new Map();
+  dayMap.forEach((c,k)=>{
+    const i=k.indexOf("|"), date=k.slice(0,i), locId=k.slice(i+1);
+    const occ = occurrences(date).filter(o=>o.locId===locId);
+    if(!occ.length) return; // sem plantão na agenda → não dá para medir horas
+    let min=0; occ.forEach(o=> min+=occMinutes(o));
+    const cur=byLoc.get(locId)||{min:0,v:0,q:0,days:0};
+    cur.min+=min; cur.v+=c.v; cur.q+=c.q; cur.days++;
+    byLoc.set(locId,cur);
+  });
+  return byLoc;
+}
+function hourlyCard(from,to){
+  const rows = Array.from(hourlyStats(from,to).entries())
+    .map(([id,c])=>({loc:locById(id),...c}))
+    .filter(r=>r.loc&&r.min>0)
+    .sort((a,b)=>(b.v/b.min)-(a.v/a.min));
+  if(!rows.length) return "";
+  return `
+  <section class="card">
+    <div class="card-title">R$/hora por plantão <span class="hint">agenda × produção</span></div>
+    <div class="rank-list">${rows.map((r,i)=>{
+      const h=r.min/60, vh=r.v/h, nf=netFactor(r.loc.id);
+      return `<div class="rank-item">
+        <div class="rank-pos ${i===0?"first":""}">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-name"><span class="dot" style="background:${SLOTS[r.loc.slot]}"></span><span>${esc(r.loc.name)}</span></div>
+          <div class="rank-meta">${r.days} plant${r.days===1?"ão":"ões"} medido${r.days===1?"":"s"} · ${(r.q/h).toLocaleString("pt-BR",{maximumFractionDigits:1})} exames/h${nf<1?` · líq. ${fmtBRL(vh*nf)}/h`:""}</div>
+        </div>
+        <div class="rank-val"><b>${fmtBRL(vh)}</b><small>por hora</small></div>
+      </div>`;}).join("")}</div>
+    <p class="note" style="margin-top:10px">Calculado nos dias com plantão na Agenda e produção lançada no mesmo local: horas do turno × receita do dia. Use no Simulador de proposta (aba Locais) para comparar ofertas.</p>
+  </section>`;
+}
+
+/* ================== LUCRO REAL & RESERVA DE IMPOSTOS ================== */
+function monthExpenses(mFrom,mEnd){
+  return S.expenses
+    .filter(x=> x.recur ? x.date<=mEnd : (x.date>=mFrom && x.date<=mEnd))
+    .reduce((s,x)=>s+(x.value||0),0);
+}
+function profitCard(mp){
+  const hasTax = S.tax && S.tax.pct>0;
+  const hasExp = S.expenses.length>0;
+  if(!hasTax && !hasExp) return "";
+  const net = S.entries.filter(e=>e.date>=mp.mFrom&&e.date<=mp.mEnd)
+    .reduce((s,e)=>s+entryValue(e)*netFactor(e.locId),0);
+  const taxV = hasTax? net*S.tax.pct/100 : 0;
+  const expV = monthExpenses(mp.mFrom,mp.mEnd);
+  const profit = net-taxV-expV;
+  const d = new Date();
+  const row=(l,v,neg)=>`<div class="lrow" style="padding:8px 0"><div class="lr-main"><div class="lr-title" style="font-size:13px;font-weight:600">${l}</div></div><div class="lr-side"><b style="${neg?"color:var(--crit-text)":""}">${neg&&v>0.005?"− ":""}${fmtBRL0(v)}</b></div></div>`;
+  return `
+  <section class="card">
+    <div class="card-title">Lucro real do mês <span class="hint">${MONTHS_S[d.getMonth()]}/${d.getFullYear()}</span></div>
+    ${row("Receita líquida realizada",net,false)}
+    ${hasTax?row("Impostos ("+(S.tax.label?esc(S.tax.label)+" · ":"")+S.tax.pct.toLocaleString("pt-BR")+"%)",taxV,true):""}
+    ${hasExp?row("Despesas do mês",expV,true):""}
+    <div class="lrow" style="padding:10px 0;border-top:1px solid var(--border)">
+      <div class="lr-main"><div class="lr-title" style="font-size:14px">Lucro estimado</div></div>
+      <div class="lr-side"><b style="font-size:17px;color:${profit>=0?"var(--up)":"var(--crit-text)"}">${fmtBRL0(profit)}</b></div>
+    </div>
+    ${hasTax&&taxV>0.5?`<p class="note" style="margin-top:8px">💡 Separe cerca de <b style="color:var(--text)">${fmtBRL0(taxV)}</b> para os impostos deste mês. Configure regime e despesas em Ajustes.</p>`:""}
+  </section>`;
+}
+
+/* ================== RELATÓRIO MENSAL (PDF via impressão) ================== */
+const MONTHS_F = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+function reportCard(){
+  return `
+  <section class="card" style="display:flex;align-items:center;gap:13px;padding:15px 16px">
+    <div class="insight" style="border:none;padding:0;flex:1">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></div>
+      <div class="tx">Fechamento do mês em <b>PDF</b> — para o contador ou para negociar.</div>
+    </div>
+    <button class="btn btn-sm" id="repBtn" style="flex:0 0 auto">Gerar</button>
+  </section>`;
+}
+function bindReport(){
+  const b=$("#repBtn"); if(!b) return;
+  b.onclick=()=>{
+    const d=new Date(), opts=[];
+    for(let i=0;i<6;i++){
+      const m=new Date(d.getFullYear(), d.getMonth()-i, 1);
+      opts.push([m.getFullYear()+"|"+m.getMonth(), cap1(MONTHS_F[m.getMonth()])+" de "+m.getFullYear()]);
+    }
+    pickerSheet("Relatório de qual mês?", opts, opts[0][0], v=>{
+      const [y,m]=v.split("|").map(Number);
+      openMonthlyReport(y,m);
+    });
+  };
+}
+function openMonthlyReport(y,m){
+  const mFrom=toISO(new Date(y,m,1)), mEnd=toISO(new Date(y,m+1,0));
+  const ent=S.entries.filter(e=>e.date>=mFrom&&e.date<=mEnd);
+  if(!ent.length){ toast("Sem lançamentos nesse mês"); return; }
+  const p=curProfile()||{};
+  const F2=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  const tot=ent.reduce((s,e)=>s+entryValue(e),0);
+  const net=ent.reduce((s,e)=>s+entryValue(e)*netFactor(e.locId),0);
+  const rec=ent.filter(e=>e.paid).reduce((s,e)=>s+entryValue(e),0);
+  const nEx=ent.reduce((s,e)=>s+e.qty,0);
+  const days=new Set(ent.map(e=>e.date)).size;
+  const agg=(keyFn)=>{ const mm=new Map(); ent.forEach(e=>{ const k=keyFn(e); if(k==null) return;
+    const c=mm.get(k)||{q:0,v:0,net:0,rec:0}; c.q+=e.qty; const val=entryValue(e); c.v+=val; c.net+=val*netFactor(e.locId); if(e.paid) c.rec+=val; mm.set(k,c); });
+    return Array.from(mm.entries()).sort((a,b)=>b[1].v-a[1].v); };
+  const byLoc=agg(e=>{const l=locById(e.locId);return l?l.name:null;});
+  const byConv=agg(e=>e.conv||"—");
+  const byMod=agg(e=>{const x=examById(e.examId);return x?(x.mod+" · "+(MOD_LABELS[x.mod]||x.mod)):null;});
+  const byExam=agg(e=>{const x=examById(e.examId);return x?dispName(x):null;}).slice(0,12);
+  const gs=S.glosas.filter(g=>g.date>=mFrom&&g.date<=mEnd);
+  const gExp=gs.reduce((s,g)=>s+g.expected,0), gRec=gs.reduce((s,g)=>s+g.received,0);
+  const taxV=(S.tax&&S.tax.pct>0)? net*S.tax.pct/100 : 0;
+  const expV=monthExpenses(mFrom,mEnd);
+  const expList=S.expenses.filter(x=> x.recur ? x.date<=mEnd : (x.date>=mFrom&&x.date<=mEnd));
+  const tbl=(title,rows,cols)=> rows.length?`
+    <h2>${title}</h2>
+    <table><thead><tr><th style="text-align:left">${cols[0]}</th><th>Exames</th><th>Bruto</th><th>Líquido</th><th>Recebido</th><th>Pendente</th></tr></thead><tbody>
+    ${rows.map(([k,c])=>`<tr><td style="text-align:left">${esc(k)}</td><td>${fmtN(c.q)}</td><td>${F2(c.v)}</td><td>${F2(c.net)}</td><td>${F2(c.rec)}</td><td>${F2(c.v-c.rec)}</td></tr>`).join("")}
+    </tbody></table>`:"";
+  const title=cap1(MONTHS_F[m])+" de "+y;
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>RadFin · Fechamento ${esc(title)}</title>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a2330;margin:28px auto;max-width:760px;padding:0 20px;font-size:13px;line-height:1.45}
+    h1{font-size:21px;margin:0 0 2px} h2{font-size:14px;margin:26px 0 8px;color:#0d9488;border-bottom:2px solid #0d948833;padding-bottom:4px}
+    .sub{color:#6b7686;margin:0 0 4px} .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+    table{width:100%;border-collapse:collapse;font-size:12px} th,td{padding:6px 8px;border-bottom:1px solid #e6e9f0;text-align:right}
+    th{color:#6b7686;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+    .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+    .kpi{flex:1;min-width:150px;border:1px solid #e6e9f0;border-radius:10px;padding:10px 12px}
+    .kpi b{display:block;font-size:17px;margin-top:2px} .kpi span{color:#6b7686;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+    .neg{color:#dc2626} .pos{color:#15803d}
+    .noprint{margin:18px 0} .noprint button{background:#0d9488;color:#fff;border:none;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:700}
+    footer{margin-top:30px;color:#9aa3b2;font-size:11px}
+    @media print{.noprint{display:none}}
+  </style></head><body>
+  <div class="brand">
+    <svg width="34" height="34" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="21" stroke="#0d9488" stroke-width="3.4"/><g stroke="#0d9488" stroke-width="3.6" stroke-linecap="round"><line x1="14" y1="34" x2="14" y2="27"/><line x1="19" y1="34" x2="19" y2="19"/><line x1="24" y1="34" x2="24" y2="14.5"/><line x1="29" y1="34" x2="29" y2="21.5"/><line x1="34" y1="34" x2="34" y2="25.5"/></g></svg>
+    <div><h1>Fechamento · ${esc(title)}</h1>
+    <p class="sub">${esc(p.name||"")}${p.crm?" · "+esc(p.crm):""}${p.spec?" · "+esc(p.spec):""}</p></div>
+  </div>
+  <div class="noprint"><button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button></div>
+  <div class="kpis">
+    <div class="kpi"><span>Faturamento bruto</span><b>${F2(tot)}</b></div>
+    <div class="kpi"><span>Líquido estimado</span><b>${F2(net)}</b></div>
+    <div class="kpi"><span>Recebido</span><b class="pos">${F2(rec)}</b></div>
+    <div class="kpi"><span>Pendente</span><b class="${tot-rec>0.5?"neg":""}">${F2(tot-rec)}</b></div>
+    <div class="kpi"><span>Exames laudados</span><b>${fmtN(nEx)}</b></div>
+    <div class="kpi"><span>Dias com produção</span><b>${days} · ${fmtN(days?Math.round(nEx/days):0)}/dia</b></div>
+  </div>
+  ${tbl("Por local de trabalho",byLoc,["Local"])}
+  ${tbl("Por convênio",byConv,["Convênio"])}
+  ${tbl("Por modalidade",byMod,["Modalidade"])}
+  ${byExam.length?`<h2>Principais exames</h2>
+    <table><thead><tr><th style="text-align:left">Exame</th><th>Qtde</th><th>Bruto</th><th>R$/exame</th></tr></thead><tbody>
+    ${byExam.map(([k,c])=>`<tr><td style="text-align:left">${esc(k)}</td><td>${fmtN(c.q)}</td><td>${F2(c.v)}</td><td>${F2(c.v/c.q)}</td></tr>`).join("")}
+    </tbody></table>`:""}
+  ${gs.length?`<h2>Conferência de repasse (glosas)</h2>
+    <table><thead><tr><th style="text-align:left">Local</th><th>Data</th><th>Previsto</th><th>Recebido</th><th>Glosa</th></tr></thead><tbody>
+    ${gs.map(g=>{const l=locById(g.locId);return `<tr><td style="text-align:left">${esc(l?l.name:"—")}</td><td>${esc(fmtDateShort(g.date))}</td><td>${F2(g.expected)}</td><td>${F2(g.received)}</td><td class="neg">${F2(g.expected-g.received)}</td></tr>`;}).join("")}
+    <tr><td style="text-align:left"><b>Total</b></td><td></td><td><b>${F2(gExp)}</b></td><td><b>${F2(gRec)}</b></td><td class="neg"><b>${F2(gExp-gRec)}</b></td></tr>
+    </tbody></table>`:""}
+  ${(taxV>0.5||expList.length)?`<h2>Resultado do mês</h2>
+    <table><tbody>
+      <tr><td style="text-align:left">Receita líquida</td><td>${F2(net)}</td></tr>
+      ${taxV>0.5?`<tr><td style="text-align:left">Reserva de impostos${S.tax.label?" ("+esc(S.tax.label)+")":""} · ${S.tax.pct.toLocaleString("pt-BR")}%</td><td class="neg">− ${F2(taxV)}</td></tr>`:""}
+      ${expList.map(x=>`<tr><td style="text-align:left">Despesa · ${esc(x.name)}${x.recur?" (mensal)":""}</td><td class="neg">− ${F2(x.value||0)}</td></tr>`).join("")}
+      <tr><td style="text-align:left"><b>Lucro estimado</b></td><td><b class="${net-taxV-expV>=0?"pos":"neg"}">${F2(net-taxV-expV)}</b></td></tr>
+    </tbody></table>`:""}
+  <footer>Gerado pelo RadFin em ${esc(fmtDateShort(todayISO()))} · valores conforme tabelas e lançamentos registrados no app.</footer>
+  </body></html>`;
+  const w=window.open("","_blank");
+  if(!w){ toast("Permita pop-ups para gerar o relatório"); return; }
+  w.document.write(html); w.document.close();
+  setTimeout(()=>{ try{ w.focus(); w.print(); }catch(_){} }, 700);
 }
 
 /* ================== COMPARATIVO MÊS A MÊS ================== */
@@ -3361,6 +3641,11 @@ function renderLocs(){
       }).join("")}</div>`
     : emptyState("map","Nenhum local cadastrado","Cadastre cada clínica, hospital ou plantão onde você atua — os honorários são definidos por local e convênio.","Cadastrar local","newLoc2")}
     <div class="card">
+      <div class="card-title">Simulador de proposta</div>
+      <p class="note" style="margin-bottom:12px">Recebeu uma oferta de outro serviço? Compare com seu ticket médio e R$/hora atuais antes de aceitar — ou use os números para negociar.</p>
+      <button class="btn btn-sm" id="simBtn" style="width:100%">⚖️ Simular proposta</button>
+    </div>
+    <div class="card">
       <div class="card-title">Catálogo de exames <span class="hint">${S.exams.length} exames</span></div>
       <p class="note" style="margin-bottom:12px">O catálogo é compartilhado entre os locais. Adicione exames que não estão na lista padrão.</p>
       <button class="btn btn-sm" id="newExam" style="width:100%">+ Adicionar exame ao catálogo</button>
@@ -3370,6 +3655,7 @@ function renderLocs(){
   const nl2=$("#newLoc2"); if(nl2) nl2.onclick = ()=>startWizard();
   $$("[data-loc]").forEach(b=> b.onclick=()=>{ locView={locId:b.dataset.loc,conv:null,search:""}; renderLocs(); });
   $("#newExam").onclick = ()=> newExamSheet(()=>renderLocs());
+  $("#simBtn").onclick = simulatorSheet;
 }
 
 function newLocSheet(editId){
@@ -3490,7 +3776,8 @@ function renderLocDetail(){
     <div class="card" style="padding:15px">
       <div class="card-title" style="margin-bottom:10px">Tabela de honorários <span class="hint">${priced.length} exame${priced.length===1?"":"s"} precificado${priced.length===1?"":"s"}</span></div>
       <div class="conv-chips" style="margin-bottom:4px">${convs.map(c=>`<button class="chip ${c===locView.conv?"on":""}" data-pconv="${esc(c)}">${esc(c)}</button>`).join("")}</div>
-      ${convs.length>1||S.locations.length>1?`<button id="copyPrices" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:10px">⧉ Copiar preços de outra tabela…</button>`:""}
+      ${convs.length>1||S.locations.length>1?`<button id="copyPrices" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:10px;margin-right:16px">⧉ Copiar preços de outra tabela…</button>`:""}
+      ${priced.length?`<button id="adjPrices" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:10px">％ Reajustar tabela em massa…</button>`:""}
     </div>
     <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
       <input class="input" id="lpSearch" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Buscar exame…" value="${esc(locView.search)}"></div>
@@ -3530,6 +3817,123 @@ function renderLocDetail(){
   $("#newExam2").onclick=()=> newExamSheet(()=>renderLocDetail());
   $$("[data-aled]").forEach(b=> b.onclick=()=> aliasSheet(b.dataset.aled));
   const cp=$("#copyPrices"); if(cp) cp.onclick=copyPricesSheet;
+  const ap=$("#adjPrices"); if(ap) ap.onclick=adjustPricesSheet;
+}
+
+/* ---------- Reajuste de tabela em massa ---------- */
+function adjustPricesSheet(){
+  const l = locById(locView.locId); if(!l) return;
+  const keys = Object.keys(S.prices).filter(k=>{ const p=k.split("|"); return p[0]===l.id && p[2]===locView.conv; });
+  if(!keys.length){ toast("Esta tabela ainda não tem preços"); return; }
+  openSheet(`
+    <h3>Reajustar tabela em massa</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:14px">Aplica um percentual sobre <b style="color:var(--text)">${keys.length} preço${keys.length===1?"":"s"}</b> de <b style="color:var(--text)">${esc(l.name)} · ${esc(locView.conv)}</b>. Use valor negativo para reduzir.</p>
+      <div class="field mb0"><label>Reajuste (%)</label>
+        <div class="conv-chips" style="margin-bottom:10px">${[5,8,10,12,15].map(v=>`<button class="chip" data-adjp="${v}">+${v}%</button>`).join("")}</div>
+        <input class="input" id="adjVal" placeholder="Ex.: 10  ·  ou  -5" inputmode="text">
+        <p class="note" id="adjPrev" style="margin-top:8px"></p></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="adjCancel">Cancelar</button>
+      <button class="btn btn-primary" id="adjOk">Aplicar reajuste</button>
+    </div>`,
+    el=>{
+      const inp=$("#adjVal",el), prev=$("#adjPrev",el);
+      const pctOf=()=>{ const p=parseFloat((inp.value||"").trim().replace(",",".")); return isNaN(p)?null:p; };
+      const sample=()=>{
+        const pct=pctOf();
+        if(pct==null||!pct){ prev.textContent=""; return; }
+        const k0=keys[0], v0=S.prices[k0], x=examById(k0.split("|")[1]);
+        prev.innerHTML=`Ex.: ${esc(x?dispName(x):"exame")}: ${fmtBRL(v0)} → <b style="color:var(--text)">${fmtBRL(v0*(1+pct/100))}</b>`;
+      };
+      inp.oninput=sample;
+      $$("[data-adjp]",el).forEach(b=> b.onclick=()=>{ inp.value=b.dataset.adjp; sample(); });
+      $("#adjCancel",el).onclick=closeSheet;
+      $("#adjOk",el).onclick=()=>{
+        const pct=pctOf();
+        if(pct==null||!pct){ toast("Informe o percentual"); return; }
+        if(pct<=-100){ toast("Percentual inválido"); return; }
+        keys.forEach(k=>{ S.prices[k]=Math.round(S.prices[k]*(1+pct/100)*100)/100; });
+        save(); closeSheet();
+        toast(keys.length+" preço"+(keys.length===1?"":"s")+" reajustado"+(keys.length===1?"":"s")+" em "+(pct>0?"+":"")+pct.toLocaleString("pt-BR")+"%");
+        renderLocDetail();
+      };
+    });
+}
+
+/* ---------- Simulador de proposta ---------- */
+function simulatorSheet(){
+  const to=todayISO(), from=addDays(to,-89);
+  const ent=S.entries.filter(e=>e.date>=from&&e.date<=to);
+  const v=ent.reduce((s,e)=>s+entryValue(e),0), q=ent.reduce((s,e)=>s+e.qty,0);
+  const ticket=q? v/q : 0;
+  const keepLoc=F.loc; F.loc="all";
+  let hmin=0,hv=0; hourlyStats(from,to).forEach(c=>{ hmin+=c.min; hv+=c.v; });
+  F.loc=keepLoc;
+  const curVH=hmin? hv/(hmin/60) : 0;
+  const daysN=new Set(ent.map(e=>e.date)).size;
+  const exDay=daysN? Math.max(1,Math.round(q/daysN)) : 20;
+  let mode="exam";
+  openSheet(`
+    <h3>Simulador de proposta</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:12px">Compare a oferta com o que você já ganha hoje${ticket?` — seu ticket médio nos últimos 90 dias é <b style="color:var(--text)">${fmtBRL(ticket)}</b>/exame${curVH?` e <b style="color:var(--text)">${fmtBRL(curVH)}</b>/hora`:""}`:""}.</p>
+      <div class="field"><label>A proposta é…</label>
+        <div class="conv-chips">
+          <button class="chip on" id="smModeExam">R$ por exame</button>
+          <button class="chip" id="smModeFix">Valor fixo por turno</button>
+        </div></div>
+      <div class="field"><label id="smValLbl">Valor por exame (R$)</label>
+        <input class="input" id="smVal" inputmode="decimal" placeholder="Ex.: 85,00"></div>
+      <div class="input-row" style="margin-bottom:14px">
+        <div class="field mb0" style="flex:1"><label>Exames por turno</label>
+          <input class="input" id="smQty" inputmode="numeric" value="${exDay}"></div>
+        <div class="field mb0" style="flex:1"><label>Horas por turno</label>
+          <input class="input" id="smH" inputmode="decimal" value="6"></div>
+      </div>
+      <div id="smOut"></div>
+    </div>
+    <div class="sheet-foot"><button class="btn" id="smClose">Fechar</button></div>`,
+    el=>{
+      const out=$("#smOut",el);
+      const cmp=(nv,cur,unit)=>{
+        if(!cur) return "";
+        const pc=(nv-cur)/cur*100, up=pc>=0;
+        return `<span class="delta ${up?"up":"down"}" style="margin-left:8px">${up?"↑":"↓"} ${Math.abs(pc).toLocaleString("pt-BR",{maximumFractionDigits:0})}% vs atual</span>`;
+      };
+      const calc=()=>{
+        const val=parseMoney($("#smVal",el).value);
+        const qty=parseInt($("#smQty",el).value,10)||0;
+        const h=parseFloat(($("#smH",el).value||"").replace(",","."))||0;
+        if(val==null||val<=0||qty<=0||h<=0){ out.innerHTML=""; return; }
+        const perExam = mode==="exam"? val : val/qty;
+        const perShift = mode==="exam"? val*qty : val;
+        const perHour = perShift/h;
+        const rows=[["Por exame",fmtBRL(perExam),cmp(perExam,ticket)],["Por turno ("+h.toLocaleString("pt-BR")+"h)",fmtBRL(perShift),""],["Por hora",fmtBRL(perHour),cmp(perHour,curVH)]];
+        let verdict="";
+        if(ticket&&curVH){
+          const okT=perExam>=ticket, okH=perHour>=curVH;
+          verdict = okT&&okH? `<p class="note" style="margin-top:10px;color:var(--up)"><b>Proposta acima da sua média atual</b> em valor por exame e por hora.</p>`
+            : (!okT&&!okH? `<p class="note" style="margin-top:10px;color:var(--crit-text)"><b>Proposta abaixo da sua média atual</b> — use estes números para negociar.</p>`
+            : `<p class="note" style="margin-top:10px;color:var(--warn)"><b>Proposta mista</b>: melhor em um indicador, pior no outro. Avalie volume e deslocamento.</p>`);
+        }
+        out.innerHTML=`<div class="card" style="margin:0;padding:6px 16px 10px">${rows.map(r=>`
+          <div class="lrow" style="padding:9px 0"><div class="lr-main"><div class="lr-title" style="font-size:13px">${r[0]}</div></div>
+          <div class="lr-side" style="display:flex;align-items:center"><b>${r[1]}</b>${r[2]}</div></div>`).join("")}</div>${verdict}`;
+      };
+      const setMode=m=>{
+        mode=m;
+        $("#smModeExam",el).classList.toggle("on",m==="exam");
+        $("#smModeFix",el).classList.toggle("on",m==="fix");
+        $("#smValLbl",el).textContent = m==="exam"? "Valor por exame (R$)":"Valor fixo por turno (R$)";
+        calc();
+      };
+      $("#smModeExam",el).onclick=()=>setMode("exam");
+      $("#smModeFix",el).onclick=()=>setMode("fix");
+      ["#smVal","#smQty","#smH"].forEach(id=> $(id,el).oninput=calc);
+      $("#smClose",el).onclick=closeSheet;
+    });
 }
 
 function aliasSheet(examId){
@@ -3655,6 +4059,22 @@ function mergeData(inc){
     const nid = mapExam[v]||v;
     if(!S.learn[k] && examById(nid)) S.learn[k]=nid;
   });
+  // despesas, glosas e impostos
+  const xsig=x=>[x.name,x.value,x.recur?1:0,x.date].join("|");
+  const xhave=new Set(S.expenses.map(xsig));
+  (inc.expenses||[]).forEach(x=>{
+    const s=xsig(x); if(xhave.has(s)) return;
+    xhave.add(s); S.expenses.push({...x, id:"d"+(++S.expSeq)});
+  });
+  const gsig=g=>[g.date,g.locId,g.expected,g.received].join("|");
+  const ghave=new Set(S.glosas.map(gsig));
+  (inc.glosas||[]).forEach(g=>{
+    const ng={...g, locId:mapLoc[g.locId]||g.locId};
+    if(!locById(ng.locId)) return;
+    const s=gsig(ng); if(ghave.has(s)) return;
+    ghave.add(s); S.glosas.push({...ng, id:"g"+(++S.glosaSeq)});
+  });
+  if(inc.tax && inc.tax.pct>0 && !(S.tax&&S.tax.pct>0)) S.tax={pct:inc.tax.pct, label:inc.tax.label||""};
   if(inc.goal && !S.goal) S.goal=inc.goal;
   if(inc.userMods && !S.userMods) S.userMods=inc.userMods;
   return rep;
@@ -3708,6 +4128,29 @@ function renderCfg(){
       <p class="note" style="margin-top:9px">A meta aparece no dashboard com barra de progresso e projeção do mês.</p>
     </div>
     <div class="card">
+      <div class="card-title">Reserva de impostos</div>
+      <p class="note" style="margin-bottom:12px">O app calcula quanto separar por mês sobre a receita líquida e mostra o lucro real no dashboard. É uma estimativa — confirme as alíquotas com seu contador.</p>
+      <div class="conv-chips" style="margin-bottom:10px">${[["Desativado",0,""],["PJ · Simples",6,"PJ · Simples Nacional"],["PJ · Presumido",13.3,"PJ · Lucro Presumido"],["PF · Carnê-leão",27.5,"PF · Carnê-leão"]].map(([l,v,lab])=>
+        `<button class="chip ${S.tax.pct===v&&(v===0||S.tax.label===lab)?"on":""}" data-taxp="${v}" data-taxl="${esc(lab)}">${l}${v?" · "+String(v).replace(".",",")+"%":""}</button>`).join("")}</div>
+      <div class="input-row">
+        <input class="input" id="cfTaxPct" inputmode="decimal" placeholder="% personalizada" value="${S.tax.pct>0&&!["PJ · Simples Nacional","PJ · Lucro Presumido","PF · Carnê-leão"].includes(S.tax.label)?String(S.tax.pct).replace(".",","):""}">
+        <button class="btn btn-primary" id="cfTaxOk" style="flex:0 0 auto;width:auto;padding:0 20px;min-height:0">Salvar</button>
+      </div>
+      ${S.tax.pct>0?`<p class="note" style="margin-top:9px">Ativo: <b style="color:var(--text)">${esc(S.tax.label||"Personalizado")} · ${S.tax.pct.toLocaleString("pt-BR")}%</b></p>`:""}
+    </div>
+    <div class="card">
+      <div class="card-title">Despesas <span class="hint">→ lucro real</span></div>
+      ${S.expenses.length?`<div style="margin-bottom:10px">${S.expenses.map(x=>`
+        <div class="lrow" style="padding:9px 0">
+          <div class="lr-main"><div class="lr-title" style="font-size:13px">${esc(x.name)}</div>
+            <div class="lr-sub">${x.recur?"mensal recorrente":"única · "+fmtDateShort(x.date)}</div></div>
+          <div class="lr-side" style="display:flex;align-items:center;gap:10px"><b>${fmtBRL0(x.value||0)}</b>
+            <button data-xdel="${esc(x.id)}" style="color:var(--crit-text);font-weight:700;font-size:15px;padding:4px 6px">✕</button></div>
+        </div>`).join("")}</div>`
+      :'<p class="note" style="margin-bottom:12px">Cadastre despesas do trabalho (contador, seguro, congressos, deslocamento…) para o dashboard mostrar seu lucro real, não só o faturamento.</p>'}
+      <button class="btn btn-sm" id="cfExpAdd" style="width:100%">+ Adicionar despesa</button>
+    </div>
+    <div class="card">
       <div class="card-title">Backup &amp; sincronização entre aparelhos</div>
       <p class="note" style="margin-bottom:12px">Seus dados ficam salvos neste aparelho${store.ok?"":" (⚠️ armazenamento indisponível neste navegador — use o backup!)"}. Para ver tudo atualizado em outro aparelho: <b style="color:var(--text)">Exportar</b> aqui → enviar o arquivo (iCloud Drive, Google Drive, WhatsApp…) → <b style="color:var(--text)">Importar</b> lá escolhendo <b style="color:var(--text)">Combinar</b>. A combinação junta lançamentos, preços e agenda dos dois aparelhos sem duplicar nem apagar nada. Sincronização automática em nuvem virá na versão de loja (etapa 2).</p>
       <div class="input-row">
@@ -3726,7 +4169,7 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.4 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.5 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   $("#cfProfEdit").onclick=()=> editProfileSheet();
@@ -3735,6 +4178,59 @@ function renderCfg(){
   $$("[data-rem]").forEach(b=> b.onclick=()=>{ S.cal.reminder=+b.dataset.rem; save(); renderCfg(); });
   $$("[data-wk]").forEach(b=> b.onclick=()=>{ S.cal.weekly=b.dataset.wk==="1"; save(); renderCfg(); });
   $("#cfIcs").onclick=icsExport;
+  $$("[data-taxp]").forEach(b=> b.onclick=()=>{
+    const pct=parseFloat(b.dataset.taxp);
+    S.tax = pct>0? {pct, label:b.dataset.taxl} : {pct:0, label:""};
+    save(); toast(pct>0? "Reserva de impostos: "+pct.toLocaleString("pt-BR")+"%" : "Reserva de impostos desativada");
+    renderCfg();
+  });
+  $("#cfTaxOk").onclick=()=>{
+    const pct=parseFloat(($("#cfTaxPct").value||"").trim().replace(",","."));
+    if(isNaN(pct)||pct<0||pct>=100){ toast("Informe um percentual entre 0 e 99"); return; }
+    S.tax = pct>0? {pct:Math.round(pct*10)/10, label:"Personalizado"} : {pct:0, label:""};
+    save(); toast(pct>0? "Reserva de impostos: "+S.tax.pct.toLocaleString("pt-BR")+"%" : "Reserva de impostos desativada");
+    renderCfg();
+  };
+  $$("[data-xdel]").forEach(b=> b.onclick=()=>{
+    const x=S.expenses.find(e=>e.id===b.dataset.xdel); if(!x) return;
+    confirmSheet("Remover despesa?", x.name+" ("+fmtBRL0(x.value||0)+(x.recur?"/mês":"")+") será removida.", "Remover", ()=>{
+      S.expenses=S.expenses.filter(e=>e.id!==x.id); save(); toast("Despesa removida"); renderCfg();
+    });
+  });
+  $("#cfExpAdd").onclick=()=>{
+    let recur=true;
+    openSheet(`
+      <h3>Nova despesa</h3>
+      <div class="sheet-body">
+        <div class="field"><label>Descrição</label>
+          <input class="input" id="xpName" placeholder="Ex.: Contador, seguro, congresso…"></div>
+        <div class="field"><label>Valor (R$)</label>
+          <input class="input" id="xpVal" inputmode="decimal" placeholder="Ex.: 420,00"></div>
+        <div class="field mb0"><label>Recorrência</label>
+          <div class="conv-chips">
+            <button class="chip on" id="xpRec">Mensal (recorrente)</button>
+            <button class="chip" id="xpOnce">Única (este mês)</button>
+          </div></div>
+      </div>
+      <div class="sheet-foot">
+        <button class="btn" id="xpCancel">Cancelar</button>
+        <button class="btn btn-primary" id="xpOk">Adicionar</button>
+      </div>`,
+      el=>{
+        setTimeout(()=>$("#xpName",el).focus(),350);
+        $("#xpRec",el).onclick=()=>{ recur=true; $("#xpRec",el).classList.add("on"); $("#xpOnce",el).classList.remove("on"); };
+        $("#xpOnce",el).onclick=()=>{ recur=false; $("#xpOnce",el).classList.add("on"); $("#xpRec",el).classList.remove("on"); };
+        $("#xpCancel",el).onclick=closeSheet;
+        $("#xpOk",el).onclick=()=>{
+          const name=$("#xpName",el).value.trim();
+          const v=parseMoney($("#xpVal",el).value);
+          if(!name){ toast("Descreva a despesa"); return; }
+          if(v==null||v<=0){ toast("Informe o valor"); return; }
+          S.expenses.push({id:"d"+(++S.expSeq), name, value:v, recur, date:todayISO()});
+          save(); closeSheet(); toast("Despesa adicionada"); renderCfg();
+        };
+      });
+  };
   $("#cfGoalOk").onclick=()=>{
     const v=parseMoney($("#cfGoal").value);
     S.goal = v&&v>0? v:0; save();
