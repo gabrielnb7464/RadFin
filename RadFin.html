@@ -493,6 +493,9 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .proj-leg .pl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2)}
 .proj-leg .pl .dot{width:9px;height:9px;border-radius:3px}
 .proj-leg .pl b{margin-left:auto;color:var(--text);font-weight:700;font-size:13px}
+.mod-flag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;
+  padding:2px 6px;border-radius:6px;background:var(--accent-soft);color:var(--accent-text);
+  vertical-align:2px;margin-right:6px}
 /* ================= LOGIN / USUÁRIOS ================= */
 .login{position:fixed;inset:0;z-index:120;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;
   display:flex;align-items:center;justify-content:center;
@@ -678,6 +681,8 @@ const CATALOG_SEED = [
   ["US","OBSTETRICA 1º TRIMESTRE (ENDOVAGINAL)","40901297"],
   ["US","OBSTETRICA COM TRANSLUCENCIA NUCAL","40901254"],
   ["US","OBSTETRICA GESTACAO MULTIPLA (CADA FETO)","40901270"],
+  ["US","OBSTETRICA CONVENCIONAL COM DOPPLER COLORIDO","40901246"],
+  ["US","OBSTETRICA GESTACAO MULTIPLA COM DOPPLER COLORIDO (CADA FETO)","40901289"],
   ["US","OBSTETRICA MORFOLOGICA","40901262"],
   ["US","OBSTETRICA: PERFIL BIOFISICO FETAL","40901505"],
   ["US","ORGAOS SUPERFICIAIS (TIREOIDE OU ESCROTO OU PENIS OU CRANIO)","40901203"],
@@ -701,8 +706,6 @@ const CATALOG_SEED = [
   ["DO","DOPPLER COLORIDO VENOSO DE MEMBRO INFERIOR - UNILATERAL","40901483"],
   ["DO","DOPPLER COLORIDO VENOSO DE MEMBRO SUPERIOR - UNILATERAL","40901467"],
   ["DO","DOPPLER VENOSO ABDOMINAL (VEIA CAVA SUPERIOR OU INFERIOR E ILIACAS), SISTEMA PORTA","40901432"],
-  ["DO","OBSTETRICA CONVENCIONAL COM DOPPLER COLORIDO","40901246"],
-  ["DO","OBSTETRICA GESTACAO MULTIPLA COM DOPPLER COLORIDO (CADA FETO)","40901289"],
   /* RX */
   ["RX","Abdome Simples","40808017"],
   ["RX","Adenóides ou cavum","40801128"],
@@ -768,9 +771,23 @@ const CATALOG_SEED = [
   ["TC","Segmento apendicular (braço ou antebraço ou mão ou coxa ou perna ou pé) - unilateral","41001150"],
   ["TC","Tórax","41001079"],
   ["TC","Vias urinárias (Urotomografia)","41001362"],
+  ["TC","Angio-TC de crânio",null],
+  ["TC","Angio-TC de tórax",null],
+  ["TC","Angio-TC de abdome",null],
+  ["TC","Angio-TC de aorta",null],
   /* RM */
   ["RM","Abdome superior",null],
   ["RM","Angio-RM de crânio",null],
+  ["RM","Angio-RM cervical",null],
+  ["RM","Pescoço",null],
+  ["RM","Colangiorressonância (colangio-RM)",null],
+  ["RM","Enterografia por RM",null],
+  ["RM","Coração (morfológica e funcional)",null],
+  ["RM","Mão",null],
+  ["RM","Antebraço",null],
+  ["RM","Braço",null],
+  ["RM","Perna",null],
+  ["RM","Coxa",null],
   ["RM","Articulações sacroilíacas",null],
   ["RM","ATM (bilateral)",null],
   ["RM","Coluna cervical",null],
@@ -857,19 +874,30 @@ const dispName = x => x? (x.alias || x.name) : "";
 
 /* ---- Busca com abrevia\u00e7\u00f5es do dia a dia ---- */
 const ABBR = {
-  tvg:"transvaginal", tv:"transvaginal", abd:"abdome", abdominal:"abdome",
-  usg:"", us:"", eco:"", ecografia:"",
+  tvg:"transvaginal", tv:"transvaginal", ustv:"transvaginal", usgtv:"transvaginal",
+  transvaginais:"transvaginal", tvs:"transvaginal",
+  abd:"abdome", abdt:"abdome total", abdo:"abdome", abdominal:"abdome",
   mmii:"membro inferior", mmss:"membro superior",
   carotida:"carotidas", carotidas:"carotidas",
-  obst:"obstetrica", obs:"obstetrica", ob:"obstetrica",
-  morfo:"morfologica", morfologico:"morfologica",
-  dopler:"doppler", doper:"doppler",
-  pelvica:"pelve", pelvico:"pelve",
+  obst:"obstetrica", obs:"obstetrica", ob:"obstetrica", obstetricas:"obstetrica", obstetricos:"obstetrica",
+  morfo:"morfologica", morfologico:"morfologica", morfologicas:"morfologica",
+  dopler:"doppler", doper:"doppler", dopplers:"doppler",
+  pelvica:"pelve", pelvico:"pelve", pelvicas:"pelve",
   urinarias:"urinario", rins:"rins",
   tsh:"tireoide", tireoides:"tireoide",
   tn:"translucencia", clipagem:"marcacao"
 };
-function examSearchText(x){ return normName(x.name+" "+(x.alias||"")+" "+(x.code||"")); }
+/* tokens que indicam a MODALIDADE falada/escrita (ex.: "tc crânio") */
+const MODHINT = {
+  tc:"TC", tomografia:"TC", tomografias:"TC",
+  rm:"RM", ressonancia:"RM", ressonancias:"RM",
+  rx:"RX", radiografia:"RX", radiografias:"RX",
+  mmg:"MMG", mamografia:"MMG", mamografias:"MMG",
+  dmo:"DMO", densitometria:"DMO", densitometrias:"DMO",
+  us:"US", usg:"US", ultrassom:"US", ultrassons:"US", ultrassonografia:"US", ultrassonografias:"US",
+  eco:"US", ecografia:"US"
+};
+function examSearchText(x){ return normName(x.name+" "+(x.alias||"")+" "+(x.code||"")+" "+x.mod+" "+(MOD_LABELS[x.mod]||"")); }
 function expandTokens(q){
   return normName(q).split(" ").map(t=> ABBR[t]!==undefined? ABBR[t] : t).filter(Boolean);
 }
@@ -878,7 +906,7 @@ function matchExam(x,q){
   const txt = examSearchText(x);
   const toks = expandTokens(q);
   if(!toks.length) return true;
-  return toks.every(t=> txt.includes(t));
+  return toks.every(t=> txt.includes(t) || (t.length>3 && t.endsWith("s") && txt.includes(t.slice(0,-1))));
 }
 
 /* ================== STATE ================== */
@@ -900,7 +928,8 @@ function freshState(){
     last: { locId:null, conv:null },
     agenda: { events:[], rules:[], skips:[], seq:0 },
     userMods: null,          // modalidades que o médico realiza (perfil)
-    catalogV: 5
+    learn: {},               // frases aprendidas (voz/imagem) -> examId
+    catalogV: 6
   };
 }
 /* Renomeações de nomes antigos → nomenclatura oficial da tabela (preservando id, preços e lançamentos) */
@@ -993,6 +1022,19 @@ function migrate(){
   }
   // v5: apelidos curtos padrão para nomes TUSS longos
   if(S.catalogV<5){ applyAliases(S.exams); S.catalogV=5; }
+  // v6: obstétricas com Doppler pertencem a US; novos exames de RM/TC
+  if(S.catalogV<6){
+    S.exams.forEach(x=>{ if(x.code==="40901246"||x.code==="40901289") x.mod="US"; });
+    CATALOG_SEED.forEach(c=>{
+      if(!S.exams.some(e=>e.mod===c[0] && normName(e.name)===normName(c[1]))){
+        const o={id:"x"+(++S.examSeq), mod:c[0], name:c[1]}; if(c[2]) o.code=c[2];
+        S.exams.push(o);
+      }
+    });
+    applyAliases(S.exams);
+    S.catalogV=6;
+  }
+  if(!S.learn || typeof S.learn!=="object") S.learn={};
   if(S.userMods===undefined) S.userMods = null;
   if(S.theme!=="dark" && S.theme!=="light") S.theme="light";
   S.entries.forEach(e=>{ if(e.paid===undefined) e.paid=false; });
@@ -1921,7 +1963,7 @@ function emptyState(icn,title,text,btnLabel,btnId){
 <script>
 "use strict";
 /* ================== LANÇAR VOLUMETRIA ================== */
-const draft = { date: todayISO(), locId:null, conv:null, qty:{}, search:"" };
+const draft = { date: todayISO(), locId:null, conv:null, qty:{}, search:"", mod:"all" };
 
 function renderAdd(){
   if(!S.locations.length){
@@ -1947,8 +1989,10 @@ function renderAdd(){
   const priced = x => getPrice(draft.locId,x.id,draft.conv)!=null;
   const included = x => (loc.examIds||[]).includes(x.id);
   const locMods = (loc.mods&&loc.mods.length)? loc.mods : MODS;
+  const panelMods = MODS.filter(m=> locMods.includes(m) || activeMods().includes(m));
+  if(draft.mod!=="all" && !panelMods.includes(draft.mod)) draft.mod="all";
   const q = draft.search.trim();
-  let exams = S.exams.filter(x=> locMods.includes(x.mod) && matchExam(x,q));
+  let exams = S.exams.filter(x=> panelMods.includes(x.mod) && (draft.mod==="all"||x.mod===draft.mod) && matchExam(x,q));
   exams = exams.slice().sort((a,b)=>{
     const fa=a.fav?1:0, fb=b.fav?1:0;
     if(fa!==fb) return fb-fa;
@@ -1960,9 +2004,9 @@ function renderAdd(){
   });
   const favs = exams.filter(x=>x.fav);
   const rest = exams.filter(x=>!x.fav);
-  const grouped = q? [["Resultados",exams]] :
-    (favs.length? [["★ Favoritos",favs]]:[]).concat(
-      MODS.filter(m=>locMods.includes(m)).map(m=>[MOD_LABELS[m]||m,rest.filter(x=>x.mod===m)]).filter(g=>g[1].length));
+  const grouped = q? [["Resultados",exams,true]] :
+    (favs.length? [["★ Favoritos",favs,true]]:[]).concat(
+      MODS.filter(m=>panelMods.includes(m)).map(m=>[MOD_LABELS[m]||m,rest.filter(x=>x.mod===m),false]).filter(g=>g[1].length));
 
   const items = Object.entries(draft.qty).filter(([id,n])=>n>0);
   const totQ = items.reduce((s,[,n])=>s+n,0);
@@ -1978,9 +2022,13 @@ function renderAdd(){
       <div class="field"><label>Local</label><div class="conv-chips">${
         S.locations.map(l=>`<button class="chip ${l.id===draft.locId?"on":""}" data-adloc="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
       }</div></div>
-      <div class="field mb0"><label>Convênio</label><div class="conv-chips">${
+      <div class="field"><label>Convênio</label><div class="conv-chips">${
         convs.map(c=>`<button class="chip ${c===draft.conv?"on":""}" data-adconv="${esc(c)}">${esc(c)}</button>`).join("")
       }</div></div>
+      <div class="field mb0"><label>Modalidade <span class="mut" style="font-weight:500">(filtra a lista, a voz e os arquivos)</span></label><div class="conv-chips">
+        <button class="chip ${draft.mod==="all"?"on":""}" data-admod="all">Todas</button>
+        ${panelMods.map(m=>`<button class="chip ${draft.mod===m?"on":""}" data-admod="${m}">${m}</button>`).join("")}
+      </div></div>
     </div>
 
     <div style="display:flex;gap:10px;margin-bottom:12px">
@@ -1995,14 +2043,14 @@ function renderAdd(){
     </div>
 
     <div class="card" style="padding:6px 16px 10px">
-      ${grouped.map(([m,list])=>`
+      ${grouped.map(([m,list,showFlag])=>`
         <div class="mod-head">${esc(m)}</div>
         ${list.map(x=>{
           const p = getPrice(draft.locId,x.id,draft.conv);
           const n = draft.qty[x.id]||0;
           return `<div class="lrow">
             <div class="lr-main">
-              <div class="lr-title" style="white-space:normal;line-height:1.35;font-size:13.5px">${esc(dispName(x))}</div>
+              <div class="lr-title" style="white-space:normal;line-height:1.35;font-size:13.5px">${showFlag?`<span class="mod-flag">${x.mod}</span>`:""}${esc(dispName(x))}</div>
               <div class="lr-sub">${p!=null? fmtBRL(p)+" / exame" : '<button data-setprice="'+x.id+'" style="color:var(--warn);font-weight:700;font-size:11.5px">definir preço</button>'}</div>
             </div>
             <button class="fav-btn ${x.fav?"on":""}" data-fav="${x.id}" aria-label="favorito">
@@ -2026,6 +2074,7 @@ function renderAdd(){
   $("#adDate").onchange = e=>{ draft.date = e.target.value || todayISO(); };
   $$("[data-adloc]").forEach(b=> b.onclick=()=>{ draft.locId=b.dataset.adloc; draft.conv=null; renderAdd(); });
   $$("[data-adconv]").forEach(b=> b.onclick=()=>{ draft.conv=b.dataset.adconv; renderAdd(); });
+  $$("[data-admod]").forEach(b=> b.onclick=()=>{ draft.mod=b.dataset.admod; renderAdd(); });
   const sb=$("#adSearch");
   sb.oninput = ()=>{ draft.search=sb.value; renderAdd(); const s2=$("#adSearch"); s2.focus(); s2.setSelectionRange(s2.value.length,s2.value.length); };
   $$("[data-inc]").forEach(b=> b.onclick=()=>{ const id=b.dataset.inc; draft.qty[id]=(draft.qty[id]||0)+1; renderAdd(); });
@@ -2039,6 +2088,57 @@ function renderAdd(){
 }
 
 /* ---------- Lançamento por voz ---------- */
+function recogMods(locId){
+  const loc = locById(locId||draft.locId);
+  const locMods = (loc&&loc.mods&&loc.mods.length)? loc.mods : MODS;
+  const panel = MODS.filter(m=> locMods.includes(m) || activeMods().includes(m));
+  return (draft.mod && draft.mod!=="all")? [draft.mod] : panel;
+}
+function recogPool(locId){
+  const mods = recogMods(locId);
+  return S.exams.filter(x=>mods.includes(x.mod));
+}
+/* casa um trecho falado/lido com um exame: aprendizado > hint de modalidade > abreviações > plural */
+function segMatch(words, pool, conv, locId){
+  const phrase = normName(words.join(" "));
+  if(S.learn && S.learn[phrase]){
+    const x = examById(S.learn[phrase]);
+    if(x) return {exam:x, score:1, learned:true, phrase};
+  }
+  let modHint=null; const toks=[];
+  words.forEach(t=>{
+    if(MODHINT[t]){ if(!modHint) modHint=MODHINT[t]; return; }
+    const e = ABBR[t]!==undefined? ABBR[t] : t;
+    if(e) toks.push(...e.split(" "));
+  });
+  if(!toks.length) return {exam:null, score:0, phrase};
+  const p2 = modHint? pool.filter(x=>x.mod===modHint) : pool;
+  const pp = p2.length? p2 : pool;
+  let best=null, bestS=0, bestLen=1e9;
+  pp.forEach(x=>{
+    const txt = examSearchText(x);
+    let hit=0;
+    toks.forEach(t=>{
+      if(txt.includes(t)) hit++;
+      else if(t.length>3 && t.endsWith("s") && txt.includes(t.slice(0,-1))) hit++;
+    });
+    let sc = hit/toks.length;
+    if(sc>0){
+      if(getPrice(locId||draft.locId, x.id, conv||draft.conv)!=null) sc+=0.12;
+      if(x.fav) sc+=0.06;
+      if(modHint && x.mod===modHint) sc+=0.05;
+      // variantes raras só vencem se citadas explicitamente
+      const nn = normName(x.name);
+      ["angio","adicional","acrescentar","2a lesao","2o nodulo","magnificacao"].forEach(rw=>{
+        if(nn.includes(rw) && !phrase.includes(rw.split(" ")[0])) sc-=0.07;
+      });
+    }
+    const len = normName(x.name).length;
+    if(sc>bestS+0.001 || (Math.abs(sc-bestS)<=0.001 && len<bestLen)){ bestS=sc; best=x; bestLen=len; }
+  });
+  return {exam:(best&&bestS>=0.55)?best:null, score:Math.min(1,bestS), phrase};
+}
+
 const NUMWORDS = {um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,
   onze:11,doze:12,treze:13,quatorze:14,catorze:14,quinze:15,dezesseis:16,dezessete:17,dezoito:18,dezenove:19,
   vinte:20,trinta:30,quarenta:40};
@@ -2101,9 +2201,7 @@ function parseVoiceText(text){
   toks.forEach((t,i)=>{ if(!used[i] && TURNO_WORDS[t] && !res.turno){ res.turno=TURNO_WORDS[t]; used[i]=true; } });
 
   // 5. EXAMES: [quantidade] descrição …
-  const locF = locById(res.locId||draft.locId);
-  const locMods = (locF&&locF.mods&&locF.mods.length)? locF.mods : MODS;
-  const pool = S.exams.filter(x=>locMods.includes(x.mod));
+  const pool = recogPool(res.locId);
   const segs=[]; let cur=null;
   for(let i=0;i<toks.length;i++){
     if(used[i]) continue;
@@ -2115,21 +2213,9 @@ function parseVoiceText(text){
   }
   if(cur&&cur.words.length) segs.push(cur);
   segs.forEach(sg=>{
-    const toks2 = sg.words.map(t=> ABBR[t]!==undefined? ABBR[t]:t).filter(Boolean);
-    if(!toks2.length) return;
-    let best=null,bestS=0;
-    pool.forEach(x=>{
-      const txt=examSearchText(x);
-      let hit=0; toks2.forEach(t=>{ if(txt.includes(t)) hit++; });
-      let sc=hit/toks2.length;
-      if(sc>0){
-        if(getPrice((locF||{}).id, x.id, res.conv||draft.conv)!=null) sc+=0.15;
-        if(x.fav) sc+=0.08;
-      }
-      if(sc>bestS){ bestS=sc; best=x; }
-    });
-    if(best && bestS>=0.6) res.items.push({qty:sg.qty, text:sg.words.join(" "), exam:best});
-    else res.leftovers.push((sg.qty>1? sg.qty+" ":"")+sg.words.join(" "));
+    const m = segMatch(sg.words, pool, res.conv, res.locId);
+    if(m.exam) res.items.push({qty:sg.qty, text:sg.words.join(" "), phrase:m.phrase, exam:m.exam, score:m.score, learned:m.learned});
+    else res.leftovers.push({qty:sg.qty, text:sg.words.join(" ")});
   });
   return res;
 }
@@ -2189,19 +2275,32 @@ function showVoiceReview(el, p){
   if(p.locId) ctx.push((locById(p.locId)||{}).name);
   if(p.conv) ctx.push(p.conv);
   if(p.turno) ctx.push(p.turno);
+  if(draft.mod && draft.mod!=="all") ctx.push("Modalidade: "+draft.mod);
   $("#vcResult",el).innerHTML = `
     <div class="card" style="padding:12px 14px;margin-top:12px">
-      <div class="card-title" style="margin-bottom:8px">Entendi assim ↓ <span class="hint">ajuste se precisar</span></div>
+      <div class="card-title" style="margin-bottom:8px">Entendi assim ↓ <span class="hint">confirme antes de inserir</span></div>
       ${ctx.length?`<p class="note" style="margin-bottom:8px">📍 ${esc(ctx.join(" · "))}</p>`:""}
-      ${p.items.length? p.items.map((it,i)=>`
-        <div class="vc-item">
-          <div class="vc-main"><div class="vc-name">${esc(dispName(it.exam))}</div>
-          <div class="vc-sub">ouvi: "${esc(it.text)}"</div></div>
+      ${p.items.length? p.items.map((it,i)=>{
+        const sure = it.learned || it.score>=0.8;
+        return `
+        <div class="vc-item ${sure?"":"miss"}">
+          <div class="vc-main">
+            <div class="vc-name"><span class="mod-flag">${it.exam.mod}</span>${esc(dispName(it.exam))}</div>
+            <div class="vc-sub">ouvi: "${esc(it.text)}"${it.learned?' · <b style="color:var(--accent-text)">aprendido</b>':(sure?"":' · <b style="color:var(--warn)">confirme ↓</b>')}</div>
+            <button data-vswap="${i}" style="color:var(--accent-text);font-weight:700;font-size:11.5px;margin-top:3px">⇄ Trocar exame</button>
+          </div>
           <div class="stepper">
             <button data-vdec="${i}">−</button><span class="qty">${it.qty}</span><button data-vinc="${i}">+</button>
           </div>
-        </div>`).join("") : '<p class="note">Nenhum exame reconhecido — tente falar "quantidade + nome do exame".</p>'}
-      ${p.leftovers.length?`<p class="note" style="margin-top:8px;color:var(--warn)">Não reconheci: ${esc(p.leftovers.join("; "))}</p>`:""}
+        </div>`;
+      }).join("") : '<p class="note">Nenhum exame reconhecido.</p>'}
+      ${p.leftovers.length?`
+        <div class="mod-head" style="margin-top:10px">Não reconheci — toque para ensinar</div>
+        ${p.leftovers.map((l,i)=>`
+          <div class="vc-item miss">
+            <div class="vc-main"><div class="vc-name">"${esc(l.text)}"${l.qty>1?` <span class="mut">(×${l.qty})</span>`:""}</div></div>
+            <button class="btn btn-sm" data-vteach="${i}">Ensinar</button>
+          </div>`).join("")}`:""}
     </div>`;
   $("#vcDone",el).textContent = p.items.length? "Adicionar ao lançamento":"Tentar de novo";
   $("#vcDone",el).onclick = ()=>{
@@ -2209,14 +2308,58 @@ function showVoiceReview(el, p){
     if(p.date) draft.date=p.date;
     if(p.locId){ draft.locId=p.locId; draft.conv=null; }
     if(p.conv) draft.conv=p.conv;
-    p.items.forEach(it=>{ draft.qty[it.exam.id]=(draft.qty[it.exam.id]||0)+it.qty; });
-    closeSheet();
-    const n=p.items.reduce((s,i)=>s+i.qty,0);
+    // aprende com as correspondências confirmadas de baixa confiança
+    p.items.forEach(it=>{
+      if(it.phrase && (it.score<0.8 || it.taught)) S.learn[it.phrase]=it.exam.id;
+      draft.qty[it.exam.id]=(draft.qty[it.exam.id]||0)+it.qty;
+    });
+    save(); closeSheet();
+    const n=p.items.reduce((s2,i2)=>s2+i2.qty,0);
     toast(n+" exame"+(n===1?"":"s")+" adicionado"+(n===1?"":"s")+" — revise e salve");
     renderAdd();
   };
   $$("[data-vinc]",el).forEach(b=> b.onclick=()=>{ p.items[+b.dataset.vinc].qty++; showVoiceReview(el,p); });
   $$("[data-vdec]",el).forEach(b=> b.onclick=()=>{ const it=p.items[+b.dataset.vdec]; it.qty=Math.max(0,it.qty-1); if(it.qty===0) p.items.splice(+b.dataset.vdec,1); showVoiceReview(el,p); });
+  $$("[data-vswap]",el).forEach(b=> b.onclick=()=>{
+    const it=p.items[+b.dataset.vswap];
+    inlineExamPicker(el, 'Qual exame é "'+it.text+'"?', x=>{
+      it.exam=x; it.score=1; it.taught=true;
+      if(it.phrase){ S.learn[it.phrase]=x.id; save(); toast("Aprendi: \""+it.text+"\" → "+dispName(x)); }
+      showVoiceReview(el,p);
+    }, ()=>showVoiceReview(el,p));
+  });
+  $$("[data-vteach]",el).forEach(b=> b.onclick=()=>{
+    const l=p.leftovers[+b.dataset.vteach];
+    inlineExamPicker(el, 'Qual exame é "'+l.text+'"?', x=>{
+      const phrase = normName(l.text.replace(/\d+/g," "));
+      p.items.push({qty:l.qty, text:l.text, phrase, exam:x, score:1, taught:true});
+      p.leftovers.splice(+b.dataset.vteach,1);
+      if(phrase){ S.learn[phrase]=x.id; save(); toast("Aprendi: \""+l.text+"\" → "+dispName(x)); }
+      showVoiceReview(el,p);
+    }, ()=>showVoiceReview(el,p));
+  });
+}
+function inlineExamPicker(el, title, onPick, onBack){
+  const box=$("#vcResult",el);
+  const pool=recogPool();
+  const draw=q=>{
+    const list=pool.filter(x=>matchExam(x,q)).slice(0,40);
+    box.innerHTML=`<div class="card" style="padding:12px 14px;margin-top:12px">
+      <div class="card-title">${esc(title)}</div>
+      <input class="input" id="ipQ" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Buscar exame…" style="margin-bottom:8px" value="${esc(q)}">
+      <div style="max-height:280px;overflow-y:auto;-webkit-overflow-scrolling:touch">
+      ${list.map(x=>`<button class="lrow" style="width:100%;text-align:left;padding:10px 0" data-ip="${x.id}">
+        <div class="lr-main"><div class="lr-title" style="font-size:13px;white-space:normal;line-height:1.3"><span class="mod-flag">${x.mod}</span>${esc(dispName(x))}</div></div>
+      </button>`).join("")||'<p class="note">Nada encontrado.</p>'}
+      </div>
+      <button class="btn btn-sm" id="ipBack" style="width:100%;margin-top:8px">← Voltar</button>
+    </div>`;
+    const iq=$("#ipQ",box);
+    iq.oninput=()=>{ draw(iq.value); const q2=$("#ipQ",box); q2.focus(); q2.setSelectionRange(q2.value.length,q2.value.length); };
+    $("#ipBack",box).onclick=onBack;
+    $$("[data-ip]",box).forEach(b=> b.onclick=()=>onPick(examById(b.dataset.ip)));
+  };
+  draw("");
 }
 
 /* ---------- Lançamento por imagem (OCR) ---------- */
@@ -2233,6 +2376,58 @@ function ensureTesseract(){
   });
   return tessPromise;
 }
+let pdfPromise=null, xlsxPromise=null;
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const sc=document.createElement("script");
+    sc.src=src; sc.onload=()=>res(); sc.onerror=()=>rej(new Error("offline"));
+    document.head.appendChild(sc);
+  });
+}
+function ensurePdfJs(){
+  if(window.pdfjsLib) return Promise.resolve();
+  if(!pdfPromise) pdfPromise = loadScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js")
+    .then(()=>{ window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"; })
+    .catch(e=>{ pdfPromise=null; throw e; });
+  return pdfPromise;
+}
+function ensureXlsx(){
+  if(window.XLSX) return Promise.resolve();
+  if(!xlsxPromise) xlsxPromise = loadScript("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js")
+    .catch(e=>{ xlsxPromise=null; throw e; });
+  return xlsxPromise;
+}
+async function pdfToText(file){
+  await ensurePdfJs();
+  const buf = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({data:buf}).promise;
+  const lines=[];
+  for(let pg=1; pg<=Math.min(doc.numPages,20); pg++){
+    const page = await doc.getPage(pg);
+    const tc = await page.getTextContent();
+    // agrupa itens por linha (coordenada Y arredondada)
+    const rows=new Map();
+    tc.items.forEach(it=>{
+      const y = Math.round(it.transform[5]/3)*3;
+      if(!rows.has(y)) rows.set(y,[]);
+      rows.get(y).push({x:it.transform[4], str:it.str});
+    });
+    Array.from(rows.entries()).sort((a,b)=>b[0]-a[0]).forEach(([_,items])=>{
+      lines.push(items.sort((a,b)=>a.x-b.x).map(i=>i.str).join(" "));
+    });
+  }
+  return lines.join("\n");
+}
+async function xlsxToText(file){
+  await ensureXlsx();
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, {type:"array"});
+  const out=[];
+  wb.SheetNames.slice(0,3).forEach(n=>{
+    out.push(XLSX.utils.sheet_to_csv(wb.Sheets[n], {FS:" "}));
+  });
+  return out.join("\n");
+}
 async function runOCR(file, onProg){
   await ensureTesseract();
   const worker = await Tesseract.createWorker("por", 1, {
@@ -2243,57 +2438,47 @@ async function runOCR(file, onProg){
   return data.text||"";
 }
 function parseImageText(text){
-  const loc = locById(draft.locId);
-  const locMods = (loc&&loc.mods&&loc.mods.length)? loc.mods : MODS;
-  const pool = S.exams.filter(x=>locMods.includes(x.mod));
+  const pool = recogPool();
   const agg = new Map(); const leftovers=[];
   String(text).split(/\n+/).forEach(line=>{
     const raw = line.trim();
     let ln = normName(raw);
     if(ln.replace(/[^a-z]/g,"").length<3) return;
-    // quantidade: número no início ("5 abdome…"), no fim ("abdome … 5") ou "x5"
     let qty=1, m;
     if((m=ln.match(/^(\d{1,3})\b/))){ qty=+m[1]; ln=ln.slice(m[0].length); }
     else if((m=ln.match(/\bx\s?(\d{1,3})$/))){ qty=+m[1]; ln=ln.slice(0,ln.length-m[0].length); }
     else if((m=ln.match(/\b(\d{1,3})$/))){ qty=+m[1]; ln=ln.slice(0,ln.length-m[0].length); }
     if(qty<1||qty>200) qty=1;
-    const toks = ln.split(" ").filter(t=>t && !VOICE_FILL.has(t) && !/^\d+$/.test(t))
-      .map(t=> ABBR[t]!==undefined? ABBR[t]:t).filter(Boolean);
-    if(!toks.length) return;
-    let best=null, bestS=0;
-    pool.forEach(x=>{
-      const txt=examSearchText(x);
-      let hit=0; toks.forEach(t=>{ if(txt.includes(t)) hit++; });
-      let sc=hit/toks.length;
-      if(sc>0 && getPrice(draft.locId,x.id,draft.conv)!=null) sc+=0.12;
-      if(sc>bestS){ bestS=sc; best=x; }
-    });
-    if(best && bestS>=0.55){
-      if(!agg.has(best.id)) agg.set(best.id,{qty:0, exam:best, n:0, first:raw.slice(0,42)});
-      const a=agg.get(best.id); a.qty+=qty; a.n++;
-    } else leftovers.push(raw.slice(0,48));
+    const words = ln.split(" ").filter(t=>t && !VOICE_FILL.has(t) && !/^\d+$/.test(t));
+    if(!words.length) return;
+    const r = segMatch(words, pool, draft.conv, draft.locId);
+    if(r.exam){
+      if(!agg.has(r.exam.id)) agg.set(r.exam.id,{qty:0, exam:r.exam, n:0, first:raw.slice(0,42), phrase:r.phrase, score:r.score, learned:r.learned});
+      const a=agg.get(r.exam.id); a.qty+=qty; a.n++; a.score=Math.max(a.score,r.score);
+    } else leftovers.push({qty, text:raw.slice(0,48)});
   });
   return {
-    items: Array.from(agg.values()).map(a=>({qty:a.qty, exam:a.exam, text:a.first+(a.n>1?` (+${a.n-1} linhas)`:"")})),
-    leftovers: leftovers.slice(0,8)
+    items: Array.from(agg.values()).map(a=>({qty:a.qty, exam:a.exam, phrase:a.phrase, score:a.score, learned:a.learned,
+      text:a.first+(a.n>1?` (+${a.n-1} linhas)`:"")})),
+    leftovers: leftovers.slice(0,10)
   };
 }
 function imageSheet(){
   const loc = locById(draft.locId);
   let file=null;
   openSheet(`
-    <h3>Lançar por imagem</h3>
+    <h3>Lançar por arquivo ou foto</h3>
     <div class="sheet-body">
       <div class="card" style="padding:12px 14px;margin-bottom:12px">
         <p class="note" style="font-size:12.5px"><b style="color:var(--text)">Passo a passo:</b><br>
-        1️⃣ Confira o contexto abaixo (definido na tela anterior) → 2️⃣ envie a foto ou print da lista de produtividade → 3️⃣ o app lê a imagem, reconhece exames e quantidades → 4️⃣ revise e confirme.</p>
+        1️⃣ Confira o contexto abaixo (definido na tela anterior) → 2️⃣ envie foto/print, PDF, planilha (XLSX) ou CSV da lista de produtividade → 3️⃣ o app lê a imagem, reconhece exames e quantidades → 4️⃣ revise e confirme.</p>
         <p class="note" style="margin-top:8px;font-size:12px">📍 <b style="color:var(--text)">${esc(fmtDateShort(draft.date))} · ${esc(loc?loc.name:"")} · ${esc(draft.conv||"")}</b></p>
-        <p class="note" style="margin-top:8px;font-size:11.5px">Funciona melhor com prints do sistema (RIS/PACS) ou listas impressas. Requer internet na primeira leitura (baixa o leitor OCR).</p>
+        <p class="note" style="margin-top:8px;font-size:11.5px">Aceita foto/print (OCR), PDF, XLSX, CSV e TXT. Dica: selecione a Modalidade na tela anterior para o reconhecimento ficar ainda mais preciso. Requer internet na primeira leitura de cada formato.</p>
       </div>
-      <input type="file" id="imFile" accept="image/*" class="hidden">
+      <input type="file" id="imFile" accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" class="hidden">
       <button class="btn" id="imPick" style="margin-bottom:10px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M14.5 4h-5L7.5 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5z"/><circle cx="12" cy="13" r="3.5"/></svg>
-        Escolher foto ou print…</button>
+        Escolher foto, PDF, XLSX ou CSV…</button>
       <div id="imPrev" class="txt-c"></div>
       <div id="imProg"></div>
       <div id="vcResult"></div>
@@ -2308,27 +2493,36 @@ function imageSheet(){
       $("#imFile",el).onchange=e=>{
         file=e.target.files[0];
         if(!file) return;
-        $("#imPrev",el).innerHTML=`<img src="${URL.createObjectURL(file)}" style="max-width:100%;max-height:180px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px">`;
+        const isImg = (file.type||"").startsWith("image/");
+        $("#imPrev",el).innerHTML = isImg
+          ? `<img src="${URL.createObjectURL(file)}" style="max-width:100%;max-height:180px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px">`
+          : `<p class="note" style="margin-bottom:10px">📄 <b style="color:var(--text)">${esc(file.name)}</b> (${(file.size/1024).toFixed(0)} KB)</p>`;
         $("#vcDone",el).disabled=false;
       };
       $("#vcDone",el).onclick=async ()=>{
         if(!file) return;
         const prog=$("#imProg",el), btn=$("#vcDone",el);
         btn.disabled=true;
-        prog.innerHTML='<p class="note txt-c" style="margin-bottom:10px">Lendo a imagem… <b id="imPct" style="color:var(--accent)">0%</b></p>';
+        prog.innerHTML='<p class="note txt-c" style="margin-bottom:10px">Lendo o arquivo… <b id="imPct" style="color:var(--accent)">0%</b></p>';
         try{
-          const text = await runOCR(file, p=>{ const e2=$("#imPct"); if(e2) e2.textContent=p+"%"; });
+          const name=(file.name||"").toLowerCase();
+          const isImg=(file.type||"").startsWith("image/");
+          let text;
+          if(isImg) text = await runOCR(file, p2=>{ const e2=$("#imPct"); if(e2) e2.textContent=p2+"%"; });
+          else if(name.endsWith(".pdf")) text = await pdfToText(file);
+          else if(name.endsWith(".xlsx")||name.endsWith(".xls")) text = await xlsxToText(file);
+          else text = await file.text();
           prog.innerHTML="";
           const parsed = parseImageText(text);
           if(!parsed.items.length){
-            prog.innerHTML='<p class="note" style="color:var(--warn);margin-bottom:10px">Não reconheci exames na imagem. Tente uma foto mais nítida/recortada, ou use a busca e o microfone.</p>';
+            prog.innerHTML='<p class="note" style="color:var(--warn);margin-bottom:10px">Não reconheci exames no arquivo. Tente selecionar a Modalidade na tela anterior, um arquivo mais nítido, ou use os botões Ensinar.</p>';
             btn.disabled=false;
             return;
           }
           btn.disabled=false;
           showVoiceReview(el, parsed);
         }catch(err){
-          prog.innerHTML='<p class="note" style="color:var(--warn);margin-bottom:10px">⚠️ Não consegui carregar o leitor de imagem. Verifique sua conexão com a internet e tente novamente.</p>';
+          prog.innerHTML='<p class="note" style="color:var(--warn);margin-bottom:10px">⚠️ Não consegui carregar o leitor deste formato. Verifique sua conexão com a internet e tente novamente.</p>';
           btn.disabled=false;
         }
       };
@@ -3385,6 +3579,10 @@ function mergeData(inc){
     if(!locById(ne.locId) || ehave.has(esig(ne))) return;
     ehave.add(esig(ne)); S.agenda.events.push(ne); rep.agenda++;
   });
+  Object.entries(inc.learn||{}).forEach(([k,v])=>{
+    const nid = mapExam[v]||v;
+    if(!S.learn[k] && examById(nid)) S.learn[k]=nid;
+  });
   if(inc.goal && !S.goal) S.goal=inc.goal;
   if(inc.userMods && !S.userMods) S.userMods=inc.userMods;
   return rep;
@@ -3456,7 +3654,7 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.2 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.3 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   $("#cfProfEdit").onclick=()=> editProfileSheet();
@@ -3608,7 +3806,7 @@ function showLogin(mode){
 function enterProfile(id){
   PID=id; REG.last=id; saveReg();
   // zera estados de sessão do perfil anterior
-  draft.qty={}; draft.locId=null; draft.conv=null; draft.search="";
+  draft.qty={}; draft.locId=null; draft.conv=null; draft.search=""; draft.mod="all";
   locView.locId=null; locView.mode=null;
   F.loc=F.conv=F.mod=F.exam="all"; F.period="month";
   agView.sel=todayISO(); agView.y=null;
