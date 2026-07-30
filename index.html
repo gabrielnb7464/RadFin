@@ -1055,6 +1055,7 @@ function migrate(){
   if(!S.learn || typeof S.learn!=="object") S.learn={};
   if(!Array.isArray(S.expenses)) S.expenses=[];
   if(typeof S.expSeq!=="number") S.expSeq=S.expenses.length;
+  S.expenses.forEach(x=>{ if(!x.freq) x.freq = x.recur? "m":"once"; delete x.recur; });
   if(!S.tax || typeof S.tax!=="object") S.tax={pct:0,label:""};
   if(typeof S.tax.pct!=="number") S.tax.pct=0;
   if(!Array.isArray(S.glosas)) S.glosas=[];
@@ -1201,7 +1202,9 @@ function toast(msg){
 /* ================== SHEET (bottom modal) ================== */
 const sheetEl = $("#sheet"), veilEl = $("#sheetVeil");
 let sheetOnClose = null;
+let sheetSeq = 0;
 function openSheet(html, onReady, onClose){
+  sheetSeq++;
   $("#sheetContent").innerHTML = html;
   sheetOnClose = onClose||null;
   veilEl.classList.remove("hidden");
@@ -1209,8 +1212,10 @@ function openSheet(html, onReady, onClose){
   if(onReady) onReady($("#sheetContent"));
 }
 function closeSheet(){
+  const g = ++sheetSeq;
   veilEl.classList.remove("show"); sheetEl.classList.remove("show");
-  setTimeout(()=>{ veilEl.classList.add("hidden"); $("#sheetContent").innerHTML=""; }, 300);
+  // só limpa se nenhuma sheet nova foi aberta nesse meio-tempo
+  setTimeout(()=>{ if(g===sheetSeq){ veilEl.classList.add("hidden"); $("#sheetContent").innerHTML=""; } }, 300);
   if(sheetOnClose){ const f=sheetOnClose; sheetOnClose=null; f(); }
 }
 veilEl.addEventListener("click", closeSheet);
@@ -1319,9 +1324,9 @@ function loadDemo(){
   // demo: impostos, despesas e uma glosa registrada
   S.tax = { pct:13.3, label:"PJ · Lucro Presumido" };
   S.expenses = [
-    {id:"d1", name:"Contador (PJ)", value:420, recur:true,  date:addDays(today,-60)},
-    {id:"d2", name:"Seguro de responsabilidade civil", value:180, recur:true, date:addDays(today,-60)},
-    {id:"d3", name:"Congresso de radiologia", value:950, recur:false, date:addDays(today,-8)}
+    {id:"d1", name:"Contador (PJ)", value:420, freq:"m",  date:addDays(today,-60)},
+    {id:"d2", name:"Seguro de responsabilidade civil", value:180, freq:"m", date:addDays(today,-60)},
+    {id:"d3", name:"Congresso de radiologia", value:950, freq:"once", date:addDays(today,-8)}
   ];
   S.expSeq = 3;
   S.glosas = [{id:"g1", date:addDays(today,-12), locId:l1, expected:6480, received:6220}];
@@ -1897,10 +1902,15 @@ function hourlyCard(from,to){
 
 /* ================== LUCRO REAL & RESERVA DE IMPOSTOS ================== */
 function monthExpenses(mFrom,mEnd){
-  return S.expenses
-    .filter(x=> x.recur ? x.date<=mEnd : (x.date>=mFrom && x.date<=mEnd))
-    .reduce((s,x)=>s+(x.value||0),0);
+  const dim = Math.round((fromISO(mEnd)-fromISO(mFrom))/86400000)+1;
+  return S.expenses.reduce((s,x)=>{
+    const f = x.freq || "once";
+    if(f==="m")  return x.date<=mEnd? s+(x.value||0) : s;
+    if(f==="w")  return x.date<=mEnd? s+(x.value||0)*dim/7 : s; // semanal ≈ valor × dias do mês ÷ 7
+    return (x.date>=mFrom && x.date<=mEnd)? s+(x.value||0) : s;
+  },0);
 }
+const EXPFREQ_LABEL = { m:"mensal recorrente", w:"semanal recorrente", once:"única" };
 function profitCard(mp){
   const hasTax = S.tax && S.tax.pct>0;
   const hasExp = S.expenses.length>0;
@@ -1974,7 +1984,7 @@ function openMonthlyReport(y,m){
   const gExp=gs.reduce((s,g)=>s+g.expected,0), gRec=gs.reduce((s,g)=>s+g.received,0);
   const taxV=(S.tax&&S.tax.pct>0)? net*S.tax.pct/100 : 0;
   const expV=monthExpenses(mFrom,mEnd);
-  const expList=S.expenses.filter(x=> x.recur ? x.date<=mEnd : (x.date>=mFrom&&x.date<=mEnd));
+  const expList=S.expenses.filter(x=> (x.freq==="m"||x.freq==="w") ? x.date<=mEnd : (x.date>=mFrom&&x.date<=mEnd));
   const tbl=(title,rows,cols)=> rows.length?`
     <h2>${title}</h2>
     <table><thead><tr><th style="text-align:left">${cols[0]}</th><th>Exames</th><th>Bruto</th><th>Líquido</th><th>Recebido</th><th>Pendente</th></tr></thead><tbody>
@@ -2026,7 +2036,8 @@ function openMonthlyReport(y,m){
     <table><tbody>
       <tr><td style="text-align:left">Receita líquida</td><td>${F2(net)}</td></tr>
       ${taxV>0.5?`<tr><td style="text-align:left">Reserva de impostos${S.tax.label?" ("+esc(S.tax.label)+")":""} · ${S.tax.pct.toLocaleString("pt-BR")}%</td><td class="neg">− ${F2(taxV)}</td></tr>`:""}
-      ${expList.map(x=>`<tr><td style="text-align:left">Despesa · ${esc(x.name)}${x.recur?" (mensal)":""}</td><td class="neg">− ${F2(x.value||0)}</td></tr>`).join("")}
+      ${expList.map(x=>{ const dim=Math.round((fromISO(mEnd)-fromISO(mFrom))/86400000)+1; const mv=x.freq==="w"?(x.value||0)*dim/7:(x.value||0);
+        return `<tr><td style="text-align:left">Despesa · ${esc(x.name)}${x.freq==="m"?" (mensal)":x.freq==="w"?" (semanal)":""}</td><td class="neg">− ${F2(mv)}</td></tr>`;}).join("")}
       <tr><td style="text-align:left"><b>Lucro estimado</b></td><td><b class="${net-taxV-expV>=0?"pos":"neg"}">${F2(net-taxV-expV)}</b></td></tr>
     </tbody></table>`:""}
   <footer>Gerado pelo RadFin em ${esc(fmtDateShort(todayISO()))} · valores conforme tabelas e lançamentos registrados no app.</footer>
@@ -3549,6 +3560,8 @@ function renderWiz2(){
     ${wizSteps(2)}
     <div class="card" style="padding:14px 16px">
       <p class="note">Marque os exames que você realiza nesta instituição e informe o honorário${convs.length>1?` do convênio <b style="color:var(--text)">${esc(firstConv)}</b> (os demais você ajusta depois na tabela)`:""}. Valores podem ficar em branco e ser definidos depois.</p>
+      <button class="btn btn-sm" id="wzImport" style="width:100%;margin-top:12px">⇪ Importar formulário preenchido (PDF, foto, planilha)</button>
+      <input type="file" id="wzFile" accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" class="hidden">
     </div>
     <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
       <input class="input" id="wzSearch" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Buscar exame…" value="${esc(wiz.search)}"></div>
@@ -3557,9 +3570,12 @@ function renderWiz2(){
         const list = S.exams.filter(x=>x.mod===m && (!q || x.name.toLowerCase().includes(q) || (x.code||"").includes(q)));
         if(!list.length) return "";
         const allOn = list.every(x=>wiz.checks[x.id]);
-        return `<div class="mod-head" style="display:flex;justify-content:space-between;align-items:center">
+        return `<div class="mod-head" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
           <span>${esc(MOD_LABELS[m])}</span>
-          <button data-wall="${m}" style="color:var(--accent);font-weight:700;font-size:10.5px;text-transform:none;letter-spacing:0">${allOn?"desmarcar todos":"marcar todos"}</button>
+          <span style="display:flex;gap:14px;flex:0 0 auto">
+            <button data-wsame="${m}" style="color:var(--accent);font-weight:700;font-size:10.5px;text-transform:none;letter-spacing:0">R$ igual p/ todos</button>
+            <button data-wall="${m}" style="color:var(--accent);font-weight:700;font-size:10.5px;text-transform:none;letter-spacing:0">${allOn?"desmarcar todos":"marcar todos"}</button>
+          </span>
         </div>`+
         list.map(x=>`
           <div class="lrow">
@@ -3594,6 +3610,50 @@ function renderWiz2(){
     inp.oninput = ()=>{ wiz.prices[inp.dataset.wpx]=inp.value; };
     inp.onclick = e=> e.stopPropagation();
   });
+  $$("[data-wsame]").forEach(b=> b.onclick=()=>{
+    const m=b.dataset.wsame;
+    openSheet(`
+      <h3>Mesmo valor · ${esc(MOD_LABELS[m]||m)}</h3>
+      <div class="sheet-body">
+        <p class="note" style="margin-bottom:14px">Marca <b style="color:var(--text)">todos os exames de ${esc(MOD_LABELS[m]||m)}</b> com o mesmo honorário. Depois é só ajustar pontualmente os que fugirem da regra.</p>
+        <div class="field mb0"><label>Valor por exame (R$)</label>
+          <input class="input" id="wsVal" inputmode="decimal" placeholder="Ex.: 80,00"></div>
+      </div>
+      <div class="sheet-foot">
+        <button class="btn" id="wsCancel">Cancelar</button>
+        <button class="btn btn-primary" id="wsOk">Aplicar a todos</button>
+      </div>`,
+      el=>{
+        setTimeout(()=>$("#wsVal",el).focus(),350);
+        $("#wsCancel",el).onclick=closeSheet;
+        $("#wsOk",el).onclick=()=>{
+          const v=parseMoney($("#wsVal",el).value);
+          if(v==null||v<0){ toast("Informe o valor"); return; }
+          const list=S.exams.filter(x=>x.mod===m);
+          list.forEach(x=>{ wiz.checks[x.id]=true; wiz.prices[x.id]=v.toLocaleString("pt-BR",{minimumFractionDigits:2}); });
+          closeSheet(); toast(list.length+" exames de "+m+" com "+fmtBRL(v)); renderWiz2();
+        };
+      });
+  });
+  $("#wzImport").onclick=()=>$("#wzFile").click();
+  $("#wzFile").onchange=async e=>{
+    const f=e.target.files[0]; e.target.value=""; if(!f) return;
+    toast("Lendo formulário…");
+    try{
+      const text = await fileToText(f);
+      const res = parseFeeForm(text);
+      const ids = Object.keys(res);
+      if(!ids.length){ toast("Nenhum exame com valor foi reconhecido no arquivo"); return; }
+      ids.forEach(id=>{
+        const x=examById(id); if(!x) return;
+        wiz.checks[id]=true;
+        wiz.prices[id]=res[id].toLocaleString("pt-BR",{minimumFractionDigits:2});
+        wiz.mods.add(x.mod);
+      });
+      toast(ids.length+" exame"+(ids.length===1?"":"s")+" preenchido"+(ids.length===1?"":"s")+" automaticamente — confira os valores");
+      renderWiz2();
+    }catch(err){ toast("Não foi possível ler o arquivo (OCR/PDF precisam de internet)"); }
+  };
   $("#wzDone").onclick=finishWizard;
 }
 function finishWizard(){
@@ -3936,6 +3996,128 @@ function simulatorSheet(){
     });
 }
 
+/* ---------- Formulário de honorários (para o parceiro pagador preencher) ---------- */
+function buildFeeFormHTML(mods){
+  const p = curProfile()||{};
+  const groups = MODS.filter(m=>mods.includes(m))
+    .map(m=>[m, S.exams.filter(x=>x.mod===m).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"))])
+    .filter(g=>g[1].length);
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Tabela de honorários — ${esc(p.name||"")}</title>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a2330;margin:26px auto;max-width:780px;padding:0 20px;font-size:12.5px;line-height:1.4}
+    h1{font-size:19px;margin:0 0 2px} h2{font-size:13.5px;margin:22px 0 6px;color:#0d9488;border-bottom:2px solid #0d948833;padding-bottom:4px}
+    .sub{color:#6b7686;margin:0}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+    th,td{padding:6px 8px;border:1px solid #d9dee8;text-align:left;vertical-align:middle}
+    th{background:#f2f6f5;color:#41505f;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
+    td.val{width:120px;text-align:right;color:#9aa3b2} td.code{width:90px;color:#6b7686}
+    .head-fields{margin:14px 0 4px;display:flex;gap:26px;flex-wrap:wrap}
+    .hf{flex:1;min-width:200px;border-bottom:1px solid #9aa3b2;padding:14px 2px 4px;color:#6b7686;font-size:11px}
+    .sig{margin-top:44px;display:flex;gap:40px}
+    .sig div{flex:1;border-top:1px solid #6b7686;padding-top:6px;text-align:center;color:#6b7686;font-size:11px}
+    .noprint{margin:16px 0}.noprint button{background:#0d9488;color:#fff;border:none;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:700}
+    footer{margin-top:26px;color:#9aa3b2;font-size:10.5px}
+    @media print{.noprint{display:none}}
+  </style></head><body>
+  <div style="display:flex;align-items:center;gap:10px">
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="21" stroke="#0d9488" stroke-width="3.4"/><g stroke="#0d9488" stroke-width="3.6" stroke-linecap="round"><line x1="14" y1="34" x2="14" y2="27"/><line x1="19" y1="34" x2="19" y2="19"/><line x1="24" y1="34" x2="24" y2="14.5"/><line x1="29" y1="34" x2="29" y2="21.5"/><line x1="34" y1="34" x2="34" y2="25.5"/></g></svg>
+    <div><h1>Tabela de honorários médicos</h1>
+    <p class="sub">${esc(p.name||"")}${p.crm?" · "+esc(p.crm):""}${p.spec?" · "+esc(p.spec):""}</p></div>
+  </div>
+  <div class="noprint"><button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button></div>
+  <p style="margin:12px 0 0">Solicito o preenchimento do <b>valor do honorário médico por exame (R$)</b> na coluna em branco. Mantenha o código TUSS de referência.</p>
+  <div class="head-fields">
+    <div class="hf">Instituição / Serviço:</div>
+    <div class="hf">Convênio / Tabela:</div>
+    <div class="hf">Data:</div>
+  </div>
+  ${groups.map(([m,list])=>`
+    <h2>${esc(m)} · ${esc(MOD_LABELS[m]||m)}</h2>
+    <table><thead><tr><th>Exame</th><th style="width:90px">Cód. TUSS</th><th style="width:120px;text-align:right">Valor (R$)</th></tr></thead><tbody>
+    ${list.map(x=>`<tr><td>${esc(x.name)}</td><td class="code">${esc(x.code||"—")}</td><td class="val">R$ ______</td></tr>`).join("")}
+    </tbody></table>`).join("")}
+  <div class="sig"><div>Assinatura / carimbo da instituição</div><div>${esc(p.name||"Médico(a)")}</div></div>
+  <footer>Formulário gerado pelo RadFin em ${esc(fmtDateShort(todayISO()))}. Dica: devolva este arquivo preenchido — o RadFin importa e preenche a tabela de preços automaticamente.</footer>
+  </body></html>`;
+}
+function feeFormSheet(){
+  const sel = new Set(activeMods().filter(m=>S.exams.some(x=>x.mod===m)));
+  openSheet(`
+    <h3>Formulário de honorários</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:14px">Gera a lista dos seus exames com o <b style="color:var(--text)">valor em branco</b>, para enviar à instituição/parceiro pagador preencher. Depois, ao cadastrar a instituição, você pode importar o formulário preenchido e o app monta a tabela sozinho.</p>
+      <div class="field mb0"><label>Modalidades incluídas</label>
+        <div class="conv-chips">${MODS.filter(m=>S.exams.some(x=>x.mod===m)).map(m=>
+          `<button class="chip ${sel.has(m)?"on":""}" data-ffm="${m}">${m}</button>`).join("")}</div></div>
+    </div>
+    <div class="sheet-foot" style="flex-wrap:wrap">
+      <button class="btn" id="ffCancel">Cancelar</button>
+      <button class="btn" id="ffDoc">⬇ Baixar .doc</button>
+      <button class="btn btn-primary" id="ffPdf">🖨 PDF / Imprimir</button>
+    </div>`,
+    el=>{
+      $$("[data-ffm]",el).forEach(c=> c.onclick=()=>{
+        const m=c.dataset.ffm;
+        sel.has(m)? sel.delete(m):sel.add(m);
+        c.classList.toggle("on", sel.has(m));
+      });
+      $("#ffCancel",el).onclick=closeSheet;
+      const mods=()=>{ if(!sel.size){ toast("Escolha ao menos uma modalidade"); return null; } return Array.from(sel); };
+      $("#ffPdf",el).onclick=()=>{
+        const m=mods(); if(!m) return;
+        const w=window.open("","_blank");
+        if(!w){ toast("Permita pop-ups para gerar o formulário"); return; }
+        w.document.write(buildFeeFormHTML(m)); w.document.close();
+        setTimeout(()=>{ try{ w.focus(); w.print(); }catch(_){} },700);
+        closeSheet();
+      };
+      $("#ffDoc",el).onclick=()=>{
+        const m=mods(); if(!m) return;
+        const blob=new Blob(["﻿"+buildFeeFormHTML(m)],{type:"application/msword"});
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        a.download="formulario-honorarios-radfin.doc";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+        toast("Formulário .doc baixado"); closeSheet();
+      };
+    });
+}
+
+/* ---------- Interpretação do formulário preenchido (wizard) ---------- */
+async function fileToText(f){
+  const name=(f.name||"").toLowerCase();
+  if(f.type.startsWith("image/")) return await runOCR(f, ()=>{});
+  if(name.endsWith(".pdf") || f.type==="application/pdf") return await pdfToText(f);
+  if(name.endsWith(".xlsx") || name.endsWith(".xls")) return await xlsxToText(f);
+  return await f.text();
+}
+function parseFeeForm(text){
+  const out={};
+  String(text).split(/\n+/).forEach(line=>{
+    if(line.replace(/[^A-Za-zÀ-ú]/g,"").length<3) return;
+    const codeM = line.match(/\b(\d{8})\b/);
+    // números candidatos a valor (ignora códigos TUSS de 8 dígitos)
+    const nums = (line.match(/\d{1,3}(?:\.\d{3})*,\d{1,2}|\d+[.,]\d{1,2}(?!\d)|\b\d{1,5}\b/g)||[])
+      .filter(n=> !/^\d{8}$/.test(n.replace(/[.,]/g,"")));
+    let v=null;
+    for(let i=nums.length-1;i>=0;i--){ const c=parseMoney(nums[i]); if(c!=null && c>0 && c<100000){ v=c; break; } }
+    if(v==null) return;
+    let ex=null;
+    if(codeM) ex = S.exams.find(x=>x.code===codeM[1]);
+    if(!ex){
+      const words = normName(line.replace(/\d{8}/g," ").replace(/R\$[\s\S]*$/,"")).split(" ")
+        .filter(t=>t && !/^\d+([.,]\d+)?$/.test(t));
+      if(words.length){
+        const m = segMatch(words, S.exams, null, null);
+        if(m.exam && m.score>=0.7) ex=m.exam;
+      }
+    }
+    if(ex && out[ex.id]==null) out[ex.id]=v;
+  });
+  return out;
+}
+
 function aliasSheet(examId){
   const x = examById(examId); if(!x) return;
   openSheet(`
@@ -4060,7 +4242,7 @@ function mergeData(inc){
     if(!S.learn[k] && examById(nid)) S.learn[k]=nid;
   });
   // despesas, glosas e impostos
-  const xsig=x=>[x.name,x.value,x.recur?1:0,x.date].join("|");
+  const xsig=x=>[x.name,x.value,x.freq||(x.recur?"m":"once"),x.date].join("|");
   const xhave=new Set(S.expenses.map(xsig));
   (inc.expenses||[]).forEach(x=>{
     const s=xsig(x); if(xhave.has(s)) return;
@@ -4095,6 +4277,8 @@ function renderCfg(){
         <button class="btn btn-sm" id="cfProfEdit">Editar perfil</button>
         <button class="btn btn-sm" id="cfProfSwitch">Trocar de usuário</button>
       </div>
+      <button class="btn btn-sm" id="cfFeeForm" style="width:100%;margin-top:10px">📄 Gerar formulário de honorários (PDF / DOC)</button>
+      <p class="note" style="margin-top:8px">Lista dos seus exames com o valor em branco — envie ao parceiro pagador preencher e importe de volta ao cadastrar a instituição.</p>
     </div>
     <div class="card">
       <div class="card-title">Meu perfil · modalidades que realizo</div>
@@ -4139,15 +4323,15 @@ function renderCfg(){
       ${S.tax.pct>0?`<p class="note" style="margin-top:9px">Ativo: <b style="color:var(--text)">${esc(S.tax.label||"Personalizado")} · ${S.tax.pct.toLocaleString("pt-BR")}%</b></p>`:""}
     </div>
     <div class="card">
-      <div class="card-title">Despesas <span class="hint">→ lucro real</span></div>
+      <div class="card-title">Despesas da profissão <span class="hint">${(()=>{const d0=new Date(),mF=toISO(new Date(d0.getFullYear(),d0.getMonth(),1)),mE=toISO(new Date(d0.getFullYear(),d0.getMonth()+1,0));const t=monthExpenses(mF,mE);return t>0? "≈ "+fmtBRL0(t)+" este mês":"→ lucro real";})()}</span></div>
       ${S.expenses.length?`<div style="margin-bottom:10px">${S.expenses.map(x=>`
         <div class="lrow" style="padding:9px 0">
           <div class="lr-main"><div class="lr-title" style="font-size:13px">${esc(x.name)}</div>
-            <div class="lr-sub">${x.recur?"mensal recorrente":"única · "+fmtDateShort(x.date)}</div></div>
-          <div class="lr-side" style="display:flex;align-items:center;gap:10px"><b>${fmtBRL0(x.value||0)}</b>
+            <div class="lr-sub">${esc(EXPFREQ_LABEL[x.freq]||"única")}${x.freq==="once"?" · "+fmtDateShort(x.date):(x.freq==="w"?` · ≈ ${fmtBRL0((x.value||0)*4.35)}/mês`:"")}</div></div>
+          <div class="lr-side" style="display:flex;align-items:center;gap:10px"><b>${fmtBRL0(x.value||0)}${x.freq==="w"?'<small style="font-weight:600;color:var(--muted)">/sem</small>':(x.freq==="m"?'<small style="font-weight:600;color:var(--muted)">/mês</small>':"")}</b>
             <button data-xdel="${esc(x.id)}" style="color:var(--crit-text);font-weight:700;font-size:15px;padding:4px 6px">✕</button></div>
         </div>`).join("")}</div>`
-      :'<p class="note" style="margin-bottom:12px">Cadastre despesas do trabalho (contador, seguro, congressos, deslocamento…) para o dashboard mostrar seu lucro real, não só o faturamento.</p>'}
+      :'<p class="note" style="margin-bottom:12px">Cadastre despesas do trabalho (laudos/PACS, contador, CRM, equipe…) para o dashboard mostrar seu lucro real, não só o faturamento.</p>'}
       <button class="btn btn-sm" id="cfExpAdd" style="width:100%">+ Adicionar despesa</button>
     </div>
     <div class="card">
@@ -4169,11 +4353,12 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.5 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.6 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   $("#cfProfEdit").onclick=()=> editProfileSheet();
   $("#cfProfSwitch").onclick=()=> showLogin("pick");
+  $("#cfFeeForm").onclick=()=> feeFormSheet();
   $("#cfMods").onclick=()=> profileSheet(()=>renderCfg());
   $$("[data-rem]").forEach(b=> b.onclick=()=>{ S.cal.reminder=+b.dataset.rem; save(); renderCfg(); });
   $$("[data-wk]").forEach(b=> b.onclick=()=>{ S.cal.weekly=b.dataset.wk==="1"; save(); renderCfg(); });
@@ -4198,18 +4383,27 @@ function renderCfg(){
     });
   });
   $("#cfExpAdd").onclick=()=>{
-    let recur=true;
+    let freq="m", div12=false;
+    const SUGG = [
+      ["Mensalidade Laudite","m"],["Mensalidade Leorad","m"],["Mensalidade Iara","m"],
+      ["Mensalidade N-Report","m"],["Anuidade CRM","m","div12"],["Escritório de contabilidade","m"],
+      ["Administrador","m"],["Digitador","m"],["Auxiliar administrativo","m"]
+    ];
     openSheet(`
       <h3>Nova despesa</h3>
       <div class="sheet-body">
+        <div class="field"><label>Sugestões — toque e informe só o valor</label>
+          <div class="conv-chips">${SUGG.map(([n],i)=>`<button class="chip" data-xsg="${i}">${esc(n)}</button>`).join("")}</div></div>
         <div class="field"><label>Descrição</label>
-          <input class="input" id="xpName" placeholder="Ex.: Contador, seguro, congresso…"></div>
-        <div class="field"><label>Valor (R$)</label>
-          <input class="input" id="xpVal" inputmode="decimal" placeholder="Ex.: 420,00"></div>
+          <input class="input" id="xpName" placeholder="Ex.: Contador, PACS, congresso…"></div>
+        <div class="field"><label id="xpValLbl">Valor (R$)</label>
+          <input class="input" id="xpVal" inputmode="decimal" placeholder="Ex.: 420,00">
+          <p class="note hidden" id="xpDiv12" style="margin-top:7px">Informe o valor <b style="color:var(--text)">anual</b> da anuidade — o app divide por 12 e lança o valor mensal.</p></div>
         <div class="field mb0"><label>Recorrência</label>
           <div class="conv-chips">
-            <button class="chip on" id="xpRec">Mensal (recorrente)</button>
-            <button class="chip" id="xpOnce">Única (este mês)</button>
+            <button class="chip on" data-xfq="m">Mensal</button>
+            <button class="chip" data-xfq="w">Semanal</button>
+            <button class="chip" data-xfq="once">Única (este mês)</button>
           </div></div>
       </div>
       <div class="sheet-foot">
@@ -4217,17 +4411,27 @@ function renderCfg(){
         <button class="btn btn-primary" id="xpOk">Adicionar</button>
       </div>`,
       el=>{
-        setTimeout(()=>$("#xpName",el).focus(),350);
-        $("#xpRec",el).onclick=()=>{ recur=true; $("#xpRec",el).classList.add("on"); $("#xpOnce",el).classList.remove("on"); };
-        $("#xpOnce",el).onclick=()=>{ recur=false; $("#xpOnce",el).classList.add("on"); $("#xpRec",el).classList.remove("on"); };
+        const nameI=$("#xpName",el), valI=$("#xpVal",el), d12=$("#xpDiv12",el);
+        const setFreq=f=>{ freq=f; $$("[data-xfq]",el).forEach(c=>c.classList.toggle("on",c.dataset.xfq===f)); };
+        $$("[data-xfq]",el).forEach(c=> c.onclick=()=>setFreq(c.dataset.xfq));
+        $$("[data-xsg]",el).forEach(c=> c.onclick=()=>{
+          const [n,f,flag]=SUGG[+c.dataset.xsg];
+          nameI.value=n; setFreq(f);
+          div12 = flag==="div12";
+          d12.classList.toggle("hidden", !div12);
+          $$("[data-xsg]",el).forEach(x=>x.classList.toggle("on",x===c));
+          valI.focus();
+        });
+        nameI.oninput=()=>{ div12=false; d12.classList.add("hidden"); $$("[data-xsg]",el).forEach(x=>x.classList.remove("on")); };
         $("#xpCancel",el).onclick=closeSheet;
         $("#xpOk",el).onclick=()=>{
-          const name=$("#xpName",el).value.trim();
-          const v=parseMoney($("#xpVal",el).value);
+          let name=nameI.value.trim();
+          let v=parseMoney(valI.value);
           if(!name){ toast("Descreva a despesa"); return; }
           if(v==null||v<=0){ toast("Informe o valor"); return; }
-          S.expenses.push({id:"d"+(++S.expSeq), name, value:v, recur, date:todayISO()});
-          save(); closeSheet(); toast("Despesa adicionada"); renderCfg();
+          if(div12){ v=Math.round(v/12*100)/100; name="Anuidade CRM (1/12)"; }
+          S.expenses.push({id:"d"+(++S.expSeq), name, value:v, freq, date:todayISO()});
+          save(); closeSheet(); toast("Despesa adicionada"+(div12?" · "+fmtBRL(v)+"/mês":"")); renderCfg();
         };
       });
   };
@@ -4237,7 +4441,9 @@ function renderCfg(){
     toast(S.goal?"Meta salva: "+fmtBRL0(S.goal):"Meta removida");
   };
   $("#cfExport").onclick=()=>{
-    const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+    const p=curProfile()||{};
+    const out={...S, profile:{name:p.name||"", crm:p.crm||"", spec:p.spec||"", salt:p.salt, hash:p.hash}};
+    const blob=new Blob([JSON.stringify(out,null,1)],{type:"application/json"});
     const a=document.createElement("a");
     a.href=URL.createObjectURL(blob);
     a.download="radfin-backup-"+todayISO()+".json";
@@ -4253,6 +4459,7 @@ function renderCfg(){
       try{
         let data=JSON.parse(r.result);
         if(!data||!Array.isArray(data.entries)||!Array.isArray(data.locations)) throw 0;
+        delete data.profile; // perfil só é usado ao importar pela tela de login
         // normaliza o arquivo para o formato atual (migração em memória)
         const keep=S; S=data; migrate(); data=S; S=keep;
         openSheet(`
@@ -4294,6 +4501,96 @@ function renderCfg(){
 
 /* ================== LOGIN & PERFIS ================== */
 function specOptions(){ return SPECS.map(x=>`<option value="${esc(x)}">`).join(""); }
+
+/* ---------- Especialidade: lista clicável (campo livre só em "Outra") ---------- */
+function specFieldHTML(pfx, initial){
+  const inList = SPECS.includes(initial);
+  const isOther = !!initial && !inList;
+  return `<div class="field"><label>Especialidade médica</label>
+    <div class="conv-chips" id="${pfx}Chips">${SPECS.map(s=>{
+      const on = (inList && s===initial) || (isOther && s==="Outra");
+      return `<button type="button" class="chip ${on?"on":""}" data-${pfx}spec="${esc(s)}">${esc(s==="Outra"?"Outros":s)}</button>`;
+    }).join("")}</div>
+    <input class="input ${isOther?"":"hidden"}" id="${pfx}SpecOther" placeholder="Digite a especialidade" value="${isOther?esc(initial):""}" style="margin-top:10px">
+  </div>`;
+}
+function bindSpecField(el, pfx, initial){
+  let sel = SPECS.includes(initial)? initial : (initial? "Outra" : null);
+  const other = $("#"+pfx+"SpecOther", el);
+  $$("[data-"+pfx+"spec]", el).forEach(c=> c.onclick=()=>{
+    const s = c.dataset[pfx+"spec"];
+    sel = (sel===s)? null : s;
+    $$("[data-"+pfx+"spec]", el).forEach(x=> x.classList.toggle("on", x.dataset[pfx+"spec"]===sel));
+    other.classList.toggle("hidden", sel!=="Outra");
+    if(sel==="Outra") setTimeout(()=>other.focus(),100);
+  });
+  return ()=> sel==="Outra"? other.value.trim() : (sel||"");
+}
+
+/* ---------- Face ID / biometria (WebAuthn, exige https) ---------- */
+const FACE_OK = location.protocol==="https:" && !!window.PublicKeyCredential;
+async function faceRegister(p){
+  const cred = await navigator.credentials.create({ publicKey:{
+    challenge: crypto.getRandomValues(new Uint8Array(32)),
+    rp: { name:"RadFin", id: location.hostname },
+    user: { id: new TextEncoder().encode("radfin-"+p.id), name: p.name, displayName: p.name },
+    pubKeyCredParams: [{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
+    authenticatorSelection: { authenticatorAttachment:"platform", userVerification:"required", residentKey:"preferred" },
+    timeout: 60000
+  }});
+  p.credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+  saveReg();
+}
+async function faceAuth(p){
+  const raw = Uint8Array.from(atob(p.credId), c=>c.charCodeAt(0));
+  await navigator.credentials.get({ publicKey:{
+    challenge: crypto.getRandomValues(new Uint8Array(32)),
+    allowCredentials: [{ type:"public-key", id: raw.buffer, transports:["internal"] }],
+    userVerification: "required",
+    timeout: 60000
+  }});
+  return true;
+}
+function offerFaceSetup(prof){
+  if(!FACE_OK || prof.credId) return;
+  setTimeout(()=> confirmSheet("Ativar Face ID?",
+    "Use a biometria do aparelho (Face ID / Touch ID / digital) para entrar sem digitar senha. Você pode ativar ou desativar depois em Editar perfil.",
+    "Ativar Face ID", async ()=>{
+      try{ await faceRegister(prof); toast("Face ID ativado"); if(tab==="cfg") renderCfg(); }
+      catch(e){ toast("Não foi possível ativar a biometria neste aparelho"); }
+    }, false), 450);
+}
+
+/* ---------- Importar backup na tela de login (restaura usuário + dados) ---------- */
+function loginImportBackup(file){
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const data = JSON.parse(r.result);
+      if(!data || !Array.isArray(data.entries) || !Array.isArray(data.locations)) throw 0;
+      const bp = data.profile || {};
+      delete data.profile;
+      const prof = { id:"p"+(++REG.seq), name: bp.name || "Usuário importado",
+        crm: bp.crm||"", spec: bp.spec||"" };
+      if(bp.salt && bp.hash){ prof.salt=bp.salt; prof.hash=bp.hash; }
+      REG.list.push(prof); saveReg();
+      store.set("radfin.v1."+prof.id, JSON.stringify(data));
+      enterProfile(prof.id);
+      toast("Backup restaurado — bem-vindo(a), "+prof.name.split(" ")[0]+"!");
+    }catch(_){ toast("Arquivo de backup inválido"); }
+  };
+  r.readAsText(file);
+}
+const LOGIN_IMPORT_HTML = `
+  <button class="btn btn-ghost" id="lgImport" style="margin-top:14px;width:100%">📥 Já uso o RadFin — importar meu backup</button>
+  <input type="file" id="lgImportFile" accept=".json,application/json" class="hidden">
+  <p class="note txt-c" style="margin-top:8px">Restaura seu usuário e todos os dados a partir do arquivo exportado em Ajustes → Backup (de outro aparelho ou endereço).</p>`;
+function bindLoginImport(){
+  const b=$("#lgImport"), f=$("#lgImportFile");
+  if(!b||!f) return;
+  b.onclick=()=>f.click();
+  f.onchange=e=>{ const file=e.target.files[0]; if(file) loginImportBackup(file); e.target.value=""; };
+}
 function showLogin(mode){
   const el = $("#login");
   el.classList.remove("hidden");
@@ -4315,24 +4612,26 @@ function showLogin(mode){
         <div class="card-title">${REG.list.length?"Novo usuário":"Crie seu cadastro"}</div>
         <div class="field"><label>Nome completo *</label><input class="input" id="lgName" placeholder="Ex.: Dr. Gabriel Bacelar"></div>
         <div class="field"><label>CRM</label><input class="input" id="lgCrm" placeholder="Ex.: CRM-MA 12345"></div>
-        <div class="field"><label>Especialidade médica</label>
-          <input class="input" id="lgSpec" list="specList" placeholder="Ex.: Radiologia e Diagnóstico por Imagem">
-          <datalist id="specList">${specOptions()}</datalist></div>
+        ${specFieldHTML("lg","")}
         <div class="field"><label>Senha (opcional)</label>
           <input type="password" class="input" id="lgPwd" placeholder="Deixe em branco para entrar sem senha">
           <p class="note" style="margin-top:6px">A senha protege o acesso neste aparelho. Os dados de cada usuário ficam separados.</p></div>
         <button class="btn btn-primary" id="lgCreate">Criar e entrar</button>
         ${REG.list.length?'<button class="btn btn-ghost" id="lgBack" style="margin-top:8px">← Voltar</button>':""}
-      </div></div>`;
+      </div>
+      ${LOGIN_IMPORT_HTML}</div>`;
+    const getSpec = bindSpecField(el,"lg","");
+    bindLoginImport();
     $("#lgCreate").onclick = async ()=>{
       const name=$("#lgName").value.trim();
       if(!name){ toast("Informe o nome"); return; }
-      const prof = { id:"p"+(++REG.seq), name, crm:$("#lgCrm").value.trim(), spec:$("#lgSpec").value.trim() };
+      const prof = { id:"p"+(++REG.seq), name, crm:$("#lgCrm").value.trim(), spec:getSpec() };
       const pwd=$("#lgPwd").value;
       if(pwd){ prof.salt=randSalt(); prof.hash=await hashPwd(prof.salt,pwd); }
       REG.list.push(prof); saveReg();
       enterProfile(prof.id);
       toast("Bem-vindo(a), "+name.split(" ")[0]+"!");
+      offerFaceSetup(prof);
     };
     const bk=$("#lgBack"); if(bk) bk.onclick=()=>showLogin("pick");
     return;
@@ -4345,15 +4644,14 @@ function showLogin(mode){
         <span class="avatar">${esc(initials(p.name))}</span>
         <span class="uc-main"><span class="uc-name" style="display:block">${esc(p.name)}</span>
         <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
-        ${p.hash?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':""}
+        ${p.credId&&FACE_OK?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V6a3 3 0 0 1 3-3h2M16 3h2a3 3 0 0 1 3 3v2M21 16v2a3 3 0 0 1-3 3h-2M8 21H6a3 3 0 0 1-3-3v-2"/><path d="M8 10v1M16 10v1M9.5 15.5c.7.7 1.6 1 2.5 1s1.8-.3 2.5-1"/></svg>':(p.hash?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':"")}
       </button>`).join("")}
     <button class="btn" id="lgNew" style="margin-top:6px">+ Novo usuário</button>
     <div id="lgPwdBox"></div>
+    ${LOGIN_IMPORT_HTML}
   </div>`;
-  $$("[data-lg]").forEach(b=> b.onclick=()=>{
-    const p = REG.list.find(x=>x.id===b.dataset.lg);
-    if(!p) return;
-    if(!p.hash){ enterProfile(p.id); return; }
+  bindLoginImport();
+  const pwdFallback = p=>{
     $("#lgPwdBox").innerHTML = `<div class="card" style="margin-top:12px">
       <div class="card-title">Senha de ${esc(p.name.split(" ")[0])}</div>
       <div class="input-row">
@@ -4368,6 +4666,23 @@ function showLogin(mode){
     };
     $("#lgTry").onclick=tryGo;
     inp.onkeydown=e=>{ if(e.key==="Enter") tryGo(); };
+  };
+  $$("[data-lg]").forEach(b=> b.onclick=async ()=>{
+    const p = REG.list.find(x=>x.id===b.dataset.lg);
+    if(!p) return;
+    // 1º: biometria, se ativada e disponível
+    if(p.credId && FACE_OK){
+      try{ await faceAuth(p); enterProfile(p.id); return; }
+      catch(e){
+        if(p.hash){ toast("Biometria não confirmada — use a senha"); pwdFallback(p); return; }
+        confirmSheet("Biometria indisponível",
+          "Não foi possível confirmar o Face ID neste aparelho (pode ter sido cadastrado em outro). Entrar mesmo assim?",
+          "Entrar", ()=> enterProfile(p.id), false);
+        return;
+      }
+    }
+    if(!p.hash){ enterProfile(p.id); return; }
+    pwdFallback(p);
   });
   $("#lgNew").onclick=()=>showLogin("create");
 }
@@ -4397,6 +4712,7 @@ function userSheet(){
         <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
       </div>
       <button class="btn" id="usEdit" style="margin:10px 0">Editar perfil</button>
+      <button class="btn" id="usForm" style="margin-bottom:10px">📄 Formulário de honorários</button>
       <button class="btn" id="usSwitch" style="margin-bottom:10px">Trocar de usuário</button>
       <button class="btn" id="usNew">+ Novo usuário</button>
     </div>
@@ -4404,6 +4720,7 @@ function userSheet(){
     el=>{
       $("#usClose",el).onclick=closeSheet;
       $("#usEdit",el).onclick=()=>{ closeSheet(); editProfileSheet(); };
+      $("#usForm",el).onclick=()=>{ closeSheet(); setTimeout(feeFormSheet,350); };
       $("#usSwitch",el).onclick=()=>{ closeSheet(); showLogin("pick"); };
       $("#usNew",el).onclick=()=>{ closeSheet(); showLogin("create"); };
     });
@@ -4415,12 +4732,14 @@ function editProfileSheet(){
     <div class="sheet-body">
       <div class="field"><label>Nome completo</label><input class="input" id="epName" value="${esc(p.name)}"></div>
       <div class="field"><label>CRM</label><input class="input" id="epCrm" value="${esc(p.crm||"")}"></div>
-      <div class="field"><label>Especialidade médica</label>
-        <input class="input" id="epSpec" list="specList2" value="${esc(p.spec||"")}">
-        <datalist id="specList2">${specOptions()}</datalist></div>
+      ${specFieldHTML("ep", p.spec||"")}
       <div class="field"><label>${p.hash?"Alterar senha (deixe em branco para manter)":"Definir senha (opcional)"}</label>
         <input type="password" class="input" id="epPwd" placeholder="Nova senha">
         ${p.hash?'<button id="epNoPwd" style="color:var(--crit-text);font-weight:700;font-size:12px;margin-top:8px">Remover senha</button>':""}</div>
+      ${FACE_OK?`<div class="field"><label>Biometria</label>
+        <button class="btn" id="epFace">${p.credId?"Desativar Face ID":"Ativar Face ID / Touch ID"}</button>
+        <p class="note" style="margin-top:7px">${p.credId?"O login por biometria está ativo neste aparelho.":"Entre sem digitar senha usando a biometria do aparelho."}</p></div>`
+      :'<p class="note" style="margin-bottom:14px">Face ID fica disponível quando o app é acessado pelo link https (ex.: seu endereço no GitHub Pages).</p>'}
       <button class="btn btn-danger" id="epDel">Excluir este usuário e seus dados</button>
     </div>
     <div class="sheet-foot">
@@ -4429,6 +4748,13 @@ function editProfileSheet(){
     </div>`,
     el=>{
       $("#epCancel",el).onclick=closeSheet;
+      const getSpec = bindSpecField(el,"ep", p.spec||"");
+      const fb=$("#epFace",el);
+      if(fb) fb.onclick=async ()=>{
+        if(p.credId){ delete p.credId; saveReg(); closeSheet(); toast("Face ID desativado"); return; }
+        try{ await faceRegister(p); closeSheet(); toast("Face ID ativado"); }
+        catch(e){ toast("Não foi possível ativar a biometria"); }
+      };
       const np=$("#epNoPwd",el); if(np) np.onclick=()=>{ delete p.hash; delete p.salt; saveReg(); closeSheet(); toast("Senha removida"); };
       $("#epDel",el).onclick=()=>{
         closeSheet();
@@ -4442,7 +4768,7 @@ function editProfileSheet(){
       $("#epOk",el).onclick=async ()=>{
         const name=$("#epName",el).value.trim();
         if(!name){ toast("Informe o nome"); return; }
-        p.name=name; p.crm=$("#epCrm",el).value.trim(); p.spec=$("#epSpec",el).value.trim();
+        p.name=name; p.crm=$("#epCrm",el).value.trim(); p.spec=getSpec();
         const pwd=$("#epPwd",el).value;
         if(pwd){ p.salt=randSalt(); p.hash=await hashPwd(p.salt,pwd); }
         saveReg(); updateUserBtn(); closeSheet(); toast("Perfil atualizado");
