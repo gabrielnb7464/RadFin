@@ -373,6 +373,22 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .day-head .dh-date::first-letter{text-transform:uppercase}
 .day-head .dh-total{font-size:12.5px;font-weight:700;color:var(--accent-text)}
 .conv-chips{display:flex;flex-wrap:wrap;gap:8px}
+/* histórico: trilha de navegação + resumo do nível */
+.crumbs{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.crumbs .cr{font-size:12px;font-weight:700;color:var(--text-2);background:var(--surface);
+  border:1px solid var(--border);border-radius:9px;padding:5px 9px;max-width:170px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crumbs .cr.on{background:var(--chip-on-bg);border-color:var(--chip-on-brd);color:var(--chip-on-ink)}
+.crumbs .cr:first-letter{text-transform:uppercase}
+.crumbs .sep{width:11px;height:11px;color:var(--muted);flex:0 0 auto}
+.hist-sum{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:13px 15px;box-shadow:var(--shadow)}
+.hist-sum .hs-l{min-width:0}
+.hist-sum .hs-t{font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-sum .hs-t::first-letter{text-transform:uppercase}
+.hist-sum .hs-s{font-size:11px;color:var(--muted);margin-top:3px}
+.hist-sum .hs-r{font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--accent-text);flex:0 0 auto}
 .total-bar{
   position:sticky;bottom:calc(var(--sab) + 88px);z-index:40;margin-top:14px;
   background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:var(--r-md);
@@ -2957,45 +2973,148 @@ function missingPriceSheet(missing){
     });
 }
 
-/* ================== HISTÓRICO ================== */
-let histLimit = 15; // dias exibidos
+/* ================== HISTÓRICO (macro → drill-down) ================== */
+const HIST_ROOTS = {
+  date: { label:"Todos os dias",   keys:["date","loc","mod","exam"] },
+  loc:  { label:"Todos os locais", keys:["loc","date","mod","exam"] }
+};
+const HIST_NOUN = { date:["dia","dias"], loc:["local","locais"], mod:["modalidade","modalidades"], exam:["exame","exames"] };
+let histView = { root:"date", path:[], limit:15 };
+function histRoot(){ return HIST_ROOTS[histView.root] || HIST_ROOTS.date; }
+function histKeys(){ return histRoot().keys; }
+function histResetView(){ histView.path=[]; histView.limit=15; }
+function histVal(e,k){
+  if(k==="date") return e.date;
+  if(k==="loc")  return e.locId||"";
+  if(k==="mod")  return (examById(e.examId)||{}).mod || "—";
+  return e.examId;
+}
+function histLabel(k,v){
+  if(k==="date") return fmtDateLong(v);
+  if(k==="loc"){ const l=locById(v); return l? l.name : "Local removido"; }
+  if(k==="mod") return MOD_LABELS[v] || v || "Sem modalidade";
+  const x=examById(v); return x? dispName(x) : "Exame removido";
+}
+function histDot(k,v){
+  if(k!=="loc") return "";
+  const l=locById(v); if(!l) return "";
+  return `<span class="dot" style="background:${SLOTS[l.slot]};display:inline-block;width:8px;height:8px;margin-right:7px"></span>`;
+}
+function histScope(){
+  const keys=histKeys();
+  return S.entries.filter(e=> histView.path.every((v,i)=> histVal(e,keys[i])===v));
+}
+function histGroups(list, key){
+  const map=new Map();
+  list.forEach(e=>{ const v=histVal(e,key); if(!map.has(v)) map.set(v,[]); map.get(v).push(e); });
+  const out=Array.from(map, ([v,ent])=>({
+    v, ent,
+    val: ent.reduce((s,e)=>s+entryValue(e),0),
+    qty: ent.reduce((s,e)=>s+e.qty,0),
+    pend: ent.some(e=>!e.paid)
+  }));
+  if(key==="date") out.sort((a,b)=> a.v<b.v?1:-1);
+  else out.sort((a,b)=> b.val-a.val || b.qty-a.qty);
+  return out;
+}
+function histPreview(ent, key){
+  if(!key) return "";
+  const g=histGroups(ent,key);
+  const noun=HIST_NOUN[key][g.length===1?0:1];
+  const names=g.slice(0,2).map(x=>histLabel(key,x.v)).join(", ");
+  return `${g.length} ${noun} · ${esc(names)}${g.length>2?" +"+(g.length-2):""}`;
+}
+const HIST_CHEV = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
+
 function renderHist(){
   if(!S.entries.length){
+    histResetView();
     $("#view").innerHTML = `<div class="page">`+emptyState("chart","Nenhum lançamento ainda",
-      "Sua volumetria diária aparecerá aqui, agrupada por dia, com os totais de cada plantão.","Lançar exames","goAdd3")+`</div>`;
+      "Sua volumetria diária aparecerá aqui: primeiro a visão por dia, e você abre local, modalidade e exame conforme quiser.","Lançar exames","goAdd3")+`</div>`;
     $("#goAdd3").onclick=()=>nav("add");
     return;
   }
-  const byDate = new Map();
-  S.entries.forEach(e=>{ if(!byDate.has(e.date)) byDate.set(e.date,[]); byDate.get(e.date).push(e); });
-  const dates = Array.from(byDate.keys()).sort().reverse();
-  const shown = dates.slice(0, histLimit);
+  const keys = histKeys();
+  // se um grupo ficou vazio (ex.: lançamentos excluídos), sobe um nível
+  while(histView.path.length && !histScope().length){ histView.path.pop(); histView.limit=15; }
 
-  $("#view").innerHTML = `<div class="page">
-    <div class="sec-head" style="margin-top:0"><h2>Histórico</h2><span class="mut" style="font-size:12px">${fmtN(S.entries.length)} lançamentos</span></div>
-    ${shown.map(d=>{
-      const list = byDate.get(d);
-      const tot = list.reduce((s,e)=>s+entryValue(e),0);
-      const nq = list.reduce((s,e)=>s+e.qty,0);
-      return `<div class="day-head"><span class="dh-date">${esc(fmtDateLong(d))}</span><span class="dh-total">${fmtBRL0(tot)} · ${nq} ex.</span></div>
-      <div class="card" style="padding:4px 16px">
-        ${list.slice().sort((a,b)=>(locById(a.locId)||{}).name>(locById(b.locId)||{}).name?1:-1).map(e=>{
+  const path = histView.path, depth = path.length, scope = histScope();
+  const val  = scope.reduce((s,e)=>s+entryValue(e),0);
+  const qty  = scope.reduce((s,e)=>s+e.qty,0);
+  const pend = scope.filter(e=>!e.paid).reduce((s,e)=>s+entryValue(e),0);
+  const leaf = depth >= keys.length-1;
+  const key  = leaf? null : keys[depth];
+  const groups = leaf? [] : histGroups(scope, key);
+  const shown  = groups.slice(0, histView.limit);
+  const scopeTitle = depth? histLabel(keys[depth-1], path[depth-1]) : histRoot().label;
+
+  const back = depth? `<button id="histBack" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m15 18-6-6 6-6"/></svg>
+      ${esc(depth>1? histLabel(keys[depth-2], path[depth-2]) : histRoot().label)}</button>`:"";
+
+  const crumbs = `<div class="crumbs">
+    <button class="cr ${depth?"":"on"}" data-crumb="0">${esc(histRoot().label)}</button>
+    ${path.map((v,i)=>`<svg class="sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg><button class="cr ${i===depth-1?"on":""}" data-crumb="${i+1}">${esc(histLabel(keys[i],v))}</button>`).join("")}
+  </div>`;
+
+  const roots = depth? "" : `<div class="conv-chips" style="margin-bottom:10px">
+    <button class="chip ${histView.root==="date"?"on":""}" data-hroot="date">Dias primeiro</button>
+    <button class="chip ${histView.root==="loc"?"on":""}" data-hroot="loc">Locais primeiro</button>
+  </div>`;
+
+  const body = leaf
+    ? `<div class="card" style="padding:4px 16px;margin-top:12px">
+        ${scope.slice().sort((a,b)=> entryValue(b)-entryValue(a)).map(e=>{
           const x=examById(e.examId)||{name:"Exame removido",mod:""}, l=locById(e.locId);
           return `<button class="lrow" style="width:100%;text-align:left" data-edit="${e.id}">
             <div class="lr-main">
               <div class="lr-title">${e.qty}× ${esc(dispName(x))}</div>
-              <div class="lr-sub">${l?`<span class="dot" style="background:${SLOTS[l.slot]};display:inline-block;width:7px;height:7px;margin-right:4px"></span>`+esc(l.name)+" · ":""}${esc(e.conv)} · ${fmtBRL(e.unit)}/un</div>
+              <div class="lr-sub">${esc(e.conv)} · ${fmtBRL(e.unit)}/un${l?"":" · local removido"}</div>
             </div>
             <div class="lr-side"><b>${fmtBRL(entryValue(e))}</b><small style="color:${e.paid?"var(--good)":"var(--warn)"};font-weight:700">${e.paid?"✓ pago":"pendente"}</small></div>
-            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            ${HIST_CHEV}
           </button>`;
         }).join("")}
-      </div>`;
-    }).join("")}
-    ${dates.length>histLimit?`<button class="btn" id="histMore">Mostrar dias anteriores</button>`:""}
+      </div>`
+    : `<div class="card" style="padding:4px 16px;margin-top:12px">
+        ${shown.map((g,i)=>`<button class="lrow" style="width:100%;text-align:left" data-hg="${i}">
+          <div class="lr-main">
+            <div class="lr-title" style="${key==="date"?"text-transform:capitalize":""}">${histDot(key,g.v)}${esc(histLabel(key,g.v))}</div>
+            <div class="lr-sub">${histPreview(g.ent, keys[depth+1])}</div>
+          </div>
+          <div class="lr-side"><b>${fmtBRL0(g.val)}</b><small>${fmtN(g.qty)} ex.${g.pend?` · <span style="color:var(--warn);font-weight:700">pend.</span>`:""}</small></div>
+          ${HIST_CHEV}
+        </button>`).join("")}
+      </div>
+      ${groups.length>histView.limit?`<button class="btn" id="histMore" style="margin-top:12px">Mostrar mais ${HIST_NOUN[key][1]}</button>`:""}`;
+
+  $("#view").innerHTML = `<div class="page">
+    <div class="sec-head" style="margin-top:0"><h2>Histórico</h2><span class="mut" style="font-size:12px">${fmtN(S.entries.length)} lançamentos</span></div>
+    ${back}
+    ${crumbs}
+    ${roots}
+    <div class="hist-sum">
+      <div class="hs-l">
+        <div class="hs-t">${esc(scopeTitle)}</div>
+        <div class="hs-s">${fmtN(qty)} exame${qty===1?"":"s"} · ${fmtN(scope.length)} lançamento${scope.length===1?"":"s"}${pend>0?` · <b style="color:var(--warn)">${fmtBRL0(pend)} a receber</b>`:""}</div>
+      </div>
+      <div class="hs-r">${fmtBRL0(val)}</div>
+    </div>
+    ${body}
+    ${leaf?`<p class="note txt-c" style="margin-top:12px">Toque em um lançamento para editar ou excluir.</p>`:""}
   </div>`;
+
+  const vals = shown.map(g=>g.v);
+  $$("[data-hg]").forEach(b=> b.onclick=()=>{
+    histView.path.push(vals[+b.dataset.hg]); histView.limit=15; renderHist(); window.scrollTo({top:0});
+  });
+  $$("[data-crumb]").forEach(b=> b.onclick=()=>{
+    histView.path.length = +b.dataset.crumb; histView.limit=15; renderHist(); window.scrollTo({top:0});
+  });
+  $$("[data-hroot]").forEach(b=> b.onclick=()=>{ histView.root=b.dataset.hroot; histResetView(); renderHist(); });
+  const bk=$("#histBack"); if(bk) bk.onclick=()=>{ histView.path.pop(); histView.limit=15; renderHist(); window.scrollTo({top:0}); };
   $$("[data-edit]").forEach(b=> b.onclick=()=> editEntrySheet(b.dataset.edit));
-  const m=$("#histMore"); if(m) m.onclick=()=>{ histLimit+=15; renderHist(); };
+  const m=$("#histMore"); if(m) m.onclick=()=>{ histView.limit+=15; renderHist(); };
 }
 
 function editEntrySheet(id){
@@ -4353,7 +4472,7 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.6 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.7 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   $("#cfProfEdit").onclick=()=> editProfileSheet();
@@ -4779,14 +4898,14 @@ function editProfileSheet(){
 
 /* ================== NAVEGAÇÃO / INIT ================== */
 let tab="dash";
-function nav(t){ tab=t; render(); window.scrollTo({top:0}); }
+function nav(t){ if(t==="hist" && tab==="hist") histResetView(); tab=t; render(); window.scrollTo({top:0}); }
 function render(){
   $("#tooltip").classList.remove("show");
   $$(".tab").forEach(b=> b.classList.toggle("on", b.dataset.tab===tab));
   if(tab==="dash") renderDash();
   else if(tab==="add") renderAdd();
   else if(tab==="agenda") renderAgenda();
-  else if(tab==="hist"){ histLimit=15; renderHist(); }
+  else if(tab==="hist") renderHist();
   else if(tab==="locs") renderLocs();
   else if(tab==="cfg") renderCfg();
 }
