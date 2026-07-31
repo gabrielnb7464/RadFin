@@ -3791,7 +3791,7 @@ function commitmentSheet(date){
           <button id="cmAllLocs" style="color:var(--accent);font-weight:700;font-size:12px">Marcar todos</button>
           <button id="cmOneLoc" style="color:var(--muted);font-weight:700;font-size:12px">Deixar só um</button>
         </div>
-        <p class="note" id="cmLocHint" style="margin-top:7px">Toque para incluir ou tirar um local. No computador, <b style="color:var(--text)">Ctrl/⌘ + clique</b> seleciona apenas aquele. Cada local marcado vira um compromisso próprio no mesmo dia e turno.</p>`:""}
+        <p class="note" id="cmLocHint" style="margin-top:7px"><b style="color:var(--text)">Um toque (ou clique) marca e desmarca cada local</b> — pode marcar quantos quiser, não precisa segurar tecla nenhuma. No computador, <b style="color:var(--text)">Alt (⌥), Ctrl ou ⌘ + clique</b> deixa apenas o local clicado. Cada local marcado vira um compromisso próprio no mesmo dia e turno.</p>`:""}
       </div>
       <div class="field"><label>Turno</label><div class="conv-chips" id="cmPer">${
         PERIODS.map((p,i)=>`<button class="chip ${i===0?"on":""}" data-p="${esc(p)}">${esc(p)}</button>`).join("")
@@ -3825,7 +3825,7 @@ function commitmentSheet(date){
       };
       $$("#cmLocs .chip",el).forEach(c=> c.onclick=ev=>{
         const id=c.dataset.l;
-        if(ev && (ev.ctrlKey || ev.metaKey)){        // PC/Mac: seleciona só este
+        if(ev && (ev.altKey || ev.ctrlKey || ev.metaKey)){   // PC/Mac: deixa só este
           locIds.clear(); locIds.add(id);
         } else if(locIds.has(id)){
           if(locIds.size===1){ toast("Marque ao menos um local"); return; }
@@ -4143,15 +4143,22 @@ function renderWiz2(){
       const text = await fileToText(f);
       const res = parseFeeForm(text);
       const ids = Object.keys(res);
-      if(!ids.length){ toast("Nenhum exame com valor foi reconhecido no arquivo"); return; }
+      const misses = feeFormMisses.slice();
+      if(!ids.length){
+        toast("Nenhum exame com valor foi reconhecido no arquivo");
+        if(misses.length) setTimeout(()=>feeMissSheet(misses,0), 400);
+        return;
+      }
       ids.forEach(id=>{
         const x=examById(id); if(!x) return;
+        if(isShiftExam(x)){ wiz.shift[id]=res[id].toLocaleString("pt-BR",{minimumFractionDigits:2}); return; }
         wiz.checks[id]=true;
         wiz.prices[id]=res[id].toLocaleString("pt-BR",{minimumFractionDigits:2});
         wiz.mods.add(x.mod);
       });
-      toast(ids.length+" exame"+(ids.length===1?"":"s")+" preenchido"+(ids.length===1?"":"s")+" automaticamente — confira os valores");
       renderWiz2();
+      toast(ids.length+" item"+(ids.length===1?"":"ns")+" preenchido"+(ids.length===1?"":"s")+" automaticamente — confira os valores");
+      if(misses.length) setTimeout(()=>feeMissSheet(misses, ids.length), 900);
     }catch(err){ toast("Não foi possível ler o arquivo (OCR/PDF precisam de internet)"); }
   };
   $("#wzDone").onclick=finishWizard;
@@ -4611,28 +4618,114 @@ async function fileToText(f){
   if(name.endsWith(".xlsx") || name.endsWith(".xls")) return await xlsxToText(f);
   return await f.text();
 }
+let feeFormMisses = [];   // linhas com valor que não casaram com nenhum exame
+/* Valor da linha: prefere "R$ 120,00" > "120,00" > inteiro no fim da linha.
+   Ignora códigos TUSS de 8 dígitos e números soltos dentro do nome do exame. */
+function feeLineValue(line){
+  const clean = line.replace(/\b\d{8}\b/g, "  ");
+  const re = /(R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{1,2}|\d+[.,]\d{1,2}(?!\d)|\d{1,6})/g;
+  let m, best=null;
+  while((m = re.exec(clean))){
+    const raw = m[2], v = parseMoney(raw);
+    if(v==null || v<=0 || v>=1000000) continue;
+    const hasCur = !!m[1];
+    const hasDec = /[.,]\d{1,2}$/.test(raw);
+    const atEnd  = (m.index + m[0].length) >= clean.replace(/[\s\-–—_.]+$/,"").length - 1;
+    let rank = hasCur? 3 : hasDec? 2 : (atEnd && v>=5)? 1 : 0;
+    if(rank===0) continue;
+    if(!best || rank>best.rank || (rank===best.rank && m.index>best.i)) best={v, rank, i:m.index};
+  }
+  return best? best.v : null;
+}
+/* Quanto o texto da linha "parece" com o exame (0..1) — usado para desempatar
+   exames que compartilham o mesmo código TUSS (ex.: 2ª lesão, coluna, articular). */
+function feeNameScore(line, x){
+  const L = normName(line.replace(/\b\d{8}\b/g," ").replace(/R\$/g," "));
+  const N = normName(x.name), A = x.alias? normName(x.alias):"";
+  if(N.length>7 && L.includes(N)) return 1;
+  if(A.length>7 && L.includes(A)) return .95;
+  const toks = N.split(" ").filter(t=>t.length>2);
+  if(!toks.length) return 0;
+  let hit = toks.filter(t=>L.includes(t)).length / toks.length;
+  // marcadores que separam variantes com o mesmo código
+  const v2 = /(2a|2\.|2º|2o|segunda)\s*(lesao|nodulo)|2a lesao|2o nodulo|diante/.test(L);
+  const xv2 = /2a lesao|2o nodulo|2 lesao|2 nodulo|diante/.test(N);
+  if(v2!==xv2) hit -= .35;
+  ["cervical","lombar","toracica","dorsal","joelho","ombro","punho","cotovelo","tornozelo",
+   "quadril","coxofemoral","craneo","cranio","torax","abdome","aorta","pelve"].forEach(w=>{
+    if(N.includes(w) && !L.includes(w)) hit -= .12;
+  });
+  return Math.max(0, Math.min(1, hit));
+}
+function feePickByName(line, cands, out){
+  let best=null, bs=-1, bl=-1;
+  cands.forEach(x=>{
+    let sc = feeNameScore(line, x);
+    if(out[x.id]!=null) sc -= .25;         // prefere um que ainda esteja vazio
+    const len = normName(x.name).length;
+    // empate técnico → fica o nome mais específico (mais longo)
+    if(sc>bs+0.02 || (Math.abs(sc-bs)<=0.02 && len>bl)){ bs=sc; best=x; bl=len; }
+  });
+  return (best && bs>0.15)? best : null;
+}
+function feeMissSheet(misses, okCount){
+  openSheet(`
+    <h3>Linhas não reconhecidas</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:12px">${okCount? `Preenchi <b style="color:var(--text)">${okCount}</b> item${okCount===1?"":"ns"}. ` : ""}Estas <b style="color:var(--text)">${misses.length}</b> linha${misses.length===1?"":"s"} tinham valor, mas não consegui identificar o exame com segurança — preencha na lista abaixo (a busca ajuda a achar rápido).</p>
+      ${misses.slice(0,25).map(l=>`<p class="note" style="font-size:12px;padding:7px 10px;background:var(--accent-soft);border-radius:9px;margin-bottom:6px;color:var(--text)">${esc(l)}</p>`).join("")}
+      ${misses.length>25?`<p class="note" style="margin-top:8px">…e mais ${misses.length-25}.</p>`:""}
+      <p class="note" style="margin-top:12px">Dica: linhas com o <b style="color:var(--text)">código TUSS</b> ao lado do nome são reconhecidas com muito mais precisão — o formulário gerado pelo próprio RadFin (Usuário → Formulário de honorários) já vem nesse formato.</p>
+    </div>
+    <div class="sheet-foot"><button class="btn btn-primary" id="fmOk">Entendi</button></div>`,
+    el=>{ $("#fmOk",el).onclick=closeSheet; });
+}
 function parseFeeForm(text){
-  const out={};
-  String(text).split(/\n+/).forEach(line=>{
-    if(line.replace(/[^A-Za-zÀ-ú]/g,"").length<3) return;
-    const codeM = line.match(/\b(\d{8})\b/);
-    // números candidatos a valor (ignora códigos TUSS de 8 dígitos)
-    const nums = (line.match(/\d{1,3}(?:\.\d{3})*,\d{1,2}|\d+[.,]\d{1,2}(?!\d)|\b\d{1,5}\b/g)||[])
-      .filter(n=> !/^\d{8}$/.test(n.replace(/[.,]/g,"")));
-    let v=null;
-    for(let i=nums.length-1;i>=0;i--){ const c=parseMoney(nums[i]); if(c!=null && c>0 && c<100000){ v=c; break; } }
-    if(v==null) return;
+  const out={}; feeFormMisses=[];
+  const HEAD=/^\s*(exame|c[oó]d|valor|tabela de honor|solicito|institui|conv[eê]nio|data\b|assinatura|formul[aá]rio|gerado pelo|dica:|ultrassonografia|tomografia|resson[aâ]ncia|mamografia|densitometria|procedimentos|doppler|radiografia|plant[aã]o)\s*$/i;
+  const lines = String(text).split(/\r?\n+/).map(l=>l.replace(/\s+/g," ").trim()).filter(Boolean);
+  let pending=null;   // exame reconhecido numa linha, cujo valor veio na linha seguinte
+  lines.forEach(line=>{
+    const letters = line.replace(/[^A-Za-zÀ-ú]/g,"").length;
+    const v = feeLineValue(line);
+    // linha só com número → completa o exame da linha anterior
+    if(letters<3){
+      if(v!=null && pending && out[pending.id]==null){ out[pending.id]=v; pending=null; }
+      return;
+    }
+    if(HEAD.test(line)){ pending=null; return; }
+
+    // 1) casamento por código TUSS (inclusive quando vários exames compartilham o código)
     let ex=null;
-    if(codeM) ex = S.exams.find(x=>x.code===codeM[1]);
+    const codes = line.match(/\b\d{8}\b/g) || [];
+    for(const c of codes){
+      const cands = S.exams.filter(x=>x.code===c || (x.code||"").includes(c));
+      if(!cands.length) continue;
+      ex = cands.length===1? cands[0] : (feePickByName(line,cands,out) || cands.find(x=>out[x.id]==null) || cands[0]);
+      if(ex) break;
+    }
+    // 2) casamento por nome (formulários sem código ou com código "—")
+    if(!ex){
+      let best=null, bs=0, bl=-1;
+      S.exams.forEach(x=>{
+        const sc=feeNameScore(line,x), len=normName(x.name).length;
+        if(sc>bs+0.02 || (Math.abs(sc-bs)<=0.02 && sc>0 && len>bl)){ bs=sc; best=x; bl=len; }
+      });
+      if(best && bs>=0.8) ex=best;
+    }
+    // 3) último recurso: motor de reconhecimento por palavras (voz/OCR)
     if(!ex){
       const words = normName(line.replace(/\d{8}/g," ").replace(/R\$[\s\S]*$/,"")).split(" ")
         .filter(t=>t && !/^\d+([.,]\d+)?$/.test(t));
       if(words.length){
         const m = segMatch(words, S.exams, null, null);
-        if(m.exam && m.score>=0.7) ex=m.exam;
+        if(m.exam && m.score>=0.62) ex=m.exam;
       }
     }
-    if(ex && out[ex.id]==null) out[ex.id]=v;
+    if(!ex){ if(v!=null) feeFormMisses.push(line.slice(0,90)); pending=null; return; }
+    if(v==null){ pending=ex; return; }     // nome numa linha, valor na próxima
+    if(out[ex.id]==null) out[ex.id]=v;
+    pending=null;
   });
   return out;
 }
@@ -4900,7 +4993,7 @@ function renderCfg(){
       <p class="note" style="margin-bottom:12px">Refaça o tour guiado pela interface ou reveja as telas de boas-vindas a qualquer momento — o mesmo que o botão <b style="color:var(--text)">?</b> na barra do topo.</p>
       <button class="btn btn-sm" id="cfHelp" style="width:100%">? Ajuda e tour guiado</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.9 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.9.1 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   bindNoCode();
@@ -5097,6 +5190,50 @@ function faceWhyUnavailable(){
   if(FACE_PLAT===false) return "Este aparelho não tem Face ID / Touch ID disponível para sites, ou a biometria está desativada nos Ajustes do sistema.";
   return "Não foi possível ativar a biometria neste aparelho.";
 }
+function faceDiag(){
+  const ua = navigator.userAgent||"";
+  const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+  const ver = (ua.match(/OS (\d+)[._](\d+)/)||[])[0] || "?";
+  return { ios, ver, standalone:isStandalone(), secure:FACE_SECURE, host:location.hostname,
+           proto:location.protocol, api:!!window.PublicKeyCredential, plat:FACE_PLAT };
+}
+function faceFailSheet(e){
+  const d = faceDiag();
+  const dica = d.ios && d.standalone
+    ? "No iPhone, ative o Face ID <b style=\"color:var(--text)\">com o app aberto no Safari</b> (pelo link https), não pelo ícone da tela de início — o atalho da tela de início não recebe a permissão de biometria em todas as versões do iOS. Depois de ativado, o ícone passa a aceitar."
+    : d.ios
+    ? "No iPhone, confira em <b style=\"color:var(--text)\">Ajustes → Face ID e Código</b> se o Face ID está ligado para <b style=\"color:var(--text)\">Preenchimento Automático de Senha</b>, e em Ajustes → Senhas se o Chaveiro do iCloud está ativo. Depois toque de novo em Ativar Face ID."
+    : "Verifique se o aparelho tem biometria configurada e se o app está aberto pelo endereço https.";
+  openSheet(`
+    <h3>Não deu para ativar o Face ID</h3>
+    <div class="sheet-body">
+      <p class="note" style="font-size:13.5px;margin-bottom:12px">${esc(faceErrMsg(e))}</p>
+      <p class="note" style="font-size:13.5px;margin-bottom:14px">${dica}</p>
+      <div class="card-title" style="margin-bottom:6px">Diagnóstico</div>
+      <p class="note" style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.7">
+        endereço: ${esc(d.proto)}//${esc(d.host)}<br>
+        contexto seguro: ${d.secure?"sim":"NÃO"}<br>
+        API WebAuthn: ${d.api?"sim":"NÃO"}<br>
+        biometria disponível: ${d.plat===null?"não checada":(d.plat?"sim":"NÃO")}<br>
+        tela de início (standalone): ${d.standalone?"sim":"não"}<br>
+        sistema: ${esc(d.ver)}<br>
+        erro: ${esc((e&&e.name)||"—")}${e&&e.message?" · "+esc(String(e.message).slice(0,80)):""}
+      </p>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="fdClose">Fechar</button>
+      <button class="btn btn-primary" id="fdRetry">Tentar de novo</button>
+    </div>`,
+    el=>{
+      $("#fdClose",el).onclick=closeSheet;
+      $("#fdRetry",el).onclick=()=>{
+        const pr=curProfile(); if(!pr){ closeSheet(); return; }
+        faceRegister(pr)
+          .then(()=>{ delete pr.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); })
+          .catch(e2=>{ closeSheet(); setTimeout(()=>faceFailSheet(e2),320); });
+      };
+    });
+}
 function faceErrMsg(e){
   const n=(e&&e.name)||"";
   if(n==="NotAllowedError") return "Biometria cancelada ou expirada — tente de novo.";
@@ -5104,6 +5241,7 @@ function faceErrMsg(e){
   if(n==="SecurityError") return "O endereço do app mudou — refaça o cadastro do Face ID em Usuário → Editar perfil.";
   return faceWhyUnavailable();
 }
+function faceReady(){ return FACE_OK && FACE_PLAT!==false; }
 async function faceRegister(p){
   const cred = await navigator.credentials.create({ publicKey:{
     challenge: crypto.getRandomValues(new Uint8Array(32)),
@@ -5111,8 +5249,10 @@ async function faceRegister(p){
     user: { id: new TextEncoder().encode("radfin-"+p.id), name: p.name, displayName: p.name },
     pubKeyCredParams: [{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
     authenticatorSelection: { authenticatorAttachment:"platform", userVerification:"required", residentKey:"preferred" },
+    attestation: "none",
     timeout: 60000
   }});
+  if(!cred || !cred.rawId) throw new Error("sem credencial");
   p.credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
   saveReg();
 }
@@ -5128,7 +5268,10 @@ async function faceAuth(p){
 }
 async function offerFaceSetup(prof){
   if(!FACE_OK || !prof || prof.credId || prof.faceSkip) return;
-  if(!(await checkFacePlatform())) return;
+  await checkFacePlatform();
+  // sem autenticador de plataforma não faz sentido oferecer sozinho — o botão manual
+  // em Usuário → Ativar Face ID continua disponível e explica o motivo se falhar
+  if(FACE_PLAT===false) return;
   setTimeout(()=> openSheet(`
     <h3>Entrar com Face ID?</h3>
     <div class="sheet-body">
@@ -5142,9 +5285,10 @@ async function offerFaceSetup(prof){
     el=>{
       $("#ofLater",el).onclick=closeSheet;
       $("#ofNever",el).onclick=()=>{ prof.faceSkip=true; saveReg(); closeSheet(); };
-      $("#ofOk",el).onclick=async ()=>{
-        try{ await faceRegister(prof); closeSheet(); toast("Face ID ativado"); if(tab==="cfg") renderCfg(); }
-        catch(e){ closeSheet(); toast(faceErrMsg(e)); }
+      $("#ofOk",el).onclick=()=>{                       // sem await antes: iOS exige gesto direto
+        faceRegister(prof)
+          .then(()=>{ closeSheet(); toast("Face ID ativado"); if(tab==="cfg") renderCfg(); })
+          .catch(e=>{ closeSheet(); faceFailSheet(e); });
       };
     }), 500);
 }
@@ -5318,11 +5462,11 @@ function userSheet(){
       $("#usClose",el).onclick=closeSheet;
       $("#usEdit",el).onclick=()=>{ closeSheet(); editProfileSheet(); };
       const uf=$("#usFace",el);
-      if(uf) uf.onclick=async ()=>{
+      if(uf) uf.onclick=()=>{
         if(p.credId){ delete p.credId; saveReg(); closeSheet(); toast("Face ID desativado"); return; }
-        if(!(await checkFacePlatform())){ closeSheet(); toast(faceWhyUnavailable()); return; }
-        try{ await faceRegister(p); delete p.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); }
-        catch(e){ closeSheet(); toast(faceErrMsg(e)); }
+        faceRegister(p)
+          .then(()=>{ delete p.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); })
+          .catch(e=>{ closeSheet(); faceFailSheet(e); });
       };
       $("#usForm",el).onclick=()=>{ closeSheet(); setTimeout(feeFormSheet,350); };
       $("#usSwitch",el).onclick=()=>{ closeSheet(); showLogin("pick"); };
@@ -5354,11 +5498,11 @@ function editProfileSheet(){
       $("#epCancel",el).onclick=closeSheet;
       const getSpec = bindSpecField(el,"ep", p.spec||"");
       const fb=$("#epFace",el);
-      if(fb) fb.onclick=async ()=>{
+      if(fb) fb.onclick=()=>{
         if(p.credId){ delete p.credId; saveReg(); closeSheet(); toast("Face ID desativado"); return; }
-        if(!(await checkFacePlatform())){ toast(faceWhyUnavailable()); return; }
-        try{ await faceRegister(p); delete p.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); }
-        catch(e){ toast(faceErrMsg(e)); }
+        faceRegister(p)
+          .then(()=>{ delete p.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); })
+          .catch(e=>{ closeSheet(); faceFailSheet(e); });
       };
       const np=$("#epNoPwd",el); if(np) np.onclick=()=>{ delete p.hash; delete p.salt; saveReg(); closeSheet(); toast("Senha removida"); };
       $("#epDel",el).onclick=()=>{
@@ -5407,6 +5551,7 @@ $("#themeBtn").addEventListener("click",()=>{
 $("#userBtn").addEventListener("click",()=>{ if(S) userSheet(); });
 
 (function init(){
+  checkFacePlatform();   // resolve cedo: no iOS não dá para aguardar dentro do clique
   const d=new Date();
   $("#appbarDate").innerHTML = `<b>${WEEKDAYS[d.getDay()]}</b>${d.getDate()} ${MONTHS_S[d.getMonth()]}`;
   applyTheme(); // tema padrão antes do login
