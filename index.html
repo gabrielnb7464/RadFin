@@ -341,11 +341,11 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .fab svg{width:26px;height:26px}
 
 /* ================= SHEET ================= */
-.sheet-veil{position:fixed;inset:0;z-index:80;background:var(--veil);opacity:0;transition:opacity .22s;
+.sheet-veil{position:fixed;inset:0;z-index:130;background:var(--veil);opacity:0;transition:opacity .22s;
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 .sheet-veil.show{opacity:1}
 .sheet{
-  position:fixed;left:0;right:0;bottom:0;z-index:81;max-width:520px;margin:0 auto;
+  position:fixed;left:0;right:0;bottom:0;z-index:131;max-width:520px;margin:0 auto;
   background:var(--surface);border-radius:24px 24px 0 0;border:1px solid var(--border);border-bottom:none;
   padding:10px 18px calc(var(--sab) + 20px);
   transform:translateY(102%);transition:transform .28s cubic-bezier(.32,.72,.25,1);
@@ -360,7 +360,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 
 /* ================= MISC ================= */
 .toast{
-  position:fixed;left:50%;bottom:calc(var(--sab) + 100px);transform:translate(-50%,16px);z-index:99;
+  position:fixed;left:50%;bottom:calc(var(--sab) + 100px);transform:translate(-50%,16px);z-index:160;
   background:var(--toast-bg);border:1px solid var(--pop-brd);color:var(--toast-ink);
   font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:99px;
   box-shadow:0 10px 30px rgba(16,24,40,.3);opacity:0;transition:all .25s;white-space:nowrap;
@@ -551,6 +551,10 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .coach-nav .cn-next{background:var(--accent);color:#fff}
 
 /* ================= VISUALIZADOR DE DOCUMENTOS ================= */
+.user-card.managing{opacity:.92}
+.uc-del{flex:0 0 auto;width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  background:var(--crit-soft);border:1px solid var(--crit-brd);color:var(--crit-text);margin-left:2px}
+.uc-del svg{width:17px;height:17px}
 .uc-face{flex:0 0 auto;font-size:10.5px;font-weight:800;color:var(--accent);letter-spacing:.03em;text-transform:uppercase;margin-right:2px}
 .docview{position:fixed;inset:0;z-index:120;background:var(--bg);display:flex;flex-direction:column;
   transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1)}
@@ -1205,6 +1209,10 @@ function migrate(){
   S.agenda.events.forEach(e=>{ if(perRemap[e.period]) e.period=perRemap[e.period]; });
   if(!S.cal || typeof S.cal!=="object") S.cal = { reminder:60, weekly:false, prompt:true };
   if(S.cal.reminder===undefined) S.cal.reminder=60;
+  // v2.10: vários lembretes por plantão (mantém o antigo como primeiro da lista)
+  if(!Array.isArray(S.cal.reminders)) S.cal.reminders = S.cal.reminder>0? [S.cal.reminder] : [];
+  S.cal.reminders = Array.from(new Set(S.cal.reminders.filter(n=>typeof n==="number"&&n>0))).sort((a,b)=>a-b);
+  S.cal.reminder = S.cal.reminders.length? S.cal.reminders[0] : 0;
   if(S.cal.weekly===undefined) S.cal.weekly=false;
   if(S.cal.prompt===undefined) S.cal.prompt=true;
   S.locations.forEach(l=>{
@@ -1443,7 +1451,7 @@ function loadDemo(){
   }
   S.goal = 22000;
   S.last = {locId:l1, conv:"Unimed"};
-  S.cal = { reminder:60, weekly:true, prompt:true };
+  S.cal = { reminder:60, reminders:[60], weekly:true, prompt:true };
   // demo: meses anteriores já recebidos; mês atual pendente
   const mStart = toISO(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   S.entries.forEach(e=>{ e.paid = e.date < mStart; });
@@ -2608,7 +2616,12 @@ function emptyState(icn,title,text,btnLabel,btnId){
 <script>
 "use strict";
 /* ================== LANÇAR VOLUMETRIA ================== */
-const draft = { date: todayISO(), locId:null, conv:null, qty:{}, search:"", mod:"all", collapsed:{} };
+const draft = { date: todayISO(), dates:[], locId:null, conv:null, qty:{}, search:"", mod:"all", collapsed:{} };
+/* Todas as datas do lançamento atual (principal + extras), ordenadas e sem repetição */
+function draftDates(){
+  const set = new Set([draft.date].concat(draft.dates||[]));
+  return Array.from(set).filter(Boolean).sort();
+}
 
 function renderAdd(){
   if(!S.locations.length){
@@ -2663,7 +2676,16 @@ function renderAdd(){
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M3 12a9 9 0 1 0 2.6-6.3L3 8"/><path d="M3 3v5h5"/></svg>Repetir dia</button>
     </div>
     <div class="card" style="padding:15px">
-      <div class="field"><label>Data</label><input type="date" class="input" id="adDate" value="${draft.date}" max="${todayISO()}"></div>
+      <div class="field"><label>Data</label><input type="date" class="input" id="adDate" value="${draft.date}" max="${todayISO()}">
+        ${(()=>{ const ds=draftDates(); return `
+          <div style="display:flex;align-items:center;gap:14px;margin-top:9px;flex-wrap:wrap">
+            <button id="adMulti" style="color:var(--accent);font-weight:700;font-size:12.5px">🗓 ${ds.length>1?`Lançar em ${ds.length} datas`:"Lançar em várias datas…"}</button>
+            ${ds.length>1?'<button id="adMultiClear" style="color:var(--muted);font-weight:700;font-size:12px">Só esta data</button>':""}
+          </div>
+          ${ds.length>1?`<div class="conv-chips" style="margin-top:9px">${ds.map(d=>
+              `<span class="chip on" style="pointer-events:none">${esc(fmtDateShort(d))}</span>`).join("")}</div>
+            <p class="note" style="margin-top:7px">O mesmo conjunto de exames será lançado em cada uma dessas datas.</p>`:""}`; })()}
+      </div>
       <div class="field"><label>Local</label><div class="conv-chips">${
         S.locations.map(l=>`<button class="chip ${l.id===draft.locId?"on":""}" data-adloc="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
       }</div></div>
@@ -2713,13 +2735,20 @@ function renderAdd(){
         }).join("")}`).join("") || '<p class="note" style="padding:16px 0">Nenhum exame encontrado. Adicione um exame novo em Locais → catálogo.</p>'}
     </div>
 
-    ${totQ>0?`<button class="total-bar" id="adSave">
-      <span class="tb-l">Salvar ${totQ} exame${totQ===1?"":"s"}<small>${esc(loc.name)} · ${esc(draft.conv)}${loc.gross&&loc.taxPct?` · bruto (−${loc.taxPct}%)`:""}</small></span>
-      <span class="tb-r">${fmtBRL(totV)}</span>
-    </button>`:""}
+    ${totQ>0?(()=>{ const nd=draftDates().length; return `<button class="total-bar" id="adSave">
+      <span class="tb-l">Salvar ${totQ} exame${totQ===1?"":"s"}${nd>1?` × ${nd} datas`:""}<small>${esc(loc.name)} · ${esc(draft.conv)}${loc.gross&&loc.taxPct?` · bruto (−${loc.taxPct}%)`:""}</small></span>
+      <span class="tb-r">${fmtBRL(totV*nd)}</span>
+    </button>`; })():""}
   </div>`;
 
-  $("#adDate").onchange = e=>{ draft.date = e.target.value || todayISO(); };
+  $("#adDate").onchange = e=>{
+    const nd = e.target.value || todayISO();
+    draft.dates = (draft.dates||[]).filter(d=>d!==nd);
+    draft.date = nd;
+    renderAdd();
+  };
+  $("#adMulti").onclick = multiDateSheet;
+  const amc=$("#adMultiClear"); if(amc) amc.onclick=()=>{ draft.dates=[]; renderAdd(); };
   $$("[data-adloc]").forEach(b=> b.onclick=()=>{ draft.locId=b.dataset.adloc; draft.conv=null; renderAdd(); });
   $$("[data-adconv]").forEach(b=> b.onclick=()=>{ draft.conv=b.dataset.adconv; renderAdd(); });
   $$("[data-admod]").forEach(b=> b.onclick=()=>{ draft.mod=b.dataset.admod; renderAdd(); });
@@ -2734,6 +2763,105 @@ function renderAdd(){
   $("#micBtn").onclick = voiceSheet;
   $("#camBtn").onclick = imageSheet;
   const sv=$("#adSave"); if(sv) sv.onclick = saveDraft;
+}
+
+/* ---------- Várias datas no mesmo lançamento ---------- */
+let mdView = { y:null, m:null };
+function multiDateSheet(){
+  const t = todayISO();
+  const sel = new Set(draftDates());
+  const d0 = fromISO(draft.date);
+  mdView = { y:d0.getFullYear(), m:d0.getMonth() };
+  const grid = ()=>{
+    const y=mdView.y, m=mdView.m;
+    const first = new Date(y,m,1);
+    const start = addDays(toISO(first), -first.getDay());
+    const entryDates = new Set(S.entries.map(e=>e.date));
+    let cells="";
+    for(let i=0;i<42;i++){
+      const day = addDays(start,i), dd=fromISO(day);
+      const out = dd.getMonth()!==m, future = day>t;
+      cells += `<button class="cal-cell ${out?"out":""} ${day===t?"today":""} ${sel.has(day)?"sel":""}" data-md="${day}" ${future?"disabled style=\"opacity:.28\"":""}>
+        <span>${dd.getDate()}</span>
+        <span class="cd">${occurrences(day).slice(0,3).map(o=>`<i style="background:${SLOTS[locById(o.locId).slot]}"></i>`).join("")}</span>
+        ${entryDates.has(day)?'<span class="pb"></span>':""}
+      </button>`;
+    }
+    return `<div class="cal-head">
+        <div class="cal-title">${MONTHS_L[m]} ${y}</div>
+        <div class="cal-nav">
+          <button id="mdPrev" aria-label="mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button id="mdNext" aria-label="próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="cal-grid">
+        ${["D","S","T","Q","Q","S","S"].map(x=>`<span class="cal-dow">${x}</span>`).join("")}
+        ${cells}
+      </div>`;
+  };
+  const paint = el=>{
+    $("#mdGrid",el).innerHTML = grid();
+    const arr = Array.from(sel).sort();
+    $("#mdCount",el).textContent = arr.length===1
+      ? "1 data selecionada" : `${arr.length} datas selecionadas`;
+    $("#mdList",el).innerHTML = arr.map(d=>
+      `<button class="chip on" data-mdrm="${d}">${esc(fmtDateShort(d))} ✕</button>`).join("");
+    bind(el);
+  };
+  const bind = el=>{
+    $("#mdPrev",el).onclick=()=>{ mdView.m--; if(mdView.m<0){mdView.m=11;mdView.y--;} paint(el); };
+    $("#mdNext",el).onclick=()=>{ mdView.m++; if(mdView.m>11){mdView.m=0;mdView.y++;} paint(el); };
+    $$("[data-md]",el).forEach(b=> b.onclick=()=>{
+      const d=b.dataset.md;
+      if(sel.has(d)){
+        if(sel.size===1){ toast("Deixe ao menos uma data"); return; }
+        sel.delete(d);
+      } else sel.add(d);
+      paint(el);
+    });
+    $$("[data-mdrm]",el).forEach(b=> b.onclick=()=>{
+      if(sel.size===1){ toast("Deixe ao menos uma data"); return; }
+      sel.delete(b.dataset.mdrm); paint(el);
+    });
+  };
+  openSheet(`
+    <h3>Lançar em várias datas</h3>
+    <div class="sheet-body">
+      <p class="note" style="margin-bottom:12px">Toque nos dias em que você fez <b style="color:var(--text)">a mesma produção</b>. O conjunto de exames que você montar será gravado igual em cada data (dias futuros ficam bloqueados).</p>
+      <div class="conv-chips" style="margin-bottom:12px">
+        <button class="chip" id="mdWeek">Últimos 7 dias</button>
+        <button class="chip" id="mdWeekdays">Dias úteis desta semana</button>
+        <button class="chip" id="mdOnly">Só a data atual</button>
+      </div>
+      <div id="mdGrid"></div>
+      <p class="note" id="mdCount" style="margin:12px 0 6px;font-weight:700;color:var(--text)"></p>
+      <div class="conv-chips" id="mdList"></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="mdCancel">Cancelar</button>
+      <button class="btn btn-primary" id="mdOk">Usar estas datas</button>
+    </div>`,
+    el=>{
+      paint(el);
+      $("#mdWeek",el).onclick=()=>{ for(let i=0;i<7;i++) sel.add(addDays(t,-i)); paint(el); };
+      $("#mdWeekdays",el).onclick=()=>{
+        const ws=weekStart(t);
+        for(let i=0;i<5;i++){ const d=addDays(ws,i); if(d<=t) sel.add(d); }
+        if(!sel.size) sel.add(t);
+        paint(el);
+      };
+      $("#mdOnly",el).onclick=()=>{ sel.clear(); sel.add(draft.date); paint(el); };
+      $("#mdCancel",el).onclick=closeSheet;
+      $("#mdOk",el).onclick=()=>{
+        const arr=Array.from(sel).sort();
+        if(!arr.length){ toast("Escolha ao menos uma data"); return; }
+        draft.date = arr[0];
+        draft.dates = arr.slice(1);
+        closeSheet();
+        toast(arr.length>1? arr.length+" datas selecionadas" : "1 data selecionada");
+        renderAdd();
+      };
+    });
 }
 
 /* ---------- Lançamento por voz ---------- */
@@ -3244,17 +3372,22 @@ function saveDraft(){
   if(!items.length) return;
   const missing = items.filter(([id])=>getPrice(draft.locId,id,draft.conv)==null);
   if(missing.length){ missingPriceSheet(missing); return; }
+  const dates = draftDates();
   try{
-    items.forEach(([id,n])=>{
-      S.entries.push({ id:"e"+(++S.entrySeq), date:draft.date, locId:draft.locId,
-        examId:id, conv:draft.conv, qty:n, unit:getPrice(draft.locId,id,draft.conv), paid:false });
+    dates.forEach(dt=>{
+      items.forEach(([id,n])=>{
+        S.entries.push({ id:"e"+(++S.entrySeq), date:dt, locId:draft.locId,
+          examId:id, conv:draft.conv, qty:n, unit:getPrice(draft.locId,id,draft.conv), paid:false });
+      });
     });
     S.last = {locId:draft.locId, conv:draft.conv};
     save();
   }catch(err){ toast("Erro ao salvar: "+err.message); return; }
   const tot = items.reduce((s,[id,n])=>s+n,0);
-  draft.qty={}; draft.search="";
-  toast(tot+" exame"+(tot===1?"":"s")+" lançado"+(tot===1?"":"s")+"!");
+  draft.qty={}; draft.search=""; draft.dates=[];
+  toast(dates.length>1
+    ? `${tot*dates.length} exames lançados em ${dates.length} datas!`
+    : tot+" exame"+(tot===1?"":"s")+" lançado"+(tot===1?"":"s")+"!");
   nav("dash");
 }
 
@@ -3539,10 +3672,20 @@ function ruleFirstOcc(r, startBase){
   }
   return first;
 }
+const REM_OPTS = [[10,"10 min"],[30,"30 min"],[60,"1 h"],[120,"2 h"],[240,"4 h"],[720,"12 h"],[1440,"1 dia"],[2880,"2 dias"]];
+function remLabel(m){
+  const o = REM_OPTS.find(x=>x[0]===m);
+  if(o) return o[1];
+  if(m%1440===0) return (m/1440)+" dia"+(m/1440>1?"s":"");
+  if(m%60===0) return (m/60)+" h";
+  return m+" min";
+}
 function buildICS(){
   const t = todayISO();
   const L = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//RadFin//Agenda//PT","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
-  const alarm = (S.cal.reminder>0) ? ["BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Plantão","TRIGGER:-PT"+S.cal.reminder+"M","END:VALARM"] : [];
+  // um VALARM por lembrete escolhido (o app de agenda dispara todos)
+  const alarm = (S.cal.reminders||[]).reduce((acc,mins)=>acc.concat(
+    ["BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc("Plantão em "+remLabel(mins)),"TRIGGER:-PT"+mins+"M","END:VALARM"]), []);
   const push = (uid, dtLines, title, det, extra)=>{
     L.push("BEGIN:VEVENT","UID:"+uid+"@radfin","DTSTAMP:"+icsDT(t,"00:00"));
     dtLines.forEach(x=>L.push(x));
@@ -4911,9 +5054,13 @@ function renderCfg(){
     </div>
     <div class="card">
       <div class="card-title">Agenda &amp; lembretes <span class="hint">Google · Apple</span></div>
-      <div class="field"><label>Lembrete antes do plantão</label>
-        <div class="conv-chips">${[[0,"Nenhum"],[30,"30 min"],[60,"1 h"],[120,"2 h"],[1440,"1 dia"]].map(([v,l])=>
-          `<button class="chip ${S.cal.reminder===v?"on":""}" data-rem="${v}">${l}</button>`).join("")}</div></div>
+      <div class="field"><label>Lembretes antes do plantão <span class="mut" style="font-weight:500">(pode marcar vários)</span></label>
+        <div class="conv-chips">${REM_OPTS.map(([v,l])=>
+          `<button class="chip ${S.cal.reminders.includes(v)?"on":""}" data-rem="${v}">${l}</button>`).join("")}
+          <button class="chip ${S.cal.reminders.length?"":"on"}" data-rem="0">Nenhum</button></div>
+        <p class="note" style="margin-top:8px">${S.cal.reminders.length
+          ? `Cada plantão exportado leva <b style="color:var(--text)">${S.cal.reminders.length} alerta${S.cal.reminders.length===1?"":"s"}</b>: ${S.cal.reminders.map(remLabel).join(" · ")} antes do início.`
+          : "Nenhum alerta será embutido nos plantões exportados."}</p></div>
       <div class="field"><label>Resumo da semana às segundas (07:30)</label>
         <div class="conv-chips">
           <button class="chip ${S.cal.weekly?"on":""}" data-wk="1">Ativado</button>
@@ -4993,7 +5140,7 @@ function renderCfg(){
       <p class="note" style="margin-bottom:12px">Refaça o tour guiado pela interface ou reveja as telas de boas-vindas a qualquer momento — o mesmo que o botão <b style="color:var(--text)">?</b> na barra do topo.</p>
       <button class="btn btn-sm" id="cfHelp" style="width:100%">? Ajuda e tour guiado</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.9.1 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.10 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   bindNoCode();
@@ -5002,7 +5149,14 @@ function renderCfg(){
   $("#cfProfSwitch").onclick=()=> showLogin("pick");
   $("#cfFeeForm").onclick=()=> feeFormSheet();
   $("#cfMods").onclick=()=> profileSheet(()=>renderCfg());
-  $$("[data-rem]").forEach(b=> b.onclick=()=>{ S.cal.reminder=+b.dataset.rem; save(); renderCfg(); });
+  $$("[data-rem]").forEach(b=> b.onclick=()=>{
+    const v=+b.dataset.rem;
+    if(v===0) S.cal.reminders=[];
+    else if(S.cal.reminders.includes(v)) S.cal.reminders=S.cal.reminders.filter(x=>x!==v);
+    else S.cal.reminders=S.cal.reminders.concat([v]).sort((a,b2)=>a-b2);
+    S.cal.reminder = S.cal.reminders.length? S.cal.reminders[0] : 0;
+    save(); renderCfg();
+  });
   $$("[data-wk]").forEach(b=> b.onclick=()=>{ S.cal.weekly=b.dataset.wk==="1"; save(); renderCfg(); });
   $("#cfIcs").onclick=icsExport;
   $$("[data-taxp]").forEach(b=> b.onclick=()=>{
@@ -5323,6 +5477,54 @@ function bindLoginImport(){
   b.onclick=()=>f.click();
   f.onchange=e=>{ const file=e.target.files[0]; if(file) loginImportBackup(file); e.target.value=""; };
 }
+let loginManage = false;
+function loginBackup(prof){
+  try{
+    const raw = store.get("radfin.v1."+prof.id);
+    const data = raw? JSON.parse(raw) : {};
+    data.profile = { name:prof.name, crm:prof.crm||"", spec:prof.spec||"", salt:prof.salt, hash:prof.hash };
+    const blob = new Blob([JSON.stringify(data)],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="radfin-backup-"+normName(prof.name).replace(/ /g,"-")+"-"+todayISO()+".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast("Backup de "+prof.name.split(" ")[0]+" baixado");
+  }catch(_){ toast("Não foi possível gerar o backup"); }
+}
+function deleteProfileSheet(prof){
+  let n=0, nl=0;
+  try{ const d=JSON.parse(store.get("radfin.v1."+prof.id)||"{}");
+       n=(d.entries||[]).length; nl=(d.locations||[]).length; }catch(_){}
+  openSheet(`
+    <h3>Excluir ${esc(prof.name)}?</h3>
+    <div class="sheet-body">
+      <p class="note" style="font-size:13.5px;margin-bottom:12px">Isto apaga <b style="color:var(--text)">deste aparelho</b> o usuário e tudo que pertence a ele: ${fmtN(n)} lançamento${n===1?"":"s"}, ${nl} local${nl===1?"":"is"}, agenda, despesas e tabelas de preço. <b style="color:var(--crit-text)">Não dá para desfazer.</b></p>
+      <button class="btn" id="dpBackup" style="margin-bottom:12px">⬇ Baixar backup antes de excluir</button>
+      <p class="note">Com o backup em mãos você pode restaurar este usuário depois, em qualquer aparelho, pelo botão "Já uso o RadFin — importar meu backup".</p>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn" id="dpCancel">Cancelar</button>
+      <button class="btn btn-danger" id="dpOk">Excluir</button>
+    </div>`,
+    el=>{
+      $("#dpCancel",el).onclick=closeSheet;
+      $("#dpBackup",el).onclick=()=>loginBackup(prof);
+      $("#dpOk",el).onclick=()=>{
+        closeSheet();
+        confirmSheet("Confirmar exclusão","Última confirmação: os dados de "+prof.name+" serão apagados deste aparelho.","Excluir definitivamente",()=>{
+          store.del("radfin.v1."+prof.id);
+          REG.list = REG.list.filter(x=>x.id!==prof.id);
+          if(REG.last===prof.id) REG.last=null;
+          saveReg();
+          if(PID===prof.id){ PID=null; S=null; }
+          toast("Usuário excluído");
+          if(!REG.list.length){ loginManage=false; showLogin("create"); }
+          else showLogin("pick");
+        });
+      };
+    });
+}
 function showLogin(mode){
   const el = $("#login");
   el.classList.remove("hidden");
@@ -5372,13 +5574,17 @@ function showLogin(mode){
   el.innerHTML = `<div class="login-box">${logo}
     <p class="note txt-c" style="margin-bottom:14px;font-size:13px">Quem está usando?</p>
     ${REG.list.map(p=>`
-      <button class="user-card" data-lg="${p.id}">
+      <button class="user-card ${loginManage?"managing":""}" data-lg="${p.id}">
         <span class="avatar">${esc(initials(p.name))}</span>
         <span class="uc-main"><span class="uc-name" style="display:block">${esc(p.name)}</span>
         <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
         ${p.credId&&FACE_OK?'<span class="uc-face">Face ID</span><svg class="lock" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V6a3 3 0 0 1 3-3h2M16 3h2a3 3 0 0 1 3 3v2M21 16v2a3 3 0 0 1-3 3h-2M8 21H6a3 3 0 0 1-3-3v-2"/><path d="M8 10v1M16 10v1M9.5 15.5c.7.7 1.6 1 2.5 1s1.8-.3 2.5-1"/></svg>':(p.hash?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':"")}
+        ${loginManage?`<span class="uc-del" data-del="${p.id}" role="button" aria-label="Excluir ${esc(p.name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </span>`:""}
       </button>`).join("")}
     <button class="btn" id="lgNew" style="margin-top:6px">+ Novo usuário</button>
+    <button id="lgManage" style="display:block;width:100%;margin-top:12px;color:${loginManage?"var(--accent)":"var(--muted)"};font-weight:700;font-size:12.5px">${loginManage?"✓ Concluir":"⚙︎ Gerenciar usuários (excluir)"}</button>
     ${REG.list.some(p=>p.credId)&&FACE_OK?'<p class="note txt-c" style="margin-top:10px;font-size:12px">Toque no seu nome para entrar com Face ID.</p>':""}
     <p class="note txt-c" id="lgFaceNote" style="margin-top:8px;font-size:11.5px;color:var(--muted)"></p>
     <div id="lgPwdBox"></div>
@@ -5405,7 +5611,15 @@ function showLogin(mode){
     $("#lgTry").onclick=tryGo;
     inp.onkeydown=e=>{ if(e.key==="Enter") tryGo(); };
   };
+  const mg=$("#lgManage");
+  if(mg) mg.onclick=()=>{ loginManage=!loginManage; showLogin("pick"); };
+  $$("[data-del]").forEach(d=> d.addEventListener("click", ev=>{
+    ev.stopPropagation(); ev.preventDefault();
+    const p = REG.list.find(x=>x.id===d.dataset.del);
+    if(p) deleteProfileSheet(p);
+  }));
   $$("[data-lg]").forEach(b=> b.onclick=async ()=>{
+    if(loginManage) return;                 // no modo gerenciar o cartão não entra
     const p = REG.list.find(x=>x.id===b.dataset.lg);
     if(!p) return;
     // 1º: biometria, se ativada e disponível
@@ -5426,7 +5640,7 @@ function showLogin(mode){
 function enterProfile(id){
   PID=id; REG.last=id; saveReg();
   // zera estados de sessão do perfil anterior
-  draft.qty={}; draft.locId=null; draft.conv=null; draft.search=""; draft.mod="all";
+  draft.qty={}; draft.locId=null; draft.conv=null; draft.search=""; draft.mod="all"; draft.dates=[]; draft.date=todayISO();
   locView.locId=null; locView.mode=null;
   F.loc=F.conv=F.mod=F.exam="all"; F.period="month";
   agView.sel=todayISO(); agView.y=null;
