@@ -3774,7 +3774,8 @@ function bindAgenda(){
 
 /* ---------- Sheets de compromisso ---------- */
 function commitmentSheet(date){
-  let locId = S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id;
+  const firstId = S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id;
+  const locIds = new Set([firstId]);   // múltiplos locais no mesmo lançamento
   let period = PERIODS[0], repeat = true, timeMode = false;
   const dow = fromISO(date).getDay();
   const perHint = p => PERIOD_TIMES[p]? PERIOD_TIMES[p][0]+"–"+PERIOD_TIMES[p][1] : "";
@@ -3782,9 +3783,16 @@ function commitmentSheet(date){
     <h3>Novo compromisso</h3>
     <div class="sheet-body">
       <p class="note" style="margin-bottom:14px">${esc(fmtDateLong(date))}</p>
-      <div class="field"><label>Local</label><div class="conv-chips" id="cmLocs">${
-        S.locations.map(l=>`<button class="chip ${l.id===locId?"on":""}" data-l="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
-      }</div></div>
+      <div class="field"><label>Locais <span class="mut" style="font-weight:500">(pode marcar mais de um)</span></label>
+        <div class="conv-chips" id="cmLocs">${
+          S.locations.map(l=>`<button class="chip ${locIds.has(l.id)?"on":""}" data-l="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
+        }</div>
+        ${S.locations.length>1?`<div style="display:flex;gap:16px;margin-top:9px">
+          <button id="cmAllLocs" style="color:var(--accent);font-weight:700;font-size:12px">Marcar todos</button>
+          <button id="cmOneLoc" style="color:var(--muted);font-weight:700;font-size:12px">Deixar só um</button>
+        </div>
+        <p class="note" id="cmLocHint" style="margin-top:7px">Toque para incluir ou tirar um local. No computador, <b style="color:var(--text)">Ctrl/⌘ + clique</b> seleciona apenas aquele. Cada local marcado vira um compromisso próprio no mesmo dia e turno.</p>`:""}
+      </div>
       <div class="field"><label>Turno</label><div class="conv-chips" id="cmPer">${
         PERIODS.map((p,i)=>`<button class="chip ${i===0?"on":""}" data-p="${esc(p)}">${esc(p)}</button>`).join("")
       }<button class="chip" id="cmTime">Horário…</button></div></div>
@@ -3810,7 +3818,25 @@ function commitmentSheet(date){
       <button class="btn btn-primary" id="cmOk">Salvar</button>
     </div>`,
     el=>{
-      $$("#cmLocs .chip",el).forEach(c=> c.onclick=()=>{ locId=c.dataset.l; $$("#cmLocs .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
+      const paintLocs = ()=>{
+        $$("#cmLocs .chip",el).forEach(x=> x.classList.toggle("on", locIds.has(x.dataset.l)));
+        const ok=$("#cmOk",el);
+        if(ok) ok.textContent = locIds.size>1? `Salvar em ${locIds.size} locais` : "Salvar";
+      };
+      $$("#cmLocs .chip",el).forEach(c=> c.onclick=ev=>{
+        const id=c.dataset.l;
+        if(ev && (ev.ctrlKey || ev.metaKey)){        // PC/Mac: seleciona só este
+          locIds.clear(); locIds.add(id);
+        } else if(locIds.has(id)){
+          if(locIds.size===1){ toast("Marque ao menos um local"); return; }
+          locIds.delete(id);
+        } else locIds.add(id);
+        paintLocs();
+      });
+      const allB=$("#cmAllLocs",el);
+      if(allB) allB.onclick=()=>{ S.locations.forEach(l=>locIds.add(l.id)); paintLocs(); };
+      const oneB=$("#cmOneLoc",el);
+      if(oneB) oneB.onclick=()=>{ const keep=Array.from(locIds)[0]||firstId; locIds.clear(); locIds.add(keep); paintLocs(); };
       const timeBtn=$("#cmTime",el), timeBox=$("#cmTimeBox",el);
       $$("#cmPer .chip",el).forEach(c=>{ if(c===timeBtn) return; c.onclick=()=>{
         period=c.dataset.p; timeMode=false; timeBox.classList.add("hidden");
@@ -3825,17 +3851,24 @@ function commitmentSheet(date){
       $("#cmCancel",el).onclick=closeSheet;
       $("#cmOk",el).onclick=()=>{
         const note=$("#cmNote",el).value.trim();
-        const id="a"+(++S.agenda.seq);
-        const base = {id, locId, note};
+        const ids = S.locations.map(l=>l.id).filter(id=>locIds.has(id));
+        if(!ids.length){ toast("Marque ao menos um local"); return; }
+        const shape = {note};
         if(timeMode){
           const st=$("#cmStart",el).value, en=$("#cmEnd",el).value;
           if(!st||!en){ toast("Informe início e fim"); return; }
-          base.period="Horário"; base.start=st; base.end=en;
-        } else base.period=period;
-        if(freq!=="once") S.agenda.rules.push({...base, dow, from:date, freq});
-        else S.agenda.events.push({...base, date});
+          shape.period="Horário"; shape.start=st; shape.end=en;
+        } else shape.period=period;
+        ids.forEach(lid=>{
+          const base = {id:"a"+(++S.agenda.seq), locId:lid, ...shape};
+          if(freq!=="once") S.agenda.rules.push({...base, dow, from:date, freq});
+          else S.agenda.events.push({...base, date});
+        });
         save(); closeSheet();
-        toast(freq==="once"? "Compromisso adicionado" : "Compromisso "+FREQ_LABEL[freq]+" criado");
+        const n=ids.length;
+        toast(n>1
+          ? `${n} compromissos criados${freq==="once"?"":" · "+FREQ_LABEL[freq]}`
+          : (freq==="once"? "Compromisso adicionado" : "Compromisso "+FREQ_LABEL[freq]+" criado"));
         renderAgenda();
       };
     });
@@ -4867,7 +4900,7 @@ function renderCfg(){
       <p class="note" style="margin-bottom:12px">Refaça o tour guiado pela interface ou reveja as telas de boas-vindas a qualquer momento — o mesmo que o botão <b style="color:var(--text)">?</b> na barra do topo.</p>
       <button class="btn btn-sm" id="cfHelp" style="width:100%">? Ajuda e tour guiado</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.8 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.9 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   bindNoCode();
