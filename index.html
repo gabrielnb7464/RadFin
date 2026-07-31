@@ -515,6 +515,62 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .mod-flag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;
   padding:2px 6px;border-radius:6px;background:var(--accent-soft);color:var(--accent-text);
   vertical-align:2px;margin-right:6px}
+/* ================= ONBOARDING & TOUR ================= */
+.onb{position:fixed;inset:0;z-index:140;background:var(--bg);display:flex;flex-direction:column;
+  opacity:0;transition:opacity .25s ease}
+.onb.show{opacity:1}
+.onb.hidden{display:none}
+.onb-top{flex:0 0 auto;display:flex;justify-content:flex-end;padding:calc(env(safe-area-inset-top) + 12px) 16px 0}
+.onb-top button{background:none;border:none;color:var(--muted);font-size:13.5px;font-weight:700;padding:6px}
+.onb-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:10px 30px;gap:6px}
+.onb-art{width:104px;height:104px;border-radius:32px;display:flex;align-items:center;justify-content:center;
+  background:var(--accent-soft);margin-bottom:14px}
+.onb-art svg{width:52px;height:52px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.onb-body h2{font-size:23px;font-weight:800;letter-spacing:-.02em;color:var(--text);line-height:1.2}
+.onb-body p{font-size:14.5px;color:var(--muted);line-height:1.55;max-width:330px}
+.onb-dots{display:flex;gap:7px;justify-content:center;margin:20px 0 4px}
+.onb-dots i{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .2s}
+.onb-dots i.on{background:var(--accent);width:20px;border-radius:4px}
+.onb-foot{flex:0 0 auto;padding:0 22px calc(env(safe-area-inset-bottom) + 22px);display:flex;gap:10px}
+.onb-foot .btn{margin:0}
+
+.coach-veil{position:fixed;inset:0;z-index:150;pointer-events:auto;opacity:0;transition:opacity .2s}
+.coach-veil.show{opacity:1}
+.coach-veil.hidden{display:none}
+.coach-hole{position:absolute;border-radius:16px;box-shadow:0 0 0 9999px rgba(8,15,26,.72);
+  border:2px solid var(--accent);transition:all .28s cubic-bezier(.32,.72,0,1);pointer-events:none}
+.coach-tip{position:absolute;left:14px;right:14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:18px;padding:15px 16px 13px;box-shadow:0 18px 44px rgba(0,0,0,.32);transition:top .28s cubic-bezier(.32,.72,0,1)}
+.coach-tip h4{font-size:15.5px;font-weight:800;color:var(--text);margin-bottom:5px;letter-spacing:-.01em}
+.coach-tip p{font-size:13.3px;color:var(--muted);line-height:1.5}
+.coach-nav{display:flex;align-items:center;gap:10px;margin-top:13px}
+.coach-nav .cn-step{flex:1;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.03em}
+.coach-nav button{border:none;border-radius:11px;padding:9px 15px;font-size:13.5px;font-weight:800}
+.coach-nav .cn-skip{background:none;color:var(--muted);padding:9px 8px}
+.coach-nav .cn-next{background:var(--accent);color:#fff}
+
+/* ================= VISUALIZADOR DE DOCUMENTOS ================= */
+.uc-face{flex:0 0 auto;font-size:10.5px;font-weight:800;color:var(--accent);letter-spacing:.03em;text-transform:uppercase;margin-right:2px}
+.docview{position:fixed;inset:0;z-index:120;background:var(--bg);display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1)}
+.docview.show{transform:translateY(0)}
+.docview.hidden{display:none}
+.dv-bar{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 9px) 12px 9px;
+  background:var(--surface);border-bottom:1px solid var(--border);flex:0 0 auto}
+.dv-bar .dv-back{display:flex;align-items:center;gap:5px;color:var(--accent);font-weight:800;font-size:14.5px;
+  background:none;border:none;padding:6px 4px;flex:0 0 auto}
+.dv-bar .dv-back svg{width:18px;height:18px}
+.dv-title{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--text);text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dv-act{flex:0 0 auto;display:flex;gap:4px}
+.dv-act button{background:none;border:none;color:var(--accent);padding:6px;border-radius:9px;display:flex}
+.dv-act button svg{width:20px;height:20px}
+.docview iframe{flex:1;width:100%;border:none;background:#fff}
+.dv-foot{flex:0 0 auto;display:flex;gap:9px;padding:10px 14px calc(env(safe-area-inset-bottom) + 12px);
+  background:var(--surface);border-top:1px solid var(--border)}
+.dv-foot .btn{margin:0}
+
 /* ================= LOGIN / USUÁRIOS ================= */
 .login{position:fixed;inset:0;z-index:120;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;
   display:flex;align-items:center;justify-content:center;
@@ -572,6 +628,9 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
       <div class="appbar-date" id="appbarDate"></div>
       <button class="icon-btn" id="userBtn" aria-label="Usuário"></button>
       <button class="icon-btn" id="themeBtn" aria-label="Alternar tema claro/escuro"></button>
+      <button class="icon-btn" id="helpBtn" aria-label="Ajuda e tour guiado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.9 2.9 0 0 1 5.6 1c0 1.9-2.8 2.4-2.8 4"/><path d="M12 17.4h.01"/></svg>
+      </button>
       <button class="icon-btn" id="cfgBtn" aria-label="Ajustes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.09a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
       </button>
@@ -579,6 +638,30 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
   </header>
 
   <main id="view"></main>
+</div>
+
+<div id="onb" class="onb hidden" aria-hidden="true"></div>
+<div id="coach" class="coach-veil hidden" aria-hidden="true">
+  <div class="coach-hole" id="coachHole"></div>
+  <div class="coach-tip" id="coachTip"></div>
+</div>
+
+<div id="docView" class="docview hidden" aria-hidden="true">
+  <div class="dv-bar">
+    <button class="dv-back" id="dvBack" aria-label="Voltar ao RadFin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>RadFin</button>
+    <div class="dv-title" id="dvTitle"></div>
+    <div class="dv-act">
+      <button id="dvShare" aria-label="Compartilhar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3"/><path d="m8 7 4-4 4 4"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>
+      </button>
+    </div>
+  </div>
+  <iframe id="dvFrame" title="Documento"></iframe>
+  <div class="dv-foot">
+    <button class="btn" id="dvDown">⬇ Baixar</button>
+    <button class="btn btn-primary" id="dvPrint">🖨 Imprimir / PDF</button>
+  </div>
 </div>
 
 <nav class="tabbar">
@@ -676,10 +759,14 @@ const SPECS = ["Radiologia e Diagnóstico por Imagem","Ultrassonografia Geral","
 /* ================== MODALIDADES & CATÁLOGO ==================
    Nomes baseados no Rol ANS / nomenclatura TUSS. O campo `code`
    (código TUSS) é opcional e pode ser preenchido por exame.       */
-const MODS = ["US","DO","RX","TC","RM","MMG","DMO","PROCED"];
+const MODS = ["US","DO","RX","TC","RM","MMG","DMO","PROCED","PLANTAO"];
+/* modalidades de exame (tudo menos plantão, que é item de valor fixo por turno) */
+const EXAM_MODS = MODS.filter(m=>m!=="PLANTAO");
+const SHIFT_MOD = "PLANTAO";
 const MOD_LABELS = {
   US:"Ultrassonografia", DO:"Doppler", RX:"Radiografia", TC:"Tomografia",
-  RM:"Ressonância Magnética", MMG:"Mamografia", DMO:"Densitometria Óssea", PROCED:"Procedimentos"
+  RM:"Ressonância Magnética", MMG:"Mamografia", DMO:"Densitometria Óssea", PROCED:"Procedimentos",
+  PLANTAO:"Plantão (valor fixo)"
 };
 const CATALOG_SEED = [
   /* Base: TABELA DE PREÇOS DE EXAMES (enviada pelo usuário, com códigos TUSS).
@@ -790,48 +877,49 @@ const CATALOG_SEED = [
   ["TC","Segmento apendicular (braço ou antebraço ou mão ou coxa ou perna ou pé) - unilateral","41001150"],
   ["TC","Tórax","41001079"],
   ["TC","Vias urinárias (Urotomografia)","41001362"],
-  ["TC","Angio-TC de crânio",null],
-  ["TC","Angio-TC de tórax",null],
-  ["TC","Angio-TC de abdome",null],
-  ["TC","Angio-TC de aorta",null],
+  ["TC","Angio-TC de crânio","41001168"],
+  ["TC","Angio-TC de tórax","41001168"],
+  ["TC","Angio-TC de abdome","41001168"],
+  ["TC","Angio-TC de aorta abdominal","41001184"],
+  ["TC","Angio-TC de aorta torácica","41001176"],
   /* RM */
-  ["RM","Abdome superior",null],
-  ["RM","Angio-RM de crânio",null],
-  ["RM","Angio-RM cervical",null],
-  ["RM","Pescoço",null],
-  ["RM","Colangiorressonância (colangio-RM)",null],
+  ["RM","Abdome superior","41101170"],
+  ["RM","Angio-RM de crânio","41101324"],
+  ["RM","Angio-RM cervical","41101324"],
+  ["RM","Pescoço","41101111"],
+  ["RM","Colangiorressonância (colangio-RM)","41101359"],
   ["RM","Enterografia por RM",null],
-  ["RM","Coração (morfológica e funcional)",null],
-  ["RM","Mão",null],
-  ["RM","Antebraço",null],
-  ["RM","Braço",null],
-  ["RM","Perna",null],
-  ["RM","Coxa",null],
-  ["RM","Articulações sacroilíacas",null],
-  ["RM","ATM (bilateral)",null],
-  ["RM","Coluna cervical",null],
-  ["RM","Coluna lombar",null],
-  ["RM","Coluna torácica",null],
-  ["RM","Cotovelo",null],
-  ["RM","Crânio",null],
-  ["RM","Joelho",null],
-  ["RM","Mamas",null],
-  ["RM","Ombro",null],
-  ["RM","Pelve",null],
-  ["RM","Próstata (multiparamétrica)",null],
-  ["RM","Punho",null],
-  ["RM","Pé",null],
-  ["RM","Quadril",null],
-  ["RM","Sela túrcica",null],
-  ["RM","Tornozelo",null],
-  ["RM","Órbitas",null],
+  ["RM","Coração (morfológica e funcional)","41101138"],
+  ["RM","Mão","41101260"],
+  ["RM","Antebraço","41101251"],
+  ["RM","Braço","41101251"],
+  ["RM","Perna","41101294"],
+  ["RM","Coxa","41101286"],
+  ["RM","Articulações sacroilíacas","41101278"],
+  ["RM","ATM (bilateral)","41101103"],
+  ["RM","Coluna cervical","41101227"],
+  ["RM","Coluna lombar","41101227"],
+  ["RM","Coluna torácica","41101227"],
+  ["RM","Cotovelo","41101316"],
+  ["RM","Crânio","41101014"],
+  ["RM","Joelho","41101316"],
+  ["RM","Mamas","41101162"],
+  ["RM","Ombro","41101316"],
+  ["RM","Pelve","41101189"],
+  ["RM","Próstata (multiparamétrica)","41101189"],
+  ["RM","Punho","41101316"],
+  ["RM","Pé","41101308"],
+  ["RM","Quadril","41101316"],
+  ["RM","Sela túrcica","41101022"],
+  ["RM","Tornozelo","41101316"],
+  ["RM","Órbitas","41101073"],
   /* MMG */
   ["MMG","AMPLIACAO OU MAGNIFICACAO DE LESAO MAMARIA","40808050"],
   ["MMG","MAMOGRAFIA CONVENCIONAL BILATERAL","40808033"],
   ["MMG","MAMOGRAFIA DIGITAL BILATERAL","40808041"],
   /* DMO */
-  ["DMO","Densitometria óssea (col. + fêmur)",null],
-  ["DMO","Densitometria óssea corpo inteiro",null],
+  ["DMO","Densitometria óssea (col. + fêmur)","40808130"],
+  ["DMO","Densitometria óssea corpo inteiro","40808149"],
   ["DMO","Densitometria óssea de antebraço",null],
   /* PROCED */
   ["PROCED","Ato de coleta de PAAF de órgãos ou estruturas superficiais sem deslocamento do patologista - por nódulo","40601072"],
@@ -844,10 +932,18 @@ const CATALOG_SEED = [
   ["PROCED","Punção biópsia percutânea de mama por agulha fina orientada por US - por nódulo","30602181"],
   ["PROCED","Punção biópsia percutânea de mama por agulha fina orientada por US - por nódulo - 2a lesão em diante","30602181"],
   ["PROCED","Punção biópsia-/aspirativa de órgão ou estrutura superficial orientada por US (por lesão)","40809161"],
-  ["PROCED","Punção biópsia-/aspirativa de órgão ou estrutura superficial orientada por US (por lesão) - 2a lesão em diante","40809161"]
+  ["PROCED","Punção biópsia-/aspirativa de órgão ou estrutura superficial orientada por US (por lesão) - 2a lesão em diante","40809161"],
+  /* PLANTAO — não são procedimentos TUSS: valor fixo por turno, definido por local */
+  ["PLANTAO","Plantão diurno (SD)",null],
+  ["PLANTAO","Plantão noturno (SN)",null]
 ];
+/* ---- Plantão: itens de valor fixo por turno (não contam como exames) ---- */
+function isShiftExam(x){ return !!x && x.mod===SHIFT_MOD; }
+function isShiftEntry(e){ return isShiftExam(examById(e.examId)); }
+function exQty(e){ return isShiftEntry(e)? 0 : (e.qty||0); }
+function onlyExams(list){ return list.filter(e=>!isShiftEntry(e)); }
 const normName = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
-function activeMods(){ return (S.userMods && S.userMods.length)? S.userMods : MODS; }
+function activeMods(){ const l=(S.userMods && S.userMods.length)? S.userMods : EXAM_MODS; return l.filter(m=>m!==SHIFT_MOD); }
 
 /* ---- Apelidos curtos (padr\u00e3o, edit\u00e1veis) para a nomenclatura TUSS longa ---- */
 const ALIAS_BY_CODE = {
@@ -877,6 +973,7 @@ const ALIAS_BY_CODE = {
 };
 function applyAliases(exams){
   exams.forEach(x=>{
+    if(x.mod===SHIFT_MOD && !x.alias){ x.alias = /noturn/i.test(x.name)? "Plantão SN":"Plantão SD"; return; }
     if(x.alias) return;
     const nn = normName(x.name);
     if(x.code==="40901173"){ x.alias = nn.includes("prostata via abdominal")? "Pr\u00f3stata (via abdominal)":"Abd. inferior masculino"; return; }
@@ -962,7 +1059,8 @@ function freshState(){
     expenses: [], expSeq: 0, // despesas {id,name,value,recur,date}
     tax: { pct:0, label:"" },// reserva de impostos
     glosas: [], glosaSeq: 0, // conferência de repasse {id,date,locId,expected,received}
-    catalogV: 6
+    onb: { done:false, v:1 },   // onboarding / walkthrough
+    catalogV: 7
   };
 }
 /* Renomeações de nomes antigos → nomenclatura oficial da tabela (preservando id, preços e lançamentos) */
@@ -1067,6 +1165,28 @@ function migrate(){
     applyAliases(S.exams);
     S.catalogV=6;
   }
+  // v7: códigos TUSS que faltavam (RM/TC/DMO), Angio-TC de aorta separada e itens de Plantão
+  if(S.catalogV<7){
+    const oldAorta = S.exams.find(x=>x.mod==="TC" && normName(x.name)===normName("Angio-TC de aorta"));
+    if(oldAorta && !S.exams.some(x=>x!==oldAorta && x.mod==="TC" && normName(x.name)===normName("Angio-TC de aorta abdominal"))){
+      oldAorta.name="Angio-TC de aorta abdominal"; oldAorta.code="41001184";
+    }
+    CATALOG_SEED.forEach(c=>{
+      if(!S.exams.some(e=>e.mod===c[0] && normName(e.name)===normName(c[1]))){
+        const o={id:"x"+(++S.examSeq), mod:c[0], name:c[1]}; if(c[2]) o.code=c[2];
+        S.exams.push(o);
+      }
+    });
+    // anexa o código TUSS oficial a quem ainda não tem (sem mexer em quem já tem)
+    S.exams.forEach(x=>{
+      if(x.code) return;
+      const c = CATALOG_SEED.find(s2=>s2[0]===x.mod && normName(s2[1])===normName(x.name));
+      if(c && c[2]) x.code=c[2];
+    });
+    applyAliases(S.exams);
+    S.catalogV=7;
+  }
+  if(!S.onb || typeof S.onb!=="object") S.onb={ done: (S.locations.length>0 || S.entries.length>0), v:1 };
   applySynonyms(S.exams);
   if(!S.learn || typeof S.learn!=="object") S.learn={};
   if(!Array.isArray(S.expenses)) S.expenses=[];
@@ -1394,7 +1514,7 @@ function sumBy(arr, keyFn){
   arr.forEach(e=>{
     const k = keyFn(e);
     const cur = m.get(k)||{v:0,q:0};
-    cur.v += entryValue(e); cur.q += e.qty;
+    cur.v += entryValue(e); cur.q += exQty(e);
     m.set(k,cur);
   });
   return m;
@@ -1405,7 +1525,7 @@ function renderDash(){
   const [from,to,label] = periodRange();
   const ent = filteredEntries([from,to]);
   const total = ent.reduce((s,e)=>s+entryValue(e),0);
-  const nEx   = ent.reduce((s,e)=>s+e.qty,0);
+  const nEx   = ent.reduce((s,e)=>s+exQty(e),0);
   const days  = new Set(ent.map(e=>e.date)).size;
 
   // período anterior de mesmo tamanho p/ delta
@@ -1879,7 +1999,7 @@ function hourlyStats(from,to){
     if(F.loc!=="all" && e.locId!==F.loc) return;
     const k=e.date+"|"+e.locId;
     const c=dayMap.get(k)||{v:0,q:0};
-    c.v+=entryValue(e); c.q+=e.qty; dayMap.set(k,c);
+    c.v+=entryValue(e); c.q+=exQty(e); dayMap.set(k,c);
   });
   const byLoc = new Map();
   dayMap.forEach((c,k)=>{
@@ -1952,6 +2072,212 @@ function profitCard(mp){
   </section>`;
 }
 
+
+/* ================== ONBOARDING & TOUR GUIADO ==================
+   Primeiro uso: slides de boas-vindas → tour interativo com destaque nos
+   elementos reais da interface. O botão "?" da barra superior refaz tudo. */
+const ONB_SLIDES = [
+  { icon:'<circle cx="24" cy="24" r="21"/><path d="M14 34v-7M19 34V19M24 34V14.5M29 34v-12.5M34 34v-8.5"/>',
+    t:"Bem-vindo ao RadFin",
+    d:"O app que transforma a sua volumetria diária em faturamento, com honorários diferentes por local, convênio e exame." },
+  { icon:'<path d="M40 20c0 12-16 22-16 22S8 32 8 20a16 16 0 0 1 32 0z"/><circle cx="24" cy="20" r="6"/>',
+    t:"1 · Cadastre seus locais",
+    d:"Clínica, hospital ou plantão: informe os convênios e o valor de cada exame. Dá para importar um formulário preenchido em PDF, foto ou planilha — e agora também definir o valor fixo de plantão SD/SN." },
+  { icon:'<path d="M24 10v28M10 24h28"/>',
+    t:"2 · Lance o dia em segundos",
+    d:"Use os contadores, a busca, os favoritos — ou dite por voz e fotografe a sua lista. O app aprende as suas abreviações." },
+  { icon:'<rect x="6" y="24" width="9" height="16" rx="2"/><rect x="19.5" y="14" width="9" height="26" rx="2"/><rect x="33" y="7" width="9" height="33" rx="2"/>',
+    t:"3 · Acompanhe e negocie",
+    d:"Painel com faturamento, meta, R$/hora por plantão, glosas, impostos e lucro real — além do fechamento mensal em PDF para o contador." }
+];
+let onbIdx = 0;
+function renderOnbSlide(){
+  const sl = ONB_SLIDES[onbIdx], last = onbIdx===ONB_SLIDES.length-1;
+  $("#onb").innerHTML = `
+    <div class="onb-top"><button id="onbSkip">Pular</button></div>
+    <div class="onb-body">
+      <div class="onb-art"><svg viewBox="0 0 48 48">${sl.icon}</svg></div>
+      <h2>${esc(sl.t)}</h2>
+      <p>${esc(sl.d)}</p>
+      <div class="onb-dots">${ONB_SLIDES.map((_,i)=>`<i class="${i===onbIdx?"on":""}"></i>`).join("")}</div>
+    </div>
+    <div class="onb-foot">
+      ${onbIdx>0?'<button class="btn" id="onbPrev" style="flex:0 0 38%">Voltar</button>':""}
+      <button class="btn btn-primary" id="onbNext">${last?"Começar o tour":"Próximo"}</button>
+    </div>`;
+  $("#onbSkip").onclick = ()=>{ closeOnb(); finishOnboarding(); };
+  const pv=$("#onbPrev"); if(pv) pv.onclick=()=>{ onbIdx--; renderOnbSlide(); };
+  $("#onbNext").onclick = ()=>{
+    if(last){ closeOnb(); setTimeout(startTour, 260); }
+    else { onbIdx++; renderOnbSlide(); }
+  };
+}
+function startOnboarding(){
+  onbIdx = 0;
+  const el=$("#onb");
+  el.classList.remove("hidden"); el.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+  renderOnbSlide();
+  requestAnimationFrame(()=> el.classList.add("show"));
+}
+function closeOnb(){
+  const el=$("#onb");
+  el.classList.remove("show");
+  document.body.style.overflow="";
+  setTimeout(()=>{ el.classList.add("hidden"); el.setAttribute("aria-hidden","true"); el.innerHTML=""; },250);
+}
+function finishOnboarding(){
+  if(S){ S.onb = S.onb||{}; S.onb.done = true; S.onb.v = 1; save(); }
+  const p = curProfile();
+  if(p) setTimeout(()=>offerFaceSetup(p), 700);
+}
+
+/* ---------- Tour interativo (coach marks sobre a interface real) ---------- */
+const TOUR_STEPS = [
+  { sel:"[data-tab='locs']", tab:"locs", t:"Comece pelos locais",
+    d:"Cadastre cada clínica, hospital ou plantão com os convênios, os honorários por exame e o valor fixo de plantão (SD/SN)." },
+  { sel:".fab", tab:"add", t:"Lance a volumetria aqui",
+    d:"O botão central abre o lançamento do dia: contadores por exame, busca, favoritos, voz e leitura de foto/PDF/planilha." },
+  { sel:"[data-tab='agenda']", tab:"agenda", t:"Sua agenda de plantões",
+    d:"Marque turnos e recorrências. Com a agenda preenchida, o app projeta o fechamento do mês e calcula o seu R$/hora." },
+  { sel:"[data-tab='hist']", tab:"hist", t:"Histórico em camadas",
+    d:"Navegue do macro ao detalhe: dias › locais › modalidades › exames. Toque em um lançamento para editar ou marcar como recebido." },
+  { sel:"[data-tab='dash']", tab:"dash", t:"O painel reúne tudo",
+    d:"Faturamento, meta do mês, ranking de rentabilidade, glosas, impostos, despesas e o relatório mensal em PDF." },
+  { sel:"#userBtn", t:"Seu perfil e o Face ID",
+    d:"Aqui você edita o cadastro, ativa o login por Face ID / Touch ID e gera o formulário de honorários para enviar a uma instituição." },
+  { sel:"#cfgBtn", t:"Ajustes e backup",
+    d:"Modalidades do perfil, meta, impostos, despesas, tema e — importante — o backup dos seus dados para levar a outro aparelho." },
+  { sel:"#helpBtn", t:"Precisou rever?",
+    d:"Este botão de interrogação abre a ajuda e refaz este tour quando você quiser. Bom trabalho!" }
+];
+let tourIdx = 0, tourOn = false;
+function startTour(){
+  tourIdx = 0; tourOn = true;
+  const v=$("#coach");
+  v.classList.remove("hidden"); v.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+  requestAnimationFrame(()=> v.classList.add("show"));
+  showTourStep();
+}
+function endTour(){
+  tourOn = false;
+  const v=$("#coach");
+  v.classList.remove("show");
+  document.body.style.overflow="";
+  setTimeout(()=>{ v.classList.add("hidden"); v.setAttribute("aria-hidden","true"); },220);
+  finishOnboarding();
+}
+function showTourStep(){
+  const st = TOUR_STEPS[tourIdx];
+  if(!st){ endTour(); return; }
+  if(st.tab && tab!==st.tab){ tab=st.tab; render(); window.scrollTo({top:0}); }
+  setTimeout(()=>{
+    const el = document.querySelector(st.sel);
+    const hole = $("#coachHole"), tip = $("#coachTip");
+    const vh = window.innerHeight;
+    let r = el? el.getBoundingClientRect() : {top:vh/2-30,left:20,width:window.innerWidth-40,height:60,bottom:vh/2+30};
+    const pad = 8;
+    hole.style.top    = Math.max(4, r.top-pad)+"px";
+    hole.style.left   = Math.max(4, r.left-pad)+"px";
+    hole.style.width  = Math.min(window.innerWidth-8, r.width+pad*2)+"px";
+    hole.style.height = (r.height+pad*2)+"px";
+    const last = tourIdx===TOUR_STEPS.length-1;
+    tip.innerHTML = `
+      <h4>${esc(st.t)}</h4>
+      <p>${esc(st.d)}</p>
+      <div class="coach-nav">
+        <span class="cn-step">${tourIdx+1} de ${TOUR_STEPS.length}</span>
+        <button class="cn-skip" id="tourSkip">${last?"":"Pular"}</button>
+        <button class="cn-next" id="tourNext">${last?"Concluir":"Próximo"}</button>
+      </div>`;
+    // posiciona o balão do lado com mais espaço
+    const above = r.top > vh*0.5;
+    tip.style.top = "0px";
+    const h = tip.offsetHeight || 150;
+    tip.style.top = above? Math.max(12, r.top-pad-12-h)+"px" : Math.min(vh-h-12, r.bottom+pad+12)+"px";
+    $("#tourSkip").onclick = endTour;
+    $("#tourNext").onclick = ()=>{ tourIdx++; showTourStep(); };
+  }, st.tab? 260 : 60);
+}
+window.addEventListener("resize", ()=>{ if(tourOn) showTourStep(); });
+
+/* ---------- Sheet de ajuda (botão "?") ---------- */
+function helpSheet(){
+  openSheet(`
+    <h3>Ajuda</h3>
+    <div class="sheet-body">
+      <button class="btn" id="hpTour" style="margin-bottom:10px">▶︎ Refazer o tour guiado</button>
+      <button class="btn" id="hpIntro" style="margin-bottom:16px">👋 Rever as telas de boas-vindas</button>
+      <div class="card-title" style="margin-bottom:8px">Perguntas rápidas</div>
+      <p class="note" style="margin-bottom:9px"><b style="color:var(--text)">Onde ficam meus dados?</b><br>Só neste aparelho, no seu usuário. Use <b style="color:var(--text)">Ajustes → Backup</b> para exportar um arquivo e restaurá-lo em outro celular pela tela de login.</p>
+      <p class="note" style="margin-bottom:9px"><b style="color:var(--text)">Como lançar um plantão de valor fixo?</b><br>No cadastro do local (ou na tabela dele) preencha <b style="color:var(--text)">Plantão SD / SN</b>. Depois, no lançamento do dia, o plantão aparece como um item — some 1 e pronto. Ele entra no faturamento, mas não conta como exame.</p>
+      <p class="note" style="margin-bottom:9px"><b style="color:var(--text)">Gerei um documento e fiquei preso na tela.</b><br>Resolvido: relatórios e formulários abrem dentro do app, com <b style="color:var(--text)">← RadFin</b> no canto superior esquerdo, além de imprimir, baixar e compartilhar.</p>
+      <p class="note"><b style="color:var(--text)">Falta o código TUSS de um exame.</b><br>Toque no nome do exame na tabela do local para editar apelido e código, ou use <b style="color:var(--text)">Ajustes → Exames sem código TUSS</b>.</p>
+    </div>
+    <div class="sheet-foot"><button class="btn" id="hpClose">Fechar</button></div>`,
+    el=>{
+      $("#hpClose",el).onclick=closeSheet;
+      $("#hpTour",el).onclick=()=>{ closeSheet(); setTimeout(startTour,340); };
+      $("#hpIntro",el).onclick=()=>{ closeSheet(); setTimeout(startOnboarding,340); };
+    });
+}
+
+/* ================== VISUALIZADOR DE DOCUMENTOS (in-app) ==================
+   Documentos são exibidos dentro do app, com botão de voltar sempre visível —
+   antes abriam em outra aba e, no modo standalone do iOS, prendiam o usuário. */
+let docState = { html:"", file:"documento.html", title:"", open:false };
+function openDoc(title, html, filename){
+  docState = { html, file: filename || "documento.html", title, open:true };
+  const el=$("#docView"), fr=$("#dvFrame");
+  $("#dvTitle").textContent = title || "Documento";
+  fr.srcdoc = html;
+  el.classList.remove("hidden"); el.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+  requestAnimationFrame(()=> el.classList.add("show"));
+  try{ history.pushState({radfinDoc:1},""); }catch(_){}
+}
+function closeDoc(fromPop){
+  const el=$("#docView");
+  if(!docState.open) return;
+  docState.open=false;
+  el.classList.remove("show");
+  document.body.style.overflow="";
+  setTimeout(()=>{ el.classList.add("hidden"); el.setAttribute("aria-hidden","true"); $("#dvFrame").srcdoc=""; },300);
+  if(!fromPop){ try{ if(history.state && history.state.radfinDoc) history.back(); }catch(_){} }
+}
+window.addEventListener("popstate", ()=>{ if(docState.open) closeDoc(true); });
+function docDownload(){
+  const isDoc = /\.docx?$/i.test(docState.file);
+  const blob = new Blob([(isDoc?"\ufeff":"")+docState.html], {type: isDoc? "application/msword":"text/html;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=docState.file;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  toast("Arquivo baixado · "+docState.file);
+}
+function docPrint(){
+  const fr=$("#dvFrame");
+  try{ fr.contentWindow.focus(); fr.contentWindow.print(); }
+  catch(_){ toast("Use o menu Compartilhar → Imprimir"); }
+}
+async function docShare(){
+  const isDoc = /\.docx?$/i.test(docState.file);
+  const type = isDoc? "application/msword":"text/html";
+  try{
+    const file = new File([docState.html], docState.file, {type});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({ files:[file], title: docState.title });
+      return;
+    }
+  }catch(_){}
+  docDownload();
+}
+$("#dvBack").addEventListener("click", ()=>closeDoc());
+$("#dvPrint").addEventListener("click", docPrint);
+$("#dvDown").addEventListener("click", docDownload);
+$("#dvShare").addEventListener("click", docShare);
+
 /* ================== RELATÓRIO MENSAL (PDF via impressão) ================== */
 const MONTHS_F = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 function reportCard(){
@@ -1987,10 +2313,10 @@ function openMonthlyReport(y,m){
   const tot=ent.reduce((s,e)=>s+entryValue(e),0);
   const net=ent.reduce((s,e)=>s+entryValue(e)*netFactor(e.locId),0);
   const rec=ent.filter(e=>e.paid).reduce((s,e)=>s+entryValue(e),0);
-  const nEx=ent.reduce((s,e)=>s+e.qty,0);
+  const nEx=ent.reduce((s,e)=>s+exQty(e),0);
   const days=new Set(ent.map(e=>e.date)).size;
   const agg=(keyFn)=>{ const mm=new Map(); ent.forEach(e=>{ const k=keyFn(e); if(k==null) return;
-    const c=mm.get(k)||{q:0,v:0,net:0,rec:0}; c.q+=e.qty; const val=entryValue(e); c.v+=val; c.net+=val*netFactor(e.locId); if(e.paid) c.rec+=val; mm.set(k,c); });
+    const c=mm.get(k)||{q:0,v:0,net:0,rec:0}; c.q+=exQty(e); const val=entryValue(e); c.v+=val; c.net+=val*netFactor(e.locId); if(e.paid) c.rec+=val; mm.set(k,c); });
     return Array.from(mm.entries()).sort((a,b)=>b[1].v-a[1].v); };
   const byLoc=agg(e=>{const l=locById(e.locId);return l?l.name:null;});
   const byConv=agg(e=>e.conv||"—");
@@ -2027,7 +2353,7 @@ function openMonthlyReport(y,m){
     <div><h1>Fechamento · ${esc(title)}</h1>
     <p class="sub">${esc(p.name||"")}${p.crm?" · "+esc(p.crm):""}${p.spec?" · "+esc(p.spec):""}</p></div>
   </div>
-  <div class="noprint"><button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button></div>
+  
   <div class="kpis">
     <div class="kpi"><span>Faturamento bruto</span><b>${F2(tot)}</b></div>
     <div class="kpi"><span>Líquido estimado</span><b>${F2(net)}</b></div>
@@ -2058,10 +2384,7 @@ function openMonthlyReport(y,m){
     </tbody></table>`:""}
   <footer>Gerado pelo RadFin em ${esc(fmtDateShort(todayISO()))} · valores conforme tabelas e lançamentos registrados no app.</footer>
   </body></html>`;
-  const w=window.open("","_blank");
-  if(!w){ toast("Permita pop-ups para gerar o relatório"); return; }
-  w.document.write(html); w.document.close();
-  setTimeout(()=>{ try{ w.focus(); w.print(); }catch(_){} }, 700);
+  openDoc("Fechamento · "+title, html, "radfin-fechamento-"+y+"-"+String(m+1).padStart(2,"0")+".html");
 }
 
 /* ================== COMPARATIVO MÊS A MÊS ================== */
@@ -2073,7 +2396,7 @@ function monthCompareCard(){
     const from = toISO(m), to = toISO(new Date(m.getFullYear(), m.getMonth()+1, 0));
     const ent = filteredEntries([from,to]); // aplica filtros de local/convênio/modalidade/exame
     const v = ent.reduce((s,e)=>s+entryValue(e),0);
-    const q = ent.reduce((s,e)=>s+e.qty,0);
+    const q = ent.reduce((s,e)=>s+exQty(e),0);
     rows.push({label: MONTHS_S[m.getMonth()]+(m.getMonth()===0||i===5?"/"+String(m.getFullYear()).slice(2):""), mIdx:m.getMonth(), v, q, cur:i===0});
   }
   if(rows.every(r=>r.v===0)) return "";
@@ -2200,7 +2523,7 @@ function drawTimeSeries(ent, from, to){
     else if(mode==="week"){ const off=Math.floor((fromISO(e.date)-fromISO(from))/86400000/7); k=buckets[off]?buckets[off].key:null; }
     else { const d=fromISO(e.date); k=toISO(new Date(d.getFullYear(),d.getMonth(),1)); }
     const i = idx[k]; if(i==null) return;
-    buckets[i].v += entryValue(e); buckets[i].q += e.qty;
+    buckets[i].v += entryValue(e); buckets[i].q += exQty(e);
   });
 
   const W=480, H=190, padL=44, padR=6, padT=12, padB=26;
@@ -2310,8 +2633,8 @@ function renderAdd(){
   S.entries.forEach(e=>{ if(e.locId===draft.locId) usage[e.examId]=(usage[e.examId]||0)+1; });
   const priced = x => getPrice(draft.locId,x.id,draft.conv)!=null;
   const included = x => (loc.examIds||[]).includes(x.id);
-  const locMods = (loc.mods&&loc.mods.length)? loc.mods : MODS;
-  const panelMods = MODS.filter(m=> locMods.includes(m) || activeMods().includes(m));
+  const locMods = (loc.mods&&loc.mods.length)? loc.mods : EXAM_MODS;
+  const panelMods = MODS.filter(m=> m===SHIFT_MOD? locHasShift(loc) : (locMods.includes(m) || activeMods().includes(m)));
   if(draft.mod!=="all" && !panelMods.includes(draft.mod)) draft.mod="all";
   const q = draft.search.trim();
   let exams = S.exams.filter(x=> panelMods.includes(x.mod) && (draft.mod==="all"||x.mod===draft.mod) && matchExam(x,q));
@@ -2328,7 +2651,7 @@ function renderAdd(){
   const rest = exams.filter(x=>!x.fav);
   const grouped = q? [["Resultados",exams,true]] :
     (favs.length? [["★ Favoritos",favs,true]]:[]).concat(
-      MODS.filter(m=>panelMods.includes(m)).map(m=>[MOD_LABELS[m]||m,rest.filter(x=>x.mod===m),false]).filter(g=>g[1].length));
+      [SHIFT_MOD].concat(MODS.filter(m=>m!==SHIFT_MOD)).filter(m=>panelMods.includes(m)).map(m=>[MOD_LABELS[m]||m,rest.filter(x=>x.mod===m),false]).filter(g=>g[1].length));
 
   const items = Object.entries(draft.qty).filter(([id,n])=>n>0);
   const totQ = items.reduce((s,[,n])=>s+n,0);
@@ -2416,8 +2739,8 @@ function renderAdd(){
 /* ---------- Lançamento por voz ---------- */
 function recogMods(locId){
   const loc = locById(locId||draft.locId);
-  const locMods = (loc&&loc.mods&&loc.mods.length)? loc.mods : MODS;
-  const panel = MODS.filter(m=> locMods.includes(m) || activeMods().includes(m));
+  const locMods = (loc&&loc.mods&&loc.mods.length)? loc.mods : EXAM_MODS;
+  const panel = EXAM_MODS.filter(m=> locMods.includes(m) || activeMods().includes(m));
   return (draft.mod && draft.mod!=="all")? [draft.mod] : panel;
 }
 function recogPool(locId){
@@ -3010,7 +3333,7 @@ function histGroups(list, key){
   const out=Array.from(map, ([v,ent])=>({
     v, ent,
     val: ent.reduce((s,e)=>s+entryValue(e),0),
-    qty: ent.reduce((s,e)=>s+e.qty,0),
+    qty: ent.reduce((s,e)=>s+exQty(e),0),
     pend: ent.some(e=>!e.paid)
   }));
   if(key==="date") out.sort((a,b)=> a.v<b.v?1:-1);
@@ -3040,7 +3363,7 @@ function renderHist(){
 
   const path = histView.path, depth = path.length, scope = histScope();
   const val  = scope.reduce((s,e)=>s+entryValue(e),0);
-  const qty  = scope.reduce((s,e)=>s+e.qty,0);
+  const qty  = scope.reduce((s,e)=>s+exQty(e),0);
   const pend = scope.filter(e=>!e.paid).reduce((s,e)=>s+entryValue(e),0);
   const leaf = depth >= keys.length-1;
   const key  = leaf? null : keys[depth];
@@ -3409,7 +3732,7 @@ function dayDetailCard(stats){
   const occ = occurrences(day);
   const dayEntries = S.entries.filter(e=>e.date===day);
   const rev = dayEntries.reduce((s,e)=>s+entryValue(e),0);
-  const nEx = dayEntries.reduce((s,e)=>s+e.qty,0);
+  const nEx = dayEntries.reduce((s,e)=>s+exQty(e),0);
   const counts={}; occ.forEach(o=>counts[o.locId]=(counts[o.locId]||0)+1);
   return `
   <section class="card">
@@ -3566,7 +3889,7 @@ let locView = { locId:null, conv:null, search:"", mode:null }; // locId=null →
 /* ---------- PERFIL: modalidades do usuário ---------- */
 const CK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 function modCards(selSet, dataAttr){
-  return `<div class="modgrid">${MODS.map(m=>`
+  return `<div class="modgrid">${EXAM_MODS.map(m=>`
     <button class="modcard ${selSet.has(m)?"on":""}" data-${dataAttr}="${m}">
       <span class="mc-check">${CK_SVG}</span>
       <span><b>${m}</b><small>${esc(MOD_LABELS[m])}</small></span>
@@ -3598,11 +3921,19 @@ function profileSheet(onDone){
     });
 }
 
+/* ---------- Plantão por local ---------- */
+function shiftExams(){ return S.exams.filter(isShiftExam); }
+function locHasShift(l){
+  if(!l) return false;
+  if((l.mods||[]).includes(SHIFT_MOD)) return true;
+  return shiftExams().some(x=>Object.keys(S.prices).some(k=>k.startsWith(l.id+"|"+x.id+"|")));
+}
+
 /* ---------- WIZARD: nova instituição ---------- */
-const wiz = { name:"", convs:"", mods:new Set(), checks:{}, prices:{}, search:"", gross:false, taxPct:"" };
+const wiz = { name:"", convs:"", mods:new Set(), checks:{}, prices:{}, search:"", gross:false, taxPct:"", shift:{} };
 function startWizard(){
   if(S.userMods===null){ profileSheet(()=>startWizard()); return; }
-  wiz.name=""; wiz.convs=""; wiz.mods=new Set(); wiz.checks={}; wiz.prices={}; wiz.search=""; wiz.gross=false; wiz.taxPct="";
+  wiz.name=""; wiz.convs=""; wiz.mods=new Set(); wiz.checks={}; wiz.prices={}; wiz.search=""; wiz.gross=false; wiz.taxPct=""; wiz.shift={};
   const am = activeMods();
   if(am.length===1) wiz.mods.add(am[0]);
   locView = { locId:null, conv:null, search:"", mode:"wiz1" };
@@ -3670,8 +4001,9 @@ function renderWiz2(){
   const convs = wiz.convs.split(",").map(s=>s.trim()).filter(Boolean);
   const firstConv = convs[0] || "Padrão";
   const q = wiz.search.trim().toLowerCase();
-  const mods = MODS.filter(m=>wiz.mods.has(m));
+  const mods = EXAM_MODS.filter(m=>wiz.mods.has(m));
   const nSel = Object.keys(wiz.checks).filter(id=>wiz.checks[id]).length;
+  const nShift = Object.keys(wiz.shift).filter(id=>parseMoney(wiz.shift[id])!=null).length;
   $("#view").innerHTML = `<div class="page">
     <button id="wzBack2" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m15 18-6-6 6-6"/></svg>Voltar</button>
@@ -3681,6 +4013,18 @@ function renderWiz2(){
       <p class="note">Marque os exames que você realiza nesta instituição e informe o honorário${convs.length>1?` do convênio <b style="color:var(--text)">${esc(firstConv)}</b> (os demais você ajusta depois na tabela)`:""}. Valores podem ficar em branco e ser definidos depois.</p>
       <button class="btn btn-sm" id="wzImport" style="width:100%;margin-top:12px">⇪ Importar formulário preenchido (PDF, foto, planilha)</button>
       <input type="file" id="wzFile" accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" class="hidden">
+    </div>
+    <div class="card">
+      <div class="card-title">Plantão <span class="hint">valor fixo por turno</span></div>
+      <p class="note" style="margin-bottom:12px">Se esta instituição paga plantão em valor fechado (além ou no lugar da produção), informe abaixo. Depois é só lançar o plantão como um item no dia trabalhado.</p>
+      ${shiftExams().map(x=>`
+        <div class="lrow">
+          <div class="lr-main">
+            <div class="lr-title" style="font-size:13.5px">${esc(dispName(x))}</div>
+            <div class="lr-sub">${/noturn/i.test(x.name)?"Plantão noturno":"Plantão diurno"} · valor fixo por turno</div>
+          </div>
+          <input class="price-input ${wiz.shift[x.id]?"":"noval"}" inputmode="decimal" placeholder="R$ —" data-wsh="${x.id}" value="${esc(wiz.shift[x.id]||"")}">
+        </div>`).join("")}
     </div>
     <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
       <input class="input" id="wzSearch" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Buscar exame…" value="${esc(wiz.search)}"></div>
@@ -3708,7 +4052,7 @@ function renderWiz2(){
       }).join("") || '<p class="note" style="padding:16px 0">Nenhum exame encontrado.</p>'}
     </div>
     <button class="total-bar" id="wzDone" style="border:none;width:100%">
-      <span class="tb-l">Concluir cadastro<small>${nSel} exame${nSel===1?"":"s"} incluído${nSel===1?"":"s"}</small></span>
+      <span class="tb-l">Concluir cadastro<small>${nSel} exame${nSel===1?"":"s"} incluído${nSel===1?"":"s"}${nShift?` · ${nShift} plantão${nShift===1?"":"s"}`:""}</small></span>
       <span class="tb-r">✓</span>
     </button>
   </div>`;
@@ -3754,6 +4098,10 @@ function renderWiz2(){
         };
       });
   });
+  $$("[data-wsh]").forEach(inp=>{
+    inp.oninput = ()=>{ wiz.shift[inp.dataset.wsh]=inp.value; inp.classList.toggle("noval", !inp.value); };
+    inp.onclick = e=> e.stopPropagation();
+  });
   $("#wzImport").onclick=()=>$("#wzFile").click();
   $("#wzFile").onchange=async e=>{
     const f=e.target.files[0]; e.target.value=""; if(!f) return;
@@ -3781,18 +4129,27 @@ function finishWizard(){
   const firstConv = list[0];
   const id = "l"+(++S.locSeq);
   const examIds = Object.keys(wiz.checks).filter(k=>wiz.checks[k]);
+  const shiftIds = Object.keys(wiz.shift).filter(k=>parseMoney(wiz.shift[k])!=null);
   const taxV = parseMoney(String(wiz.taxPct||"")) || 0;
+  const mods = EXAM_MODS.filter(m=>wiz.mods.has(m));
+  if(shiftIds.length) mods.push(SHIFT_MOD);
   S.locations.push({ id, name:wiz.name.trim(), slot:(S.locSeq-1)%8,
-    convenios:list, mods:MODS.filter(m=>wiz.mods.has(m)), examIds,
+    convenios:list, mods, examIds: examIds.concat(shiftIds),
     gross: !!wiz.gross, taxPct: wiz.gross? taxV : 0 });
   let nPriced=0;
   examIds.forEach(xid=>{
     const v = parseMoney(wiz.prices[xid]||"");
     if(v!=null && v>=0){ S.prices[pKey(id,xid,firstConv)] = v; nPriced++; }
   });
+  // plantão: valor fixo vale para todos os convênios do local
+  shiftIds.forEach(xid=>{
+    const v = parseMoney(wiz.shift[xid]);
+    if(v==null || v<0) return;
+    list.forEach(c=> S.prices[pKey(id,xid,c)] = v);
+  });
   save();
   locView = { locId:id, conv:firstConv, search:"", mode:null };
-  toast(`Instituição criada · ${nPriced} preço${nPriced===1?"":"s"} definido${nPriced===1?"":"s"}`);
+  toast(`Instituição criada · ${nPriced} preço${nPriced===1?"":"s"} definido${nPriced===1?"":"s"}${shiftIds.length?` · plantão configurado`:""}`);
   render();
   window.scrollTo({top:0});
 }
@@ -3940,10 +4297,12 @@ function renderLocDetail(){
   const convs = l.convenios.length? l.convenios:["Padrão"];
   if(!locView.conv || !convs.includes(locView.conv)) locView.conv = convs[0];
   const q = locView.search.trim().toLowerCase();
-  const locMods = (l.mods&&l.mods.length)? l.mods : MODS;
-  const priced = S.exams.filter(x=> locMods.includes(x.mod) && S.prices[pKey(l.id,x.id,locView.conv)]!=null );
+  const baseMods = (l.mods&&l.mods.length)? l.mods : EXAM_MODS;
+  const locMods = baseMods.includes(SHIFT_MOD)? baseMods : baseMods.concat([SHIFT_MOD]); // plantão sempre configurável
+  const priced = S.exams.filter(x=> locMods.includes(x.mod) && !isShiftExam(x) && S.prices[pKey(l.id,x.id,locView.conv)]!=null );
   let exams = S.exams.filter(x=> locMods.includes(x.mod) && (!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q) || (x.code||"").includes(q)));
-  const grouped = MODS.filter(m=>locMods.includes(m)).map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
+  const ordMods = [SHIFT_MOD].concat(MODS.filter(m=>m!==SHIFT_MOD)); // plantão primeiro
+  const grouped = ordMods.filter(m=>locMods.includes(m)).map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
 
   $("#view").innerHTML = `<div class="page">
     <button id="locBack" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
@@ -3988,8 +4347,19 @@ function renderLocDetail(){
     inp.onchange=()=>{
       const v=parseMoney(inp.value);
       const k=pKey(l.id,inp.dataset.px,locView.conv);
+      const xid = inp.dataset.px, xx = examById(xid);
       if(v==null){ delete S.prices[k]; inp.value=""; inp.classList.add("noval"); }
       else { S.prices[k]=v; inp.value=v.toLocaleString("pt-BR",{minimumFractionDigits:2}); inp.classList.remove("noval"); }
+      if(isShiftExam(xx)){
+        // plantão é valor fixo do local: replica para os demais convênios
+        (l.convenios.length? l.convenios:["Padrão"]).forEach(c=>{
+          const kk=pKey(l.id,xid,c);
+          if(v==null) delete S.prices[kk]; else S.prices[kk]=v;
+        });
+        if(!Array.isArray(l.mods)) l.mods=[];
+        if(v!=null && !l.mods.includes(SHIFT_MOD)) l.mods.push(SHIFT_MOD);
+        if(v!=null && Array.isArray(l.examIds) && !l.examIds.includes(xid)) l.examIds.push(xid);
+      }
       save();
     };
   });
@@ -4045,7 +4415,7 @@ function adjustPricesSheet(){
 function simulatorSheet(){
   const to=todayISO(), from=addDays(to,-89);
   const ent=S.entries.filter(e=>e.date>=from&&e.date<=to);
-  const v=ent.reduce((s,e)=>s+entryValue(e),0), q=ent.reduce((s,e)=>s+e.qty,0);
+  const v=ent.reduce((s,e)=>s+entryValue(e),0), q=ent.reduce((s,e)=>s+exQty(e),0);
   const ticket=q? v/q : 0;
   const keepLoc=F.loc; F.loc="all";
   let hmin=0,hv=0; hourlyStats(from,to).forEach(c=>{ hmin+=c.min; hv+=c.v; });
@@ -4143,7 +4513,7 @@ function buildFeeFormHTML(mods){
     <div><h1>Tabela de honorários médicos</h1>
     <p class="sub">${esc(p.name||"")}${p.crm?" · "+esc(p.crm):""}${p.spec?" · "+esc(p.spec):""}</p></div>
   </div>
-  <div class="noprint"><button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button></div>
+  
   <p style="margin:12px 0 0">Solicito o preenchimento do <b>valor do honorário médico por exame (R$)</b> na coluna em branco. Mantenha o código TUSS de referência.</p>
   <div class="head-fields">
     <div class="hf">Instituição / Serviço:</div>
@@ -4184,11 +4554,8 @@ function feeFormSheet(){
       const mods=()=>{ if(!sel.size){ toast("Escolha ao menos uma modalidade"); return null; } return Array.from(sel); };
       $("#ffPdf",el).onclick=()=>{
         const m=mods(); if(!m) return;
-        const w=window.open("","_blank");
-        if(!w){ toast("Permita pop-ups para gerar o formulário"); return; }
-        w.document.write(buildFeeFormHTML(m)); w.document.close();
-        setTimeout(()=>{ try{ w.focus(); w.print(); }catch(_){} },700);
         closeSheet();
+        setTimeout(()=> openDoc("Formulário de honorários", buildFeeFormHTML(m), "formulario-honorarios-radfin.html"), 320);
       };
       $("#ffDoc",el).onclick=()=>{
         const m=mods(); if(!m) return;
@@ -4245,6 +4612,9 @@ function aliasSheet(examId){
       <p class="note" style="margin-bottom:14px">Nome oficial: <b style="color:var(--text)">${esc(x.name)}</b>${x.code?" · TUSS "+esc(x.code):""}</p>
       <div class="field"><label>Apelido curto (como você chama no dia a dia)</label>
         <input class="input" id="alVal" placeholder="Ex.: Abdome total" value="${esc(x.alias||"")}"></div>
+      <div class="field"><label>Código TUSS${x.code?"":" — não preenchido"}</label>
+        <input class="input" id="alCode" inputmode="numeric" placeholder="Ex.: 41101014" value="${esc(x.code||"")}">
+        <p class="note" style="margin-top:6px">Confira no Rol/tabela da ANS ou na tabela do convênio — alguns procedimentos são cobrados com códigos diferentes por operadora.</p></div>
       <p class="note">O apelido aparece nas listas e na busca; o nome oficial e o código TUSS continuam registrados.</p>
     </div>
     <div class="sheet-foot">
@@ -4255,8 +4625,11 @@ function aliasSheet(examId){
       $("#alCancel",el).onclick=closeSheet;
       $("#alOk",el).onclick=()=>{
         const v=$("#alVal",el).value.trim();
+        const c=($("#alCode",el).value||"").replace(/[^0-9+ ]/g,"").trim();
         if(v) x.alias=v; else delete x.alias;
-        save(); closeSheet(); toast(v?"Apelido salvo":"Apelido removido"); renderLocDetail();
+        if(c) x.code=c; else delete x.code;
+        save(); closeSheet(); toast("Exame atualizado");
+        if(tab==="cfg") renderCfg(); else renderLocDetail();
       };
     });
 }
@@ -4382,6 +4755,9 @@ function mergeData(inc){
 }
 
 /* ================== AJUSTES ================== */
+function bindNoCode(){
+  $$("[data-nocode]").forEach(b=> b.onclick=()=> aliasSheet(b.dataset.nocode));
+}
 function renderCfg(){
   $("#view").innerHTML = `<div class="page">
     <div class="sec-head" style="margin-top:0"><h2>Ajustes</h2></div>
@@ -4454,6 +4830,20 @@ function renderCfg(){
       <button class="btn btn-sm" id="cfExpAdd" style="width:100%">+ Adicionar despesa</button>
     </div>
     <div class="card">
+      <div class="card-title">Códigos TUSS</div>
+      ${(()=>{ const miss=S.exams.filter(x=>!x.code && !isShiftExam(x));
+        return miss.length
+          ? `<p class="note" style="margin-bottom:12px"><b style="color:var(--text)">${miss.length} exame${miss.length===1?"":"s"}</b> ainda sem código TUSS. Toque para preencher (o código muda de operadora para operadora em alguns procedimentos).</p>
+             ${miss.slice(0,12).map(x=>`<button class="lrow" style="width:100%;text-align:left" data-nocode="${x.id}">
+                <div class="lr-main"><div class="lr-title" style="font-size:13px;white-space:normal;line-height:1.35">${esc(dispName(x))}</div>
+                <div class="lr-sub">${esc(MOD_LABELS[x.mod]||x.mod)} · sem TUSS</div></div>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </button>`).join("")}
+             ${miss.length>12?`<p class="note" style="margin-top:8px">…e mais ${miss.length-12}. Os demais podem ser editados na tabela de cada local.</p>`:""}`
+          : '<p class="note">Todos os exames do catálogo estão com código TUSS preenchido. ✓</p>';
+      })()}
+    </div>
+    <div class="card">
       <div class="card-title">Backup &amp; sincronização entre aparelhos</div>
       <p class="note" style="margin-bottom:12px">Seus dados ficam salvos neste aparelho${store.ok?"":" (⚠️ armazenamento indisponível neste navegador — use o backup!)"}. Para ver tudo atualizado em outro aparelho: <b style="color:var(--text)">Exportar</b> aqui → enviar o arquivo (iCloud Drive, Google Drive, WhatsApp…) → <b style="color:var(--text)">Importar</b> lá escolhendo <b style="color:var(--text)">Combinar</b>. A combinação junta lançamentos, preços e agenda dos dois aparelhos sem duplicar nem apagar nada. Sincronização automática em nuvem virá na versão de loja (etapa 2).</p>
       <div class="input-row">
@@ -4472,9 +4862,16 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.7 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <div class="card">
+      <div class="card-title">Ajuda</div>
+      <p class="note" style="margin-bottom:12px">Refaça o tour guiado pela interface ou reveja as telas de boas-vindas a qualquer momento — o mesmo que o botão <b style="color:var(--text)">?</b> na barra do topo.</p>
+      <button class="btn btn-sm" id="cfHelp" style="width:100%">? Ajuda e tour guiado</button>
+    </div>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.8 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
+  bindNoCode();
+  const ch=$("#cfHelp"); if(ch) ch.onclick=helpSheet;
   $("#cfProfEdit").onclick=()=> editProfileSheet();
   $("#cfProfSwitch").onclick=()=> showLogin("pick");
   $("#cfFeeForm").onclick=()=> feeFormSheet();
@@ -4646,8 +5043,34 @@ function bindSpecField(el, pfx, initial){
   return ()=> sel==="Outra"? other.value.trim() : (sel||"");
 }
 
-/* ---------- Face ID / biometria (WebAuthn, exige https) ---------- */
-const FACE_OK = location.protocol==="https:" && !!window.PublicKeyCredential;
+/* ---------- Face ID / biometria (WebAuthn) ----------
+   Requisitos: contexto seguro (https ou localhost) + autenticador de plataforma
+   (Face ID / Touch ID / digital). FACE_PLAT é resolvido de forma assíncrona. */
+const FACE_SECURE = (window.isSecureContext===true) ||
+  location.protocol==="https:" || location.hostname==="localhost" || location.hostname==="127.0.0.1";
+let FACE_PLAT = null;   // null = ainda não checado, true/false depois
+const FACE_OK = FACE_SECURE && !!window.PublicKeyCredential;
+async function checkFacePlatform(){
+  if(!FACE_OK){ FACE_PLAT=false; return false; }
+  if(FACE_PLAT!==null) return FACE_PLAT;
+  try{
+    FACE_PLAT = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  }catch(_){ FACE_PLAT = false; }
+  return FACE_PLAT;
+}
+function faceWhyUnavailable(){
+  if(!window.PublicKeyCredential) return "Este navegador não oferece login por biometria. No iPhone, use o Safari (ou abra o app pela tela de início).";
+  if(!FACE_SECURE) return "O Face ID só funciona em endereço seguro (https). Abra o app pelo link https do RadFin em vez de um arquivo local.";
+  if(FACE_PLAT===false) return "Este aparelho não tem Face ID / Touch ID disponível para sites, ou a biometria está desativada nos Ajustes do sistema.";
+  return "Não foi possível ativar a biometria neste aparelho.";
+}
+function faceErrMsg(e){
+  const n=(e&&e.name)||"";
+  if(n==="NotAllowedError") return "Biometria cancelada ou expirada — tente de novo.";
+  if(n==="InvalidStateError") return "Este aparelho já tem uma credencial do RadFin para este usuário.";
+  if(n==="SecurityError") return "O endereço do app mudou — refaça o cadastro do Face ID em Usuário → Editar perfil.";
+  return faceWhyUnavailable();
+}
 async function faceRegister(p){
   const cred = await navigator.credentials.create({ publicKey:{
     challenge: crypto.getRandomValues(new Uint8Array(32)),
@@ -4670,14 +5093,27 @@ async function faceAuth(p){
   }});
   return true;
 }
-function offerFaceSetup(prof){
-  if(!FACE_OK || prof.credId) return;
-  setTimeout(()=> confirmSheet("Ativar Face ID?",
-    "Use a biometria do aparelho (Face ID / Touch ID / digital) para entrar sem digitar senha. Você pode ativar ou desativar depois em Editar perfil.",
-    "Ativar Face ID", async ()=>{
-      try{ await faceRegister(prof); toast("Face ID ativado"); if(tab==="cfg") renderCfg(); }
-      catch(e){ toast("Não foi possível ativar a biometria neste aparelho"); }
-    }, false), 450);
+async function offerFaceSetup(prof){
+  if(!FACE_OK || !prof || prof.credId || prof.faceSkip) return;
+  if(!(await checkFacePlatform())) return;
+  setTimeout(()=> openSheet(`
+    <h3>Entrar com Face ID?</h3>
+    <div class="sheet-body">
+      <p class="note" style="font-size:13.5px">Use a biometria do aparelho (Face ID, Touch ID ou digital) para abrir o RadFin sem digitar senha. Você pode ligar ou desligar quando quiser em <b style="color:var(--text)">Usuário → Editar perfil</b>.</p>
+    </div>
+    <div class="sheet-foot" style="flex-wrap:wrap">
+      <button class="btn" id="ofLater">Agora não</button>
+      <button class="btn btn-primary" id="ofOk">Ativar Face ID</button>
+      <button id="ofNever" style="width:100%;color:var(--muted);font-size:12px;font-weight:600;margin-top:4px">Não perguntar mais</button>
+    </div>`,
+    el=>{
+      $("#ofLater",el).onclick=closeSheet;
+      $("#ofNever",el).onclick=()=>{ prof.faceSkip=true; saveReg(); closeSheet(); };
+      $("#ofOk",el).onclick=async ()=>{
+        try{ await faceRegister(prof); closeSheet(); toast("Face ID ativado"); if(tab==="cfg") renderCfg(); }
+        catch(e){ closeSheet(); toast(faceErrMsg(e)); }
+      };
+    }), 500);
 }
 
 /* ---------- Importar backup na tela de login (restaura usuário + dados) ---------- */
@@ -4763,13 +5199,19 @@ function showLogin(mode){
         <span class="avatar">${esc(initials(p.name))}</span>
         <span class="uc-main"><span class="uc-name" style="display:block">${esc(p.name)}</span>
         <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
-        ${p.credId&&FACE_OK?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V6a3 3 0 0 1 3-3h2M16 3h2a3 3 0 0 1 3 3v2M21 16v2a3 3 0 0 1-3 3h-2M8 21H6a3 3 0 0 1-3-3v-2"/><path d="M8 10v1M16 10v1M9.5 15.5c.7.7 1.6 1 2.5 1s1.8-.3 2.5-1"/></svg>':(p.hash?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':"")}
+        ${p.credId&&FACE_OK?'<span class="uc-face">Face ID</span><svg class="lock" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V6a3 3 0 0 1 3-3h2M16 3h2a3 3 0 0 1 3 3v2M21 16v2a3 3 0 0 1-3 3h-2M8 21H6a3 3 0 0 1-3-3v-2"/><path d="M8 10v1M16 10v1M9.5 15.5c.7.7 1.6 1 2.5 1s1.8-.3 2.5-1"/></svg>':(p.hash?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':"")}
       </button>`).join("")}
     <button class="btn" id="lgNew" style="margin-top:6px">+ Novo usuário</button>
+    ${REG.list.some(p=>p.credId)&&FACE_OK?'<p class="note txt-c" style="margin-top:10px;font-size:12px">Toque no seu nome para entrar com Face ID.</p>':""}
+    <p class="note txt-c" id="lgFaceNote" style="margin-top:8px;font-size:11.5px;color:var(--muted)"></p>
     <div id="lgPwdBox"></div>
     ${LOGIN_IMPORT_HTML}
   </div>`;
   bindLoginImport();
+  checkFacePlatform().then(ok=>{
+    const box=$("#lgFaceNote");
+    if(box && !ok) box.textContent = faceWhyUnavailable();
+  });
   const pwdFallback = p=>{
     $("#lgPwdBox").innerHTML = `<div class="card" style="margin-top:12px">
       <div class="card-title">Senha de ${esc(p.name.split(" ")[0])}</div>
@@ -4793,9 +5235,8 @@ function showLogin(mode){
     if(p.credId && FACE_OK){
       try{ await faceAuth(p); enterProfile(p.id); return; }
       catch(e){
-        if(p.hash){ toast("Biometria não confirmada — use a senha"); pwdFallback(p); return; }
-        confirmSheet("Biometria indisponível",
-          "Não foi possível confirmar o Face ID neste aparelho (pode ter sido cadastrado em outro). Entrar mesmo assim?",
+        if(p.hash){ toast(faceErrMsg(e)+" Use a senha."); pwdFallback(p); return; }
+        confirmSheet("Face ID não confirmado", faceErrMsg(e)+" Entrar mesmo assim?",
           "Entrar", ()=> enterProfile(p.id), false);
         return;
       }
@@ -4815,6 +5256,9 @@ function enterProfile(id){
   load(); applyTheme(); updateUserBtn();
   $("#login").classList.add("hidden");
   tab="dash"; render();
+  const prof = curProfile();
+  if(S && S.onb && !S.onb.done){ setTimeout(startOnboarding, 420); }
+  else if(prof) offerFaceSetup(prof);
 }
 function updateUserBtn(){
   const p=curProfile(), b=$("#userBtn");
@@ -4831,6 +5275,7 @@ function userSheet(){
         <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
       </div>
       <button class="btn" id="usEdit" style="margin:10px 0">Editar perfil</button>
+      ${FACE_OK?`<button class="btn" id="usFace" style="margin-bottom:10px">${p.credId?"🔓 Desativar Face ID":"🔒 Ativar Face ID / Touch ID"}</button>`:""}
       <button class="btn" id="usForm" style="margin-bottom:10px">📄 Formulário de honorários</button>
       <button class="btn" id="usSwitch" style="margin-bottom:10px">Trocar de usuário</button>
       <button class="btn" id="usNew">+ Novo usuário</button>
@@ -4839,6 +5284,13 @@ function userSheet(){
     el=>{
       $("#usClose",el).onclick=closeSheet;
       $("#usEdit",el).onclick=()=>{ closeSheet(); editProfileSheet(); };
+      const uf=$("#usFace",el);
+      if(uf) uf.onclick=async ()=>{
+        if(p.credId){ delete p.credId; saveReg(); closeSheet(); toast("Face ID desativado"); return; }
+        if(!(await checkFacePlatform())){ closeSheet(); toast(faceWhyUnavailable()); return; }
+        try{ await faceRegister(p); delete p.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); }
+        catch(e){ closeSheet(); toast(faceErrMsg(e)); }
+      };
       $("#usForm",el).onclick=()=>{ closeSheet(); setTimeout(feeFormSheet,350); };
       $("#usSwitch",el).onclick=()=>{ closeSheet(); showLogin("pick"); };
       $("#usNew",el).onclick=()=>{ closeSheet(); showLogin("create"); };
@@ -4858,7 +5310,7 @@ function editProfileSheet(){
       ${FACE_OK?`<div class="field"><label>Biometria</label>
         <button class="btn" id="epFace">${p.credId?"Desativar Face ID":"Ativar Face ID / Touch ID"}</button>
         <p class="note" style="margin-top:7px">${p.credId?"O login por biometria está ativo neste aparelho.":"Entre sem digitar senha usando a biometria do aparelho."}</p></div>`
-      :'<p class="note" style="margin-bottom:14px">Face ID fica disponível quando o app é acessado pelo link https (ex.: seu endereço no GitHub Pages).</p>'}
+      :`<p class="note" style="margin-bottom:14px">${esc(faceWhyUnavailable())}</p>`}
       <button class="btn btn-danger" id="epDel">Excluir este usuário e seus dados</button>
     </div>
     <div class="sheet-foot">
@@ -4871,8 +5323,9 @@ function editProfileSheet(){
       const fb=$("#epFace",el);
       if(fb) fb.onclick=async ()=>{
         if(p.credId){ delete p.credId; saveReg(); closeSheet(); toast("Face ID desativado"); return; }
-        try{ await faceRegister(p); closeSheet(); toast("Face ID ativado"); }
-        catch(e){ toast("Não foi possível ativar a biometria"); }
+        if(!(await checkFacePlatform())){ toast(faceWhyUnavailable()); return; }
+        try{ await faceRegister(p); delete p.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); }
+        catch(e){ toast(faceErrMsg(e)); }
       };
       const np=$("#epNoPwd",el); if(np) np.onclick=()=>{ delete p.hash; delete p.salt; saveReg(); closeSheet(); toast("Senha removida"); };
       $("#epDel",el).onclick=()=>{
@@ -4911,6 +5364,7 @@ function render(){
 }
 $$(".tab,[data-tab='add']").forEach(b=> b.addEventListener("click",()=>nav(b.dataset.tab)));
 $("#cfgBtn").addEventListener("click",()=>nav("cfg"));
+$("#helpBtn").addEventListener("click",()=>{ if(S) helpSheet(); });
 $("#themeBtn").addEventListener("click",()=>{
   if(!S) return;
   S.theme = S.theme==="dark"? "light":"dark";
