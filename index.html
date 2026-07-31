@@ -3062,9 +3062,38 @@ function voiceSheet(){
     },
     ()=>{ if(recRef){ try{recRef.stop();}catch(_){} recRef=null; } });
 }
+/* Grava direto no histórico itens que já vêm com data de realização própria */
+function commitDatedItems(items){
+  const locId=draft.locId, conv=draft.conv;
+  const miss=[]; const seen=new Set();
+  items.forEach(it=>{
+    if(getPrice(locId,it.exam.id,conv)==null && !seen.has(it.exam.id)){
+      seen.add(it.exam.id);
+      miss.push([it.exam.id, items.filter(x=>x.exam.id===it.exam.id).reduce((s2,x)=>s2+x.qty,0)]);
+    }
+  });
+  if(miss.length){ closeSheet(); setTimeout(()=>missingPriceSheet(miss, ()=>commitDatedItems(items)), 320); return; }
+  const dates=new Set();
+  items.forEach(it=>{
+    const d = it.date || draft.date;
+    dates.add(d);
+    S.entries.push({ id:"e"+(++S.entrySeq), date:d, locId, examId:it.exam.id, conv,
+      qty:it.qty, unit:getPrice(locId,it.exam.id,conv), paid:false });
+  });
+  S.last={locId, conv};
+  save(); closeSheet();
+  const n=items.reduce((s2,i2)=>s2+i2.qty,0);
+  toast(`${n} exames lançados em ${dates.size} datas`);
+  draft.qty={}; draft.search="";
+  nav("hist");
+}
 function showVoiceReview(el, p){
   const ctx=[];
-  if(p.date) ctx.push(fmtDateShort(p.date));
+  const itemDates = Array.from(new Set(p.items.map(it=>it.date||draft.date)));
+  const multiDate = itemDates.length>1;
+  if(multiDate) ctx.push(itemDates.length+" datas no arquivo");
+  else if(p.items.length && p.items[0].date) ctx.push(fmtDateShort(p.items[0].date));
+  else if(p.date) ctx.push(fmtDateShort(p.date));
   if(p.locId) ctx.push((locById(p.locId)||{}).name);
   if(p.conv) ctx.push(p.conv);
   if(p.turno) ctx.push(p.turno);
@@ -3073,9 +3102,16 @@ function showVoiceReview(el, p){
     <div class="card" style="padding:12px 14px;margin-top:12px">
       <div class="card-title" style="margin-bottom:8px">Entendi assim ↓ <span class="hint">confirme antes de inserir</span></div>
       ${ctx.length?`<p class="note" style="margin-bottom:8px">📍 ${esc(ctx.join(" · "))}</p>`:""}
-      ${p.items.length? p.items.map((it,i)=>{
+      ${multiDate?`<p class="note" style="margin-bottom:10px;color:var(--accent-text)"><b>Encontrei a data de realização no arquivo</b> — cada bloco abaixo será lançado na sua própria data, direto no histórico.</p>`:""}
+      ${p.items.length? (()=>{ let last="§"; return p.items.map((it,i)=>{
         const sure = it.learned || it.score>=0.8;
-        return `
+        const dk = it.date||"";
+        let head="";
+        if(multiDate && dk!==last){
+          last=dk;
+          head = `<div class="mod-head" style="margin-top:8px">📅 ${dk? esc(fmtDateLong(dk)) : "Sem data no arquivo · "+esc(fmtDateShort(draft.date))}</div>`;
+        }
+        return head+`
         <div class="vc-item ${sure?"":"miss"}">
           <div class="vc-main">
             <div class="vc-name"><span class="mod-flag">${it.exam.mod}</span>${esc(dispName(it.exam))}</div>
@@ -3086,7 +3122,7 @@ function showVoiceReview(el, p){
             <button data-vdec="${i}">−</button><span class="qty">${it.qty}</span><button data-vinc="${i}">+</button>
           </div>
         </div>`;
-      }).join("") : '<p class="note">Nenhum exame reconhecido.</p>'}
+      }).join(""); })() : '<p class="note">Nenhum exame reconhecido.</p>'}
       ${p.leftovers.length?`
         <div class="mod-head" style="margin-top:10px">Não reconheci — toque para ensinar</div>
         ${p.leftovers.map((l,i)=>`
@@ -3095,10 +3131,19 @@ function showVoiceReview(el, p){
             <button class="btn btn-sm" data-vteach="${i}">Ensinar</button>
           </div>`).join("")}`:""}
     </div>`;
-  $("#vcDone",el).textContent = p.items.length? "Adicionar ao lançamento":"Tentar de novo";
+  $("#vcDone",el).textContent = p.items.length
+    ? (multiDate? `Lançar em ${itemDates.length} datas` : "Adicionar ao lançamento")
+    : "Tentar de novo";
   $("#vcDone",el).onclick = ()=>{
     if(!p.items.length){ closeSheet(); voiceSheet(); return; }
-    if(p.date) draft.date=p.date;
+    if(multiDate){
+      p.items.forEach(it=>{ if(it.phrase && (it.score<0.8 || it.taught)) S.learn[it.phrase]=it.exam.id; });
+      save();
+      commitDatedItems(p.items);
+      return;
+    }
+    if(p.items[0] && p.items[0].date) draft.date=p.items[0].date;
+    else if(p.date) draft.date=p.date;
     if(p.locId){ draft.locId=p.locId; draft.conv=null; }
     if(p.conv) draft.conv=p.conv;
     // aprende com as correspondências confirmadas de baixa confiança
@@ -3230,13 +3275,71 @@ async function runOCR(file, onProg){
   await worker.terminate();
   return data.text||"";
 }
+/* ---------- Datas dentro do documento (data de realização) ---------- */
+const MONTH_ABBR = {jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
+function isoFromDMY(d,m,y){
+  if(!(d>=1&&d<=31)||!(m>=1&&m<=12)) return null;
+  const now=new Date();
+  let year = (y==null)? now.getFullYear() : (y<100? 2000+y : y);
+  const dt = new Date(year, m-1, d);
+  if(dt.getMonth()!==m-1 || dt.getDate()!==d) return null;     // 31/02 e afins
+  let iso = toISO(dt);
+  if(iso>todayISO()){                                          // data no futuro → ano anterior
+    const dt2=new Date(year-1,m-1,d);
+    if(dt2.getMonth()===m-1 && toISO(dt2)<=todayISO()) iso=toISO(dt2);
+  }
+  return iso;
+}
+/* Extrai UMA data da linha e devolve {date, rest} (rest = linha sem a data) */
+function extractDate(raw){
+  const s0 = String(raw);
+  let m, iso;
+  // aaaa-mm-dd
+  if((m = s0.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)/))){
+    iso = isoFromDMY(+m[3], +m[2], +m[1]);
+    if(iso) return {date:iso, rest:s0.replace(m[0]," ")};
+  }
+  // dd/mm[/aaaa] e dd-mm-aaaa  (o ponto só é aceito na forma completa dd.mm.aaaa)
+  m = s0.match(/\b(\d{1,2})[\/](\d{1,2})(?:[\/](\d{2,4}))?(?!\d)/)
+   || s0.match(/\b(\d{1,2})-(\d{1,2})-(\d{2,4})(?!\d)/)
+   || s0.match(/\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?!\d)/);
+  if(m){
+    iso = isoFromDMY(+m[1], +m[2], m[3]!=null? +m[3] : null);
+    if(iso) return {date:iso, rest:s0.replace(m[0]," ")};
+  }
+  // "28 de julho de 2026", "28 jul 26", "28 julho"
+  const n = normName(s0);
+  if((m = n.match(/\b(\d{1,2})\s*(?:de\s*)?([a-z]{3,9})\.?\s*(?:de\s*)?(\d{2,4})?\b/))){
+    const mo = MONTH_WORDS[m[2]] != null ? MONTH_WORDS[m[2]] : MONTH_ABBR[m[2].slice(0,3)];
+    if(mo!=null){
+      iso = isoFromDMY(+m[1], mo+1, m[3]? +m[3] : null);
+      if(iso){
+        const re = new RegExp(m[1]+"\\s*(?:de\\s*)?[A-Za-zÀ-ú]{3,9}\\.?\\s*(?:de\\s*)?"+(m[3]||""),"i");
+        return {date:iso, rest:s0.replace(re," ")};
+      }
+    }
+  }
+  return null;
+}
+const DATE_HINT = /(data|dia|realiza|exec|atendiment|competencia|refer)/i;
 function parseImageText(text){
   const pool = recogPool();
   const agg = new Map(); const leftovers=[];
+  let curDate = null;               // data de realização vigente (cabeçalho/seção)
+  const datesFound = new Set();
   String(text).split(/\n+/).forEach(line=>{
-    const raw = line.trim();
+    let raw = line.trim();
+    if(!raw) return;
+    // 1. data de realização na própria linha (ou linha só de data → vale para as seguintes)
+    const dt = extractDate(raw);
+    if(dt){
+      curDate = dt.date; datesFound.add(dt.date);
+      raw = dt.rest.replace(/\s+/g," ").trim();
+      // remove rótulos como "Data:", "Data de realização", "Dia"
+      raw = raw.replace(/^\s*(data\s*(de\s*)?(realiza\w*|exec\w*|atendimento)?\s*:?|dia\s*:?|em\s*:?)\s*/i,"").trim();
+    }
     let ln = normName(raw);
-    if(ln.replace(/[^a-z]/g,"").length<3) return;
+    if(ln.replace(/[^a-z]/g,"").length<3) return;   // linha só com a data
     let qty=1, m;
     if((m=ln.match(/^(\d{1,3})\b/))){ qty=+m[1]; ln=ln.slice(m[0].length); }
     else if((m=ln.match(/\bx\s?(\d{1,3})$/))){ qty=+m[1]; ln=ln.slice(0,ln.length-m[0].length); }
@@ -3246,13 +3349,17 @@ function parseImageText(text){
     if(!words.length) return;
     const r = segMatch(words, pool, draft.conv, draft.locId);
     if(r.exam){
-      if(!agg.has(r.exam.id)) agg.set(r.exam.id,{qty:0, exam:r.exam, n:0, first:raw.slice(0,42), phrase:r.phrase, score:r.score, learned:r.learned});
-      const a=agg.get(r.exam.id); a.qty+=qty; a.n++; a.score=Math.max(a.score,r.score);
-    } else leftovers.push({qty, text:raw.slice(0,48)});
+      const key = (curDate||"")+"|"+r.exam.id;     // agrega por data + exame
+      if(!agg.has(key)) agg.set(key,{qty:0, exam:r.exam, date:curDate, n:0, first:raw.slice(0,42), phrase:r.phrase, score:r.score, learned:r.learned});
+      const a=agg.get(key); a.qty+=qty; a.n++; a.score=Math.max(a.score,r.score);
+    } else leftovers.push({qty, text:raw.slice(0,48), date:curDate});
   });
+  const items = Array.from(agg.values()).map(a=>({qty:a.qty, exam:a.exam, date:a.date, phrase:a.phrase, score:a.score, learned:a.learned,
+      text:a.first+(a.n>1?` (+${a.n-1} linhas)`:"")}));
+  items.sort((x,y)=> (x.date||"").localeCompare(y.date||"") || dispName(x.exam).localeCompare(dispName(y.exam),"pt-BR"));
   return {
-    items: Array.from(agg.values()).map(a=>({qty:a.qty, exam:a.exam, phrase:a.phrase, score:a.score, learned:a.learned,
-      text:a.first+(a.n>1?` (+${a.n-1} linhas)`:"")})),
+    items,
+    dates: Array.from(datesFound).sort(),
     leftovers: leftovers.slice(0,10)
   };
 }
@@ -3266,6 +3373,7 @@ function imageSheet(){
         <p class="note" style="font-size:12.5px"><b style="color:var(--text)">Passo a passo:</b><br>
         1️⃣ Confira o contexto abaixo (definido na tela anterior) → 2️⃣ envie foto/print, PDF, planilha (XLSX) ou CSV da lista de produtividade → 3️⃣ o app lê a imagem, reconhece exames e quantidades → 4️⃣ revise e confirme.</p>
         <p class="note" style="margin-top:8px;font-size:12px">📍 <b style="color:var(--text)">${esc(fmtDateShort(draft.date))} · ${esc(loc?loc.name:"")} · ${esc(draft.conv||"")}</b></p>
+        <p class="note" style="margin-top:8px;font-size:11.5px"><b style="color:var(--text)">Datas no arquivo:</b> se o documento trouxer a data de realização (no cabeçalho de cada bloco ou na própria linha do exame), o app usa essa data — inclusive quando há várias datas diferentes no mesmo arquivo. Sem data, vale a data selecionada acima.</p>
         <p class="note" style="margin-top:8px;font-size:11.5px">Aceita foto/print (OCR), PDF, XLSX, CSV e TXT. Dica: selecione a Modalidade na tela anterior para o reconhecimento ficar ainda mais preciso. Requer internet na primeira leitura de cada formato.</p>
       </div>
       <input type="file" id="imFile" accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" class="hidden">
@@ -3391,7 +3499,7 @@ function saveDraft(){
   nav("dash");
 }
 
-function missingPriceSheet(missing){
+function missingPriceSheet(missing, after){
   const loc = locById(draft.locId);
   openSheet(`
     <h3>Defina os honorários para concluir</h3>
@@ -3424,7 +3532,7 @@ function missingPriceSheet(missing){
         vals.forEach(([id,v])=>{ S.prices[pKey(draft.locId,id,draft.conv)]=v; });
         save(); closeSheet();
         toast("Preços salvos");
-        saveDraft(); // agora sem pendências
+        if(after) after(); else saveDraft(); // agora sem pendências
       };
     });
 }
@@ -5140,7 +5248,7 @@ function renderCfg(){
       <p class="note" style="margin-bottom:12px">Refaça o tour guiado pela interface ou reveja as telas de boas-vindas a qualquer momento — o mesmo que o botão <b style="color:var(--text)">?</b> na barra do topo.</p>
       <button class="btn btn-sm" id="cfHelp" style="width:100%">? Ajuda e tour guiado</button>
     </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.10 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.11 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
   bindNoCode();
