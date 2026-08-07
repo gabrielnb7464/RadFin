@@ -341,11 +341,11 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .fab svg{width:26px;height:26px}
 
 /* ================= SHEET ================= */
-.sheet-veil{position:fixed;inset:0;z-index:130;background:var(--veil);opacity:0;transition:opacity .22s;
+.sheet-veil{position:fixed;inset:0;z-index:80;background:var(--veil);opacity:0;transition:opacity .22s;
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 .sheet-veil.show{opacity:1}
 .sheet{
-  position:fixed;left:0;right:0;bottom:0;z-index:131;max-width:520px;margin:0 auto;
+  position:fixed;left:0;right:0;bottom:0;z-index:81;max-width:520px;margin:0 auto;
   background:var(--surface);border-radius:24px 24px 0 0;border:1px solid var(--border);border-bottom:none;
   padding:10px 18px calc(var(--sab) + 20px);
   transform:translateY(102%);transition:transform .28s cubic-bezier(.32,.72,.25,1);
@@ -360,7 +360,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 
 /* ================= MISC ================= */
 .toast{
-  position:fixed;left:50%;bottom:calc(var(--sab) + 100px);transform:translate(-50%,16px);z-index:160;
+  position:fixed;left:50%;bottom:calc(var(--sab) + 100px);transform:translate(-50%,16px);z-index:99;
   background:var(--toast-bg);border:1px solid var(--pop-brd);color:var(--toast-ink);
   font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:99px;
   box-shadow:0 10px 30px rgba(16,24,40,.3);opacity:0;transition:all .25s;white-space:nowrap;
@@ -373,22 +373,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .day-head .dh-date::first-letter{text-transform:uppercase}
 .day-head .dh-total{font-size:12.5px;font-weight:700;color:var(--accent-text)}
 .conv-chips{display:flex;flex-wrap:wrap;gap:8px}
-/* histórico: trilha de navegação + resumo do nível */
-.crumbs{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:10px}
-.crumbs .cr{font-size:12px;font-weight:700;color:var(--text-2);background:var(--surface);
-  border:1px solid var(--border);border-radius:9px;padding:5px 9px;max-width:170px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.crumbs .cr.on{background:var(--chip-on-bg);border-color:var(--chip-on-brd);color:var(--chip-on-ink)}
-.crumbs .cr:first-letter{text-transform:uppercase}
-.crumbs .sep{width:11px;height:11px;color:var(--muted);flex:0 0 auto}
-.hist-sum{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
-  padding:13px 15px;box-shadow:var(--shadow)}
-.hist-sum .hs-l{min-width:0}
-.hist-sum .hs-t{font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hist-sum .hs-t::first-letter{text-transform:uppercase}
-.hist-sum .hs-s{font-size:11px;color:var(--muted);margin-top:3px}
-.hist-sum .hs-r{font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--accent-text);flex:0 0 auto}
 .total-bar{
   position:sticky;bottom:calc(var(--sab) + 88px);z-index:40;margin-top:14px;
   background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:var(--r-md);
@@ -515,66 +499,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
 .mod-flag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;
   padding:2px 6px;border-radius:6px;background:var(--accent-soft);color:var(--accent-text);
   vertical-align:2px;margin-right:6px}
-/* ================= ONBOARDING & TOUR ================= */
-.onb{position:fixed;inset:0;z-index:140;background:var(--bg);display:flex;flex-direction:column;
-  opacity:0;transition:opacity .25s ease}
-.onb.show{opacity:1}
-.onb.hidden{display:none}
-.onb-top{flex:0 0 auto;display:flex;justify-content:flex-end;padding:calc(env(safe-area-inset-top) + 12px) 16px 0}
-.onb-top button{background:none;border:none;color:var(--muted);font-size:13.5px;font-weight:700;padding:6px}
-.onb-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:10px 30px;gap:6px}
-.onb-art{width:104px;height:104px;border-radius:32px;display:flex;align-items:center;justify-content:center;
-  background:var(--accent-soft);margin-bottom:14px}
-.onb-art svg{width:52px;height:52px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.onb-body h2{font-size:23px;font-weight:800;letter-spacing:-.02em;color:var(--text);line-height:1.2}
-.onb-body p{font-size:14.5px;color:var(--muted);line-height:1.55;max-width:330px}
-.onb-dots{display:flex;gap:7px;justify-content:center;margin:20px 0 4px}
-.onb-dots i{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .2s}
-.onb-dots i.on{background:var(--accent);width:20px;border-radius:4px}
-.onb-foot{flex:0 0 auto;padding:0 22px calc(env(safe-area-inset-bottom) + 22px);display:flex;gap:10px}
-.onb-foot .btn{margin:0}
-
-.coach-veil{position:fixed;inset:0;z-index:150;pointer-events:auto;opacity:0;transition:opacity .2s}
-.coach-veil.show{opacity:1}
-.coach-veil.hidden{display:none}
-.coach-hole{position:absolute;border-radius:16px;box-shadow:0 0 0 9999px rgba(8,15,26,.72);
-  border:2px solid var(--accent);transition:all .28s cubic-bezier(.32,.72,0,1);pointer-events:none}
-.coach-tip{position:absolute;left:14px;right:14px;background:var(--surface);border:1px solid var(--border);
-  border-radius:18px;padding:15px 16px 13px;box-shadow:0 18px 44px rgba(0,0,0,.32);transition:top .28s cubic-bezier(.32,.72,0,1)}
-.coach-tip h4{font-size:15.5px;font-weight:800;color:var(--text);margin-bottom:5px;letter-spacing:-.01em}
-.coach-tip p{font-size:13.3px;color:var(--muted);line-height:1.5}
-.coach-nav{display:flex;align-items:center;gap:10px;margin-top:13px}
-.coach-nav .cn-step{flex:1;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.03em}
-.coach-nav button{border:none;border-radius:11px;padding:9px 15px;font-size:13.5px;font-weight:800}
-.coach-nav .cn-skip{background:none;color:var(--muted);padding:9px 8px}
-.coach-nav .cn-next{background:var(--accent);color:#fff}
-
-/* ================= VISUALIZADOR DE DOCUMENTOS ================= */
-.user-card.managing{opacity:.92}
-.uc-del{flex:0 0 auto;width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;
-  background:var(--crit-soft);border:1px solid var(--crit-brd);color:var(--crit-text);margin-left:2px}
-.uc-del svg{width:17px;height:17px}
-.uc-face{flex:0 0 auto;font-size:10.5px;font-weight:800;color:var(--accent);letter-spacing:.03em;text-transform:uppercase;margin-right:2px}
-.docview{position:fixed;inset:0;z-index:120;background:var(--bg);display:flex;flex-direction:column;
-  transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1)}
-.docview.show{transform:translateY(0)}
-.docview.hidden{display:none}
-.dv-bar{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 9px) 12px 9px;
-  background:var(--surface);border-bottom:1px solid var(--border);flex:0 0 auto}
-.dv-bar .dv-back{display:flex;align-items:center;gap:5px;color:var(--accent);font-weight:800;font-size:14.5px;
-  background:none;border:none;padding:6px 4px;flex:0 0 auto}
-.dv-bar .dv-back svg{width:18px;height:18px}
-.dv-title{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--text);text-align:center;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dv-act{flex:0 0 auto;display:flex;gap:4px}
-.dv-act button{background:none;border:none;color:var(--accent);padding:6px;border-radius:9px;display:flex}
-.dv-act button svg{width:20px;height:20px}
-.docview iframe{flex:1;width:100%;border:none;background:#fff}
-.dv-foot{flex:0 0 auto;display:flex;gap:9px;padding:10px 14px calc(env(safe-area-inset-bottom) + 12px);
-  background:var(--surface);border-top:1px solid var(--border)}
-.dv-foot .btn{margin:0}
-
 /* ================= LOGIN / USUÁRIOS ================= */
 .login{position:fixed;inset:0;z-index:120;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;
   display:flex;align-items:center;justify-content:center;
@@ -632,9 +556,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
       <div class="appbar-date" id="appbarDate"></div>
       <button class="icon-btn" id="userBtn" aria-label="Usuário"></button>
       <button class="icon-btn" id="themeBtn" aria-label="Alternar tema claro/escuro"></button>
-      <button class="icon-btn" id="helpBtn" aria-label="Ajuda e tour guiado">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.9 2.9 0 0 1 5.6 1c0 1.9-2.8 2.4-2.8 4"/><path d="M12 17.4h.01"/></svg>
-      </button>
       <button class="icon-btn" id="cfgBtn" aria-label="Ajustes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.09a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
       </button>
@@ -642,30 +563,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-.02em}
   </header>
 
   <main id="view"></main>
-</div>
-
-<div id="onb" class="onb hidden" aria-hidden="true"></div>
-<div id="coach" class="coach-veil hidden" aria-hidden="true">
-  <div class="coach-hole" id="coachHole"></div>
-  <div class="coach-tip" id="coachTip"></div>
-</div>
-
-<div id="docView" class="docview hidden" aria-hidden="true">
-  <div class="dv-bar">
-    <button class="dv-back" id="dvBack" aria-label="Voltar ao RadFin">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>RadFin</button>
-    <div class="dv-title" id="dvTitle"></div>
-    <div class="dv-act">
-      <button id="dvShare" aria-label="Compartilhar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3"/><path d="m8 7 4-4 4 4"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>
-      </button>
-    </div>
-  </div>
-  <iframe id="dvFrame" title="Documento"></iframe>
-  <div class="dv-foot">
-    <button class="btn" id="dvDown">⬇ Baixar</button>
-    <button class="btn btn-primary" id="dvPrint">🖨 Imprimir / PDF</button>
-  </div>
 </div>
 
 <nav class="tabbar">
@@ -710,7 +607,7 @@ const store = {
   ok: (() => { try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; } catch(e){ return false; } })(),
   mem: {},
   get(k){ if(this.ok){ try { return localStorage.getItem(k); } catch(e){} } return (k in this.mem) ? this.mem[k] : null; },
-  set(k,v){ if(this.ok){ try { localStorage.setItem(k,v); return; } catch(e){} } this.mem[k]=v; },
+  set(k,v){ if(this.ok){ try { localStorage.setItem(k,v); return true; } catch(e){} } this.mem[k]=v; return false; },
   del(k){ if(this.ok){ try { localStorage.removeItem(k); } catch(e){} } delete this.mem[k]; }
 };
 /* ================== USUÁRIOS (perfis locais) ================== */
@@ -741,20 +638,38 @@ function initials(name){
   if(!w.length) return "?";
   return (w[0][0] + (w.length>1? w[w.length-1][0] : "")).toUpperCase();
 }
+const hex = buf => Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+/* legado (v1): SHA-256 simples — mantido só para VERIFICAR senhas antigas */
 async function hashPwd(salt, pwd){
   try{
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(salt+"|"+pwd));
-    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+    return hex(buf);
   }catch(e){
     let h=5381; const s2=salt+"|"+pwd;
     for(let i=0;i<s2.length;i++) h=((h<<5)+h+s2.charCodeAt(i))|0;
     return "djb2:"+(h>>>0).toString(16);
   }
 }
+/* atual (v2): PBKDF2-SHA256 com 100k iterações — resistente a força bruta offline */
+async function hashPwd2(salt, pwd){
+  const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(pwd), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    {name:"PBKDF2", hash:"SHA-256", salt:new TextEncoder().encode(salt), iterations:100000}, km, 256);
+  return "p2:"+hex(bits);
+}
+async function makePwdHash(salt, pwd){
+  try{ return await hashPwd2(salt, pwd); }catch(e){ return hashPwd(salt, pwd); }
+}
+async function checkPwd(p, pwd){
+  if((p.hash||"").startsWith("p2:")){
+    try{ return (await hashPwd2(p.salt||"", pwd))===p.hash; }catch(e){ return false; }
+  }
+  return (await hashPwd(p.salt||"", pwd))===p.hash;
+}
 function randSalt(){
-  const a = new Uint8Array(8);
-  try{ crypto.getRandomValues(a); }catch(e){ for(let i=0;i<8;i++) a[i]=(i*37+13)%256; }
-  return Array.from(a).map(b=>b.toString(16).padStart(2,"0")).join("");
+  const a = new Uint8Array(16);
+  try{ crypto.getRandomValues(a); }catch(e){ for(let i=0;i<16;i++) a[i]=(Date.now()+i*37+13)%256; }
+  return hex(a.buffer);
 }
 const SPECS = ["Radiologia e Diagnóstico por Imagem","Ultrassonografia Geral","Medicina Fetal",
   "Imagem da Mama / Mastologia","Ecocardiografia","Medicina Nuclear","Ginecologia e Obstetrícia",
@@ -763,14 +678,10 @@ const SPECS = ["Radiologia e Diagnóstico por Imagem","Ultrassonografia Geral","
 /* ================== MODALIDADES & CATÁLOGO ==================
    Nomes baseados no Rol ANS / nomenclatura TUSS. O campo `code`
    (código TUSS) é opcional e pode ser preenchido por exame.       */
-const MODS = ["US","DO","RX","TC","RM","MMG","DMO","PROCED","PLANTAO"];
-/* modalidades de exame (tudo menos plantão, que é item de valor fixo por turno) */
-const EXAM_MODS = MODS.filter(m=>m!=="PLANTAO");
-const SHIFT_MOD = "PLANTAO";
+const MODS = ["US","DO","RX","TC","RM","MMG","DMO","PROCED"];
 const MOD_LABELS = {
   US:"Ultrassonografia", DO:"Doppler", RX:"Radiografia", TC:"Tomografia",
-  RM:"Ressonância Magnética", MMG:"Mamografia", DMO:"Densitometria Óssea", PROCED:"Procedimentos",
-  PLANTAO:"Plantão (valor fixo)"
+  RM:"Ressonância Magnética", MMG:"Mamografia", DMO:"Densitometria Óssea", PROCED:"Procedimentos"
 };
 const CATALOG_SEED = [
   /* Base: TABELA DE PREÇOS DE EXAMES (enviada pelo usuário, com códigos TUSS).
@@ -881,49 +792,48 @@ const CATALOG_SEED = [
   ["TC","Segmento apendicular (braço ou antebraço ou mão ou coxa ou perna ou pé) - unilateral","41001150"],
   ["TC","Tórax","41001079"],
   ["TC","Vias urinárias (Urotomografia)","41001362"],
-  ["TC","Angio-TC de crânio","41001168"],
-  ["TC","Angio-TC de tórax","41001168"],
-  ["TC","Angio-TC de abdome","41001168"],
-  ["TC","Angio-TC de aorta abdominal","41001184"],
-  ["TC","Angio-TC de aorta torácica","41001176"],
+  ["TC","Angio-TC de crânio",null],
+  ["TC","Angio-TC de tórax",null],
+  ["TC","Angio-TC de abdome",null],
+  ["TC","Angio-TC de aorta",null],
   /* RM */
-  ["RM","Abdome superior","41101170"],
-  ["RM","Angio-RM de crânio","41101324"],
-  ["RM","Angio-RM cervical","41101324"],
-  ["RM","Pescoço","41101111"],
-  ["RM","Colangiorressonância (colangio-RM)","41101359"],
+  ["RM","Abdome superior",null],
+  ["RM","Angio-RM de crânio",null],
+  ["RM","Angio-RM cervical",null],
+  ["RM","Pescoço",null],
+  ["RM","Colangiorressonância (colangio-RM)",null],
   ["RM","Enterografia por RM",null],
-  ["RM","Coração (morfológica e funcional)","41101138"],
-  ["RM","Mão","41101260"],
-  ["RM","Antebraço","41101251"],
-  ["RM","Braço","41101251"],
-  ["RM","Perna","41101294"],
-  ["RM","Coxa","41101286"],
-  ["RM","Articulações sacroilíacas","41101278"],
-  ["RM","ATM (bilateral)","41101103"],
-  ["RM","Coluna cervical","41101227"],
-  ["RM","Coluna lombar","41101227"],
-  ["RM","Coluna torácica","41101227"],
-  ["RM","Cotovelo","41101316"],
-  ["RM","Crânio","41101014"],
-  ["RM","Joelho","41101316"],
-  ["RM","Mamas","41101162"],
-  ["RM","Ombro","41101316"],
-  ["RM","Pelve","41101189"],
-  ["RM","Próstata (multiparamétrica)","41101189"],
-  ["RM","Punho","41101316"],
-  ["RM","Pé","41101308"],
-  ["RM","Quadril","41101316"],
-  ["RM","Sela túrcica","41101022"],
-  ["RM","Tornozelo","41101316"],
-  ["RM","Órbitas","41101073"],
+  ["RM","Coração (morfológica e funcional)",null],
+  ["RM","Mão",null],
+  ["RM","Antebraço",null],
+  ["RM","Braço",null],
+  ["RM","Perna",null],
+  ["RM","Coxa",null],
+  ["RM","Articulações sacroilíacas",null],
+  ["RM","ATM (bilateral)",null],
+  ["RM","Coluna cervical",null],
+  ["RM","Coluna lombar",null],
+  ["RM","Coluna torácica",null],
+  ["RM","Cotovelo",null],
+  ["RM","Crânio",null],
+  ["RM","Joelho",null],
+  ["RM","Mamas",null],
+  ["RM","Ombro",null],
+  ["RM","Pelve",null],
+  ["RM","Próstata (multiparamétrica)",null],
+  ["RM","Punho",null],
+  ["RM","Pé",null],
+  ["RM","Quadril",null],
+  ["RM","Sela túrcica",null],
+  ["RM","Tornozelo",null],
+  ["RM","Órbitas",null],
   /* MMG */
   ["MMG","AMPLIACAO OU MAGNIFICACAO DE LESAO MAMARIA","40808050"],
   ["MMG","MAMOGRAFIA CONVENCIONAL BILATERAL","40808033"],
   ["MMG","MAMOGRAFIA DIGITAL BILATERAL","40808041"],
   /* DMO */
-  ["DMO","Densitometria óssea (col. + fêmur)","40808130"],
-  ["DMO","Densitometria óssea corpo inteiro","40808149"],
+  ["DMO","Densitometria óssea (col. + fêmur)",null],
+  ["DMO","Densitometria óssea corpo inteiro",null],
   ["DMO","Densitometria óssea de antebraço",null],
   /* PROCED */
   ["PROCED","Ato de coleta de PAAF de órgãos ou estruturas superficiais sem deslocamento do patologista - por nódulo","40601072"],
@@ -936,18 +846,10 @@ const CATALOG_SEED = [
   ["PROCED","Punção biópsia percutânea de mama por agulha fina orientada por US - por nódulo","30602181"],
   ["PROCED","Punção biópsia percutânea de mama por agulha fina orientada por US - por nódulo - 2a lesão em diante","30602181"],
   ["PROCED","Punção biópsia-/aspirativa de órgão ou estrutura superficial orientada por US (por lesão)","40809161"],
-  ["PROCED","Punção biópsia-/aspirativa de órgão ou estrutura superficial orientada por US (por lesão) - 2a lesão em diante","40809161"],
-  /* PLANTAO — não são procedimentos TUSS: valor fixo por turno, definido por local */
-  ["PLANTAO","Plantão diurno (SD)",null],
-  ["PLANTAO","Plantão noturno (SN)",null]
+  ["PROCED","Punção biópsia-/aspirativa de órgão ou estrutura superficial orientada por US (por lesão) - 2a lesão em diante","40809161"]
 ];
-/* ---- Plantão: itens de valor fixo por turno (não contam como exames) ---- */
-function isShiftExam(x){ return !!x && x.mod===SHIFT_MOD; }
-function isShiftEntry(e){ return isShiftExam(examById(e.examId)); }
-function exQty(e){ return isShiftEntry(e)? 0 : (e.qty||0); }
-function onlyExams(list){ return list.filter(e=>!isShiftEntry(e)); }
 const normName = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
-function activeMods(){ const l=(S.userMods && S.userMods.length)? S.userMods : EXAM_MODS; return l.filter(m=>m!==SHIFT_MOD); }
+function activeMods(){ return (S.userMods && S.userMods.length)? S.userMods : MODS; }
 
 /* ---- Apelidos curtos (padr\u00e3o, edit\u00e1veis) para a nomenclatura TUSS longa ---- */
 const ALIAS_BY_CODE = {
@@ -977,7 +879,6 @@ const ALIAS_BY_CODE = {
 };
 function applyAliases(exams){
   exams.forEach(x=>{
-    if(x.mod===SHIFT_MOD && !x.alias){ x.alias = /noturn/i.test(x.name)? "Plantão SN":"Plantão SD"; return; }
     if(x.alias) return;
     const nn = normName(x.name);
     if(x.code==="40901173"){ x.alias = nn.includes("prostata via abdominal")? "Pr\u00f3stata (via abdominal)":"Abd. inferior masculino"; return; }
@@ -1063,8 +964,7 @@ function freshState(){
     expenses: [], expSeq: 0, // despesas {id,name,value,recur,date}
     tax: { pct:0, label:"" },// reserva de impostos
     glosas: [], glosaSeq: 0, // conferência de repasse {id,date,locId,expected,received}
-    onb: { done:false, v:1 },   // onboarding / walkthrough
-    catalogV: 7
+    catalogV: 6
   };
 }
 /* Renomeações de nomes antigos → nomenclatura oficial da tabela (preservando id, preços e lançamentos) */
@@ -1169,28 +1069,6 @@ function migrate(){
     applyAliases(S.exams);
     S.catalogV=6;
   }
-  // v7: códigos TUSS que faltavam (RM/TC/DMO), Angio-TC de aorta separada e itens de Plantão
-  if(S.catalogV<7){
-    const oldAorta = S.exams.find(x=>x.mod==="TC" && normName(x.name)===normName("Angio-TC de aorta"));
-    if(oldAorta && !S.exams.some(x=>x!==oldAorta && x.mod==="TC" && normName(x.name)===normName("Angio-TC de aorta abdominal"))){
-      oldAorta.name="Angio-TC de aorta abdominal"; oldAorta.code="41001184";
-    }
-    CATALOG_SEED.forEach(c=>{
-      if(!S.exams.some(e=>e.mod===c[0] && normName(e.name)===normName(c[1]))){
-        const o={id:"x"+(++S.examSeq), mod:c[0], name:c[1]}; if(c[2]) o.code=c[2];
-        S.exams.push(o);
-      }
-    });
-    // anexa o código TUSS oficial a quem ainda não tem (sem mexer em quem já tem)
-    S.exams.forEach(x=>{
-      if(x.code) return;
-      const c = CATALOG_SEED.find(s2=>s2[0]===x.mod && normName(s2[1])===normName(x.name));
-      if(c && c[2]) x.code=c[2];
-    });
-    applyAliases(S.exams);
-    S.catalogV=7;
-  }
-  if(!S.onb || typeof S.onb!=="object") S.onb={ done: (S.locations.length>0 || S.entries.length>0), v:1 };
   applySynonyms(S.exams);
   if(!S.learn || typeof S.learn!=="object") S.learn={};
   if(!Array.isArray(S.expenses)) S.expenses=[];
@@ -1209,10 +1087,6 @@ function migrate(){
   S.agenda.events.forEach(e=>{ if(perRemap[e.period]) e.period=perRemap[e.period]; });
   if(!S.cal || typeof S.cal!=="object") S.cal = { reminder:60, weekly:false, prompt:true };
   if(S.cal.reminder===undefined) S.cal.reminder=60;
-  // v2.10: vários lembretes por plantão (mantém o antigo como primeiro da lista)
-  if(!Array.isArray(S.cal.reminders)) S.cal.reminders = S.cal.reminder>0? [S.cal.reminder] : [];
-  S.cal.reminders = Array.from(new Set(S.cal.reminders.filter(n=>typeof n==="number"&&n>0))).sort((a,b)=>a-b);
-  S.cal.reminder = S.cal.reminders.length? S.cal.reminders[0] : 0;
   if(S.cal.weekly===undefined) S.cal.weekly=false;
   if(S.cal.prompt===undefined) S.cal.prompt=true;
   S.locations.forEach(l=>{
@@ -1228,8 +1102,62 @@ function migrate(){
     }
     if(!Array.isArray(l.examIds)) l.examIds = [];
   });
+  sanitizeState();
 }
-function save(){ if(PID) store.set(dbKey(), JSON.stringify(S)); }
+/* Saneamento defensivo: coerção de tipos e limites — protege contra backups
+   corrompidos/editados à mão e mantém a aritmética do dashboard confiável. */
+const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+function sanitizeState(){
+  const str=(v,n)=> v==null? "" : String(v).slice(0,n);
+  const num=(v,min,max)=>{ v=+v; return isFinite(v)? Math.min(max,Math.max(min,v)) : min; };
+  S.entries = S.entries.filter(e=> e && ISO_RE.test(e.date||""));
+  S.entries.forEach(e=>{
+    e.qty  = Math.round(num(e.qty,1,999));
+    e.unit = Math.round(num(e.unit,0,1e6)*100)/100;
+    e.paid = !!e.paid;
+    e.conv = str(e.conv,60);
+  });
+  Object.keys(S.prices).forEach(k=>{
+    const v=+S.prices[k];
+    if(!isFinite(v)||v<0||v>1e6) delete S.prices[k];
+    else S.prices[k]=Math.round(v*100)/100;
+  });
+  S.locations.forEach(l=>{
+    l.name = str(l.name,80)||"Local";
+    l.taxPct = num(l.taxPct,0,99);
+    l.convenios = (Array.isArray(l.convenios)?l.convenios:[]).map(c=>str(c,60).trim()).filter(Boolean).slice(0,20);
+  });
+  S.exams.forEach(x=>{
+    x.name = str(x.name,150)||"Exame";
+    if(x.alias!=null) x.alias = str(x.alias,80);
+    if(x.code!=null)  x.code  = str(x.code,12).replace(/\D/g,"");
+  });
+  S.expenses = S.expenses.filter(x=> x && isFinite(+x.value));
+  S.expenses.forEach(x=>{
+    x.name  = str(x.name,80)||"Despesa";
+    x.value = Math.round(num(x.value,0,1e6)*100)/100;
+    if(!["m","w","once"].includes(x.freq)) x.freq="once";
+    if(!ISO_RE.test(x.date||"")) x.date=todayISO();
+  });
+  S.glosas = S.glosas.filter(g=> g && ISO_RE.test(g.date||"") && isFinite(+g.expected) && isFinite(+g.received));
+  S.glosas.forEach(g=>{ g.expected=num(g.expected,0,1e7); g.received=num(g.received,0,1e7); });
+  S.tax.pct   = num(S.tax.pct,0,99);
+  S.tax.label = str(S.tax.label,40);
+  S.goal = num(S.goal,0,1e8);
+  S.agenda.rules  = S.agenda.rules.filter(r=> r && ISO_RE.test(r.from||""));
+  S.agenda.events = S.agenda.events.filter(ev=> ev && ISO_RE.test(ev.date||""));
+  S.agenda.rules.concat(S.agenda.events).forEach(o=>{ if(o.note!=null) o.note=str(o.note,140); });
+  Object.keys(S.learn).forEach(k=>{ if(typeof S.learn[k]!=="string") delete S.learn[k]; });
+}
+let saveWarned=false;
+function save(){
+  if(!PID) return;
+  const ok = store.set(dbKey(), JSON.stringify(S));
+  if(!ok && !saveWarned){
+    saveWarned=true;
+    toast("⚠️ Não consegui gravar no aparelho — exporte um backup em Ajustes");
+  }
+}
 function load(){
   const raw = PID? store.get(dbKey()) : null;
   S = null; // sempre recomeça — nunca herda o estado do usuário anterior
@@ -1330,8 +1258,26 @@ function parseMoney(s){
   s = s.trim().replace(/[R$\s]/g,"");
   if(!s) return null;
   if(s.includes(",")) s = s.replace(/\./g,"").replace(",",".");
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,""); // "1.500" = mil e quinhentos
   const v = parseFloat(s);
-  return isNaN(v) ? null : Math.round(v*100)/100;
+  return (isNaN(v)||!isFinite(v)) ? null : Math.round(v*100)/100;
+}
+
+/* download e impressão — helpers únicos (evita 4 cópias do mesmo código) */
+function downloadFile(filename, content, type){
+  const blob = content instanceof Blob ? content : new Blob([content],{type:type||"application/octet-stream"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+function openPrintWindow(html){
+  const w = window.open("","_blank");
+  if(!w){ toast("Permita pop-ups para gerar o documento"); return false; }
+  w.document.write(html); w.document.close();
+  setTimeout(()=>{ try{ w.focus(); w.print(); }catch(_){} }, 700);
+  return true;
 }
 
 let toastTimer=null;
@@ -1451,7 +1397,7 @@ function loadDemo(){
   }
   S.goal = 22000;
   S.last = {locId:l1, conv:"Unimed"};
-  S.cal = { reminder:60, reminders:[60], weekly:true, prompt:true };
+  S.cal = { reminder:60, weekly:true, prompt:true };
   // demo: meses anteriores já recebidos; mês atual pendente
   const mStart = toISO(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   S.entries.forEach(e=>{ e.paid = e.date < mStart; });
@@ -1522,7 +1468,7 @@ function sumBy(arr, keyFn){
   arr.forEach(e=>{
     const k = keyFn(e);
     const cur = m.get(k)||{v:0,q:0};
-    cur.v += entryValue(e); cur.q += exQty(e);
+    cur.v += entryValue(e); cur.q += e.qty;
     m.set(k,cur);
   });
   return m;
@@ -1533,7 +1479,7 @@ function renderDash(){
   const [from,to,label] = periodRange();
   const ent = filteredEntries([from,to]);
   const total = ent.reduce((s,e)=>s+entryValue(e),0);
-  const nEx   = ent.reduce((s,e)=>s+exQty(e),0);
+  const nEx   = ent.reduce((s,e)=>s+e.qty,0);
   const days  = new Set(ent.map(e=>e.date)).size;
 
   // período anterior de mesmo tamanho p/ delta
@@ -2007,7 +1953,7 @@ function hourlyStats(from,to){
     if(F.loc!=="all" && e.locId!==F.loc) return;
     const k=e.date+"|"+e.locId;
     const c=dayMap.get(k)||{v:0,q:0};
-    c.v+=entryValue(e); c.q+=exQty(e); dayMap.set(k,c);
+    c.v+=entryValue(e); c.q+=e.qty; dayMap.set(k,c);
   });
   const byLoc = new Map();
   dayMap.forEach((c,k)=>{
@@ -2080,212 +2026,6 @@ function profitCard(mp){
   </section>`;
 }
 
-
-/* ================== ONBOARDING & TOUR GUIADO ==================
-   Primeiro uso: slides de boas-vindas → tour interativo com destaque nos
-   elementos reais da interface. O botão "?" da barra superior refaz tudo. */
-const ONB_SLIDES = [
-  { icon:'<circle cx="24" cy="24" r="21"/><path d="M14 34v-7M19 34V19M24 34V14.5M29 34v-12.5M34 34v-8.5"/>',
-    t:"Bem-vindo ao RadFin",
-    d:"O app que transforma a sua volumetria diária em faturamento, com honorários diferentes por local, convênio e exame." },
-  { icon:'<path d="M40 20c0 12-16 22-16 22S8 32 8 20a16 16 0 0 1 32 0z"/><circle cx="24" cy="20" r="6"/>',
-    t:"1 · Cadastre seus locais",
-    d:"Clínica, hospital ou plantão: informe os convênios e o valor de cada exame. Dá para importar um formulário preenchido em PDF, foto ou planilha — e agora também definir o valor fixo de plantão SD/SN." },
-  { icon:'<path d="M24 10v28M10 24h28"/>',
-    t:"2 · Lance o dia em segundos",
-    d:"Use os contadores, a busca, os favoritos — ou dite por voz e fotografe a sua lista. O app aprende as suas abreviações." },
-  { icon:'<rect x="6" y="24" width="9" height="16" rx="2"/><rect x="19.5" y="14" width="9" height="26" rx="2"/><rect x="33" y="7" width="9" height="33" rx="2"/>',
-    t:"3 · Acompanhe e negocie",
-    d:"Painel com faturamento, meta, R$/hora por plantão, glosas, impostos e lucro real — além do fechamento mensal em PDF para o contador." }
-];
-let onbIdx = 0;
-function renderOnbSlide(){
-  const sl = ONB_SLIDES[onbIdx], last = onbIdx===ONB_SLIDES.length-1;
-  $("#onb").innerHTML = `
-    <div class="onb-top"><button id="onbSkip">Pular</button></div>
-    <div class="onb-body">
-      <div class="onb-art"><svg viewBox="0 0 48 48">${sl.icon}</svg></div>
-      <h2>${esc(sl.t)}</h2>
-      <p>${esc(sl.d)}</p>
-      <div class="onb-dots">${ONB_SLIDES.map((_,i)=>`<i class="${i===onbIdx?"on":""}"></i>`).join("")}</div>
-    </div>
-    <div class="onb-foot">
-      ${onbIdx>0?'<button class="btn" id="onbPrev" style="flex:0 0 38%">Voltar</button>':""}
-      <button class="btn btn-primary" id="onbNext">${last?"Começar o tour":"Próximo"}</button>
-    </div>`;
-  $("#onbSkip").onclick = ()=>{ closeOnb(); finishOnboarding(); };
-  const pv=$("#onbPrev"); if(pv) pv.onclick=()=>{ onbIdx--; renderOnbSlide(); };
-  $("#onbNext").onclick = ()=>{
-    if(last){ closeOnb(); setTimeout(startTour, 260); }
-    else { onbIdx++; renderOnbSlide(); }
-  };
-}
-function startOnboarding(){
-  onbIdx = 0;
-  const el=$("#onb");
-  el.classList.remove("hidden"); el.setAttribute("aria-hidden","false");
-  document.body.style.overflow="hidden";
-  renderOnbSlide();
-  requestAnimationFrame(()=> el.classList.add("show"));
-}
-function closeOnb(){
-  const el=$("#onb");
-  el.classList.remove("show");
-  document.body.style.overflow="";
-  setTimeout(()=>{ el.classList.add("hidden"); el.setAttribute("aria-hidden","true"); el.innerHTML=""; },250);
-}
-function finishOnboarding(){
-  if(S){ S.onb = S.onb||{}; S.onb.done = true; S.onb.v = 1; save(); }
-  const p = curProfile();
-  if(p) setTimeout(()=>offerFaceSetup(p), 700);
-}
-
-/* ---------- Tour interativo (coach marks sobre a interface real) ---------- */
-const TOUR_STEPS = [
-  { sel:"[data-tab='locs']", tab:"locs", t:"Comece pelos locais",
-    d:"Cadastre cada clínica, hospital ou plantão com os convênios, os honorários por exame e o valor fixo de plantão (SD/SN)." },
-  { sel:".fab", tab:"add", t:"Lance a volumetria aqui",
-    d:"O botão central abre o lançamento do dia: contadores por exame, busca, favoritos, voz e leitura de foto/PDF/planilha." },
-  { sel:"[data-tab='agenda']", tab:"agenda", t:"Sua agenda de plantões",
-    d:"Marque turnos e recorrências. Com a agenda preenchida, o app projeta o fechamento do mês e calcula o seu R$/hora." },
-  { sel:"[data-tab='hist']", tab:"hist", t:"Histórico em camadas",
-    d:"Navegue do macro ao detalhe: dias › locais › modalidades › exames. Toque em um lançamento para editar ou marcar como recebido." },
-  { sel:"[data-tab='dash']", tab:"dash", t:"O painel reúne tudo",
-    d:"Faturamento, meta do mês, ranking de rentabilidade, glosas, impostos, despesas e o relatório mensal em PDF." },
-  { sel:"#userBtn", t:"Seu perfil e o Face ID",
-    d:"Aqui você edita o cadastro, ativa o login por Face ID / Touch ID e gera o formulário de honorários para enviar a uma instituição." },
-  { sel:"#cfgBtn", t:"Ajustes e backup",
-    d:"Modalidades do perfil, meta, impostos, despesas, tema e — importante — o backup dos seus dados para levar a outro aparelho." },
-  { sel:"#helpBtn", t:"Precisou rever?",
-    d:"Este botão de interrogação abre a ajuda e refaz este tour quando você quiser. Bom trabalho!" }
-];
-let tourIdx = 0, tourOn = false;
-function startTour(){
-  tourIdx = 0; tourOn = true;
-  const v=$("#coach");
-  v.classList.remove("hidden"); v.setAttribute("aria-hidden","false");
-  document.body.style.overflow="hidden";
-  requestAnimationFrame(()=> v.classList.add("show"));
-  showTourStep();
-}
-function endTour(){
-  tourOn = false;
-  const v=$("#coach");
-  v.classList.remove("show");
-  document.body.style.overflow="";
-  setTimeout(()=>{ v.classList.add("hidden"); v.setAttribute("aria-hidden","true"); },220);
-  finishOnboarding();
-}
-function showTourStep(){
-  const st = TOUR_STEPS[tourIdx];
-  if(!st){ endTour(); return; }
-  if(st.tab && tab!==st.tab){ tab=st.tab; render(); window.scrollTo({top:0}); }
-  setTimeout(()=>{
-    const el = document.querySelector(st.sel);
-    const hole = $("#coachHole"), tip = $("#coachTip");
-    const vh = window.innerHeight;
-    let r = el? el.getBoundingClientRect() : {top:vh/2-30,left:20,width:window.innerWidth-40,height:60,bottom:vh/2+30};
-    const pad = 8;
-    hole.style.top    = Math.max(4, r.top-pad)+"px";
-    hole.style.left   = Math.max(4, r.left-pad)+"px";
-    hole.style.width  = Math.min(window.innerWidth-8, r.width+pad*2)+"px";
-    hole.style.height = (r.height+pad*2)+"px";
-    const last = tourIdx===TOUR_STEPS.length-1;
-    tip.innerHTML = `
-      <h4>${esc(st.t)}</h4>
-      <p>${esc(st.d)}</p>
-      <div class="coach-nav">
-        <span class="cn-step">${tourIdx+1} de ${TOUR_STEPS.length}</span>
-        <button class="cn-skip" id="tourSkip">${last?"":"Pular"}</button>
-        <button class="cn-next" id="tourNext">${last?"Concluir":"Próximo"}</button>
-      </div>`;
-    // posiciona o balão do lado com mais espaço
-    const above = r.top > vh*0.5;
-    tip.style.top = "0px";
-    const h = tip.offsetHeight || 150;
-    tip.style.top = above? Math.max(12, r.top-pad-12-h)+"px" : Math.min(vh-h-12, r.bottom+pad+12)+"px";
-    $("#tourSkip").onclick = endTour;
-    $("#tourNext").onclick = ()=>{ tourIdx++; showTourStep(); };
-  }, st.tab? 260 : 60);
-}
-window.addEventListener("resize", ()=>{ if(tourOn) showTourStep(); });
-
-/* ---------- Sheet de ajuda (botão "?") ---------- */
-function helpSheet(){
-  openSheet(`
-    <h3>Ajuda</h3>
-    <div class="sheet-body">
-      <button class="btn" id="hpTour" style="margin-bottom:10px">▶︎ Refazer o tour guiado</button>
-      <button class="btn" id="hpIntro" style="margin-bottom:16px">👋 Rever as telas de boas-vindas</button>
-      <div class="card-title" style="margin-bottom:8px">Perguntas rápidas</div>
-      <p class="note" style="margin-bottom:9px"><b style="color:var(--text)">Onde ficam meus dados?</b><br>Só neste aparelho, no seu usuário. Use <b style="color:var(--text)">Ajustes → Backup</b> para exportar um arquivo e restaurá-lo em outro celular pela tela de login.</p>
-      <p class="note" style="margin-bottom:9px"><b style="color:var(--text)">Como lançar um plantão de valor fixo?</b><br>No cadastro do local (ou na tabela dele) preencha <b style="color:var(--text)">Plantão SD / SN</b>. Depois, no lançamento do dia, o plantão aparece como um item — some 1 e pronto. Ele entra no faturamento, mas não conta como exame.</p>
-      <p class="note" style="margin-bottom:9px"><b style="color:var(--text)">Gerei um documento e fiquei preso na tela.</b><br>Resolvido: relatórios e formulários abrem dentro do app, com <b style="color:var(--text)">← RadFin</b> no canto superior esquerdo, além de imprimir, baixar e compartilhar.</p>
-      <p class="note"><b style="color:var(--text)">Falta o código TUSS de um exame.</b><br>Toque no nome do exame na tabela do local para editar apelido e código, ou use <b style="color:var(--text)">Ajustes → Exames sem código TUSS</b>.</p>
-    </div>
-    <div class="sheet-foot"><button class="btn" id="hpClose">Fechar</button></div>`,
-    el=>{
-      $("#hpClose",el).onclick=closeSheet;
-      $("#hpTour",el).onclick=()=>{ closeSheet(); setTimeout(startTour,340); };
-      $("#hpIntro",el).onclick=()=>{ closeSheet(); setTimeout(startOnboarding,340); };
-    });
-}
-
-/* ================== VISUALIZADOR DE DOCUMENTOS (in-app) ==================
-   Documentos são exibidos dentro do app, com botão de voltar sempre visível —
-   antes abriam em outra aba e, no modo standalone do iOS, prendiam o usuário. */
-let docState = { html:"", file:"documento.html", title:"", open:false };
-function openDoc(title, html, filename){
-  docState = { html, file: filename || "documento.html", title, open:true };
-  const el=$("#docView"), fr=$("#dvFrame");
-  $("#dvTitle").textContent = title || "Documento";
-  fr.srcdoc = html;
-  el.classList.remove("hidden"); el.setAttribute("aria-hidden","false");
-  document.body.style.overflow="hidden";
-  requestAnimationFrame(()=> el.classList.add("show"));
-  try{ history.pushState({radfinDoc:1},""); }catch(_){}
-}
-function closeDoc(fromPop){
-  const el=$("#docView");
-  if(!docState.open) return;
-  docState.open=false;
-  el.classList.remove("show");
-  document.body.style.overflow="";
-  setTimeout(()=>{ el.classList.add("hidden"); el.setAttribute("aria-hidden","true"); $("#dvFrame").srcdoc=""; },300);
-  if(!fromPop){ try{ if(history.state && history.state.radfinDoc) history.back(); }catch(_){} }
-}
-window.addEventListener("popstate", ()=>{ if(docState.open) closeDoc(true); });
-function docDownload(){
-  const isDoc = /\.docx?$/i.test(docState.file);
-  const blob = new Blob([(isDoc?"\ufeff":"")+docState.html], {type: isDoc? "application/msword":"text/html;charset=utf-8"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download=docState.file;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  toast("Arquivo baixado · "+docState.file);
-}
-function docPrint(){
-  const fr=$("#dvFrame");
-  try{ fr.contentWindow.focus(); fr.contentWindow.print(); }
-  catch(_){ toast("Use o menu Compartilhar → Imprimir"); }
-}
-async function docShare(){
-  const isDoc = /\.docx?$/i.test(docState.file);
-  const type = isDoc? "application/msword":"text/html";
-  try{
-    const file = new File([docState.html], docState.file, {type});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({ files:[file], title: docState.title });
-      return;
-    }
-  }catch(_){}
-  docDownload();
-}
-$("#dvBack").addEventListener("click", ()=>closeDoc());
-$("#dvPrint").addEventListener("click", docPrint);
-$("#dvDown").addEventListener("click", docDownload);
-$("#dvShare").addEventListener("click", docShare);
-
 /* ================== RELATÓRIO MENSAL (PDF via impressão) ================== */
 const MONTHS_F = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 function reportCard(){
@@ -2321,10 +2061,10 @@ function openMonthlyReport(y,m){
   const tot=ent.reduce((s,e)=>s+entryValue(e),0);
   const net=ent.reduce((s,e)=>s+entryValue(e)*netFactor(e.locId),0);
   const rec=ent.filter(e=>e.paid).reduce((s,e)=>s+entryValue(e),0);
-  const nEx=ent.reduce((s,e)=>s+exQty(e),0);
+  const nEx=ent.reduce((s,e)=>s+e.qty,0);
   const days=new Set(ent.map(e=>e.date)).size;
   const agg=(keyFn)=>{ const mm=new Map(); ent.forEach(e=>{ const k=keyFn(e); if(k==null) return;
-    const c=mm.get(k)||{q:0,v:0,net:0,rec:0}; c.q+=exQty(e); const val=entryValue(e); c.v+=val; c.net+=val*netFactor(e.locId); if(e.paid) c.rec+=val; mm.set(k,c); });
+    const c=mm.get(k)||{q:0,v:0,net:0,rec:0}; c.q+=e.qty; const val=entryValue(e); c.v+=val; c.net+=val*netFactor(e.locId); if(e.paid) c.rec+=val; mm.set(k,c); });
     return Array.from(mm.entries()).sort((a,b)=>b[1].v-a[1].v); };
   const byLoc=agg(e=>{const l=locById(e.locId);return l?l.name:null;});
   const byConv=agg(e=>e.conv||"—");
@@ -2361,7 +2101,7 @@ function openMonthlyReport(y,m){
     <div><h1>Fechamento · ${esc(title)}</h1>
     <p class="sub">${esc(p.name||"")}${p.crm?" · "+esc(p.crm):""}${p.spec?" · "+esc(p.spec):""}</p></div>
   </div>
-  
+  <div class="noprint"><button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button></div>
   <div class="kpis">
     <div class="kpi"><span>Faturamento bruto</span><b>${F2(tot)}</b></div>
     <div class="kpi"><span>Líquido estimado</span><b>${F2(net)}</b></div>
@@ -2392,7 +2132,7 @@ function openMonthlyReport(y,m){
     </tbody></table>`:""}
   <footer>Gerado pelo RadFin em ${esc(fmtDateShort(todayISO()))} · valores conforme tabelas e lançamentos registrados no app.</footer>
   </body></html>`;
-  openDoc("Fechamento · "+title, html, "radfin-fechamento-"+y+"-"+String(m+1).padStart(2,"0")+".html");
+  openPrintWindow(html);
 }
 
 /* ================== COMPARATIVO MÊS A MÊS ================== */
@@ -2404,7 +2144,7 @@ function monthCompareCard(){
     const from = toISO(m), to = toISO(new Date(m.getFullYear(), m.getMonth()+1, 0));
     const ent = filteredEntries([from,to]); // aplica filtros de local/convênio/modalidade/exame
     const v = ent.reduce((s,e)=>s+entryValue(e),0);
-    const q = ent.reduce((s,e)=>s+exQty(e),0);
+    const q = ent.reduce((s,e)=>s+e.qty,0);
     rows.push({label: MONTHS_S[m.getMonth()]+(m.getMonth()===0||i===5?"/"+String(m.getFullYear()).slice(2):""), mIdx:m.getMonth(), v, q, cur:i===0});
   }
   if(rows.every(r=>r.v===0)) return "";
@@ -2531,7 +2271,7 @@ function drawTimeSeries(ent, from, to){
     else if(mode==="week"){ const off=Math.floor((fromISO(e.date)-fromISO(from))/86400000/7); k=buckets[off]?buckets[off].key:null; }
     else { const d=fromISO(e.date); k=toISO(new Date(d.getFullYear(),d.getMonth(),1)); }
     const i = idx[k]; if(i==null) return;
-    buckets[i].v += entryValue(e); buckets[i].q += exQty(e);
+    buckets[i].v += entryValue(e); buckets[i].q += e.qty;
   });
 
   const W=480, H=190, padL=44, padR=6, padT=12, padB=26;
@@ -2616,12 +2356,7 @@ function emptyState(icn,title,text,btnLabel,btnId){
 <script>
 "use strict";
 /* ================== LANÇAR VOLUMETRIA ================== */
-const draft = { date: todayISO(), dates:[], locId:null, conv:null, qty:{}, search:"", mod:"all", collapsed:{} };
-/* Todas as datas do lançamento atual (principal + extras), ordenadas e sem repetição */
-function draftDates(){
-  const set = new Set([draft.date].concat(draft.dates||[]));
-  return Array.from(set).filter(Boolean).sort();
-}
+const draft = { date: todayISO(), locId:null, conv:null, qty:{}, search:"", mod:"all", collapsed:{} };
 
 function renderAdd(){
   if(!S.locations.length){
@@ -2646,8 +2381,8 @@ function renderAdd(){
   S.entries.forEach(e=>{ if(e.locId===draft.locId) usage[e.examId]=(usage[e.examId]||0)+1; });
   const priced = x => getPrice(draft.locId,x.id,draft.conv)!=null;
   const included = x => (loc.examIds||[]).includes(x.id);
-  const locMods = (loc.mods&&loc.mods.length)? loc.mods : EXAM_MODS;
-  const panelMods = MODS.filter(m=> m===SHIFT_MOD? locHasShift(loc) : (locMods.includes(m) || activeMods().includes(m)));
+  const locMods = (loc.mods&&loc.mods.length)? loc.mods : MODS;
+  const panelMods = MODS.filter(m=> locMods.includes(m) || activeMods().includes(m));
   if(draft.mod!=="all" && !panelMods.includes(draft.mod)) draft.mod="all";
   const q = draft.search.trim();
   let exams = S.exams.filter(x=> panelMods.includes(x.mod) && (draft.mod==="all"||x.mod===draft.mod) && matchExam(x,q));
@@ -2664,7 +2399,7 @@ function renderAdd(){
   const rest = exams.filter(x=>!x.fav);
   const grouped = q? [["Resultados",exams,true]] :
     (favs.length? [["★ Favoritos",favs,true]]:[]).concat(
-      [SHIFT_MOD].concat(MODS.filter(m=>m!==SHIFT_MOD)).filter(m=>panelMods.includes(m)).map(m=>[MOD_LABELS[m]||m,rest.filter(x=>x.mod===m),false]).filter(g=>g[1].length));
+      MODS.filter(m=>panelMods.includes(m)).map(m=>[MOD_LABELS[m]||m,rest.filter(x=>x.mod===m),false]).filter(g=>g[1].length));
 
   const items = Object.entries(draft.qty).filter(([id,n])=>n>0);
   const totQ = items.reduce((s,[,n])=>s+n,0);
@@ -2676,16 +2411,7 @@ function renderAdd(){
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M3 12a9 9 0 1 0 2.6-6.3L3 8"/><path d="M3 3v5h5"/></svg>Repetir dia</button>
     </div>
     <div class="card" style="padding:15px">
-      <div class="field"><label>Data</label><input type="date" class="input" id="adDate" value="${draft.date}" max="${todayISO()}">
-        ${(()=>{ const ds=draftDates(); return `
-          <div style="display:flex;align-items:center;gap:14px;margin-top:9px;flex-wrap:wrap">
-            <button id="adMulti" style="color:var(--accent);font-weight:700;font-size:12.5px">🗓 ${ds.length>1?`Lançar em ${ds.length} datas`:"Lançar em várias datas…"}</button>
-            ${ds.length>1?'<button id="adMultiClear" style="color:var(--muted);font-weight:700;font-size:12px">Só esta data</button>':""}
-          </div>
-          ${ds.length>1?`<div class="conv-chips" style="margin-top:9px">${ds.map(d=>
-              `<span class="chip on" style="pointer-events:none">${esc(fmtDateShort(d))}</span>`).join("")}</div>
-            <p class="note" style="margin-top:7px">O mesmo conjunto de exames será lançado em cada uma dessas datas.</p>`:""}`; })()}
-      </div>
+      <div class="field"><label>Data</label><input type="date" class="input" id="adDate" value="${draft.date}" max="${todayISO()}"></div>
       <div class="field"><label>Local</label><div class="conv-chips">${
         S.locations.map(l=>`<button class="chip ${l.id===draft.locId?"on":""}" data-adloc="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
       }</div></div>
@@ -2735,20 +2461,13 @@ function renderAdd(){
         }).join("")}`).join("") || '<p class="note" style="padding:16px 0">Nenhum exame encontrado. Adicione um exame novo em Locais → catálogo.</p>'}
     </div>
 
-    ${totQ>0?(()=>{ const nd=draftDates().length; return `<button class="total-bar" id="adSave">
-      <span class="tb-l">Salvar ${totQ} exame${totQ===1?"":"s"}${nd>1?` × ${nd} datas`:""}<small>${esc(loc.name)} · ${esc(draft.conv)}${loc.gross&&loc.taxPct?` · bruto (−${loc.taxPct}%)`:""}</small></span>
-      <span class="tb-r">${fmtBRL(totV*nd)}</span>
-    </button>`; })():""}
+    ${totQ>0?`<button class="total-bar" id="adSave">
+      <span class="tb-l">Salvar ${totQ} exame${totQ===1?"":"s"}<small>${esc(loc.name)} · ${esc(draft.conv)}${loc.gross&&loc.taxPct?` · bruto (−${loc.taxPct}%)`:""}</small></span>
+      <span class="tb-r">${fmtBRL(totV)}</span>
+    </button>`:""}
   </div>`;
 
-  $("#adDate").onchange = e=>{
-    const nd = e.target.value || todayISO();
-    draft.dates = (draft.dates||[]).filter(d=>d!==nd);
-    draft.date = nd;
-    renderAdd();
-  };
-  $("#adMulti").onclick = multiDateSheet;
-  const amc=$("#adMultiClear"); if(amc) amc.onclick=()=>{ draft.dates=[]; renderAdd(); };
+  $("#adDate").onchange = e=>{ draft.date = e.target.value || todayISO(); };
   $$("[data-adloc]").forEach(b=> b.onclick=()=>{ draft.locId=b.dataset.adloc; draft.conv=null; renderAdd(); });
   $$("[data-adconv]").forEach(b=> b.onclick=()=>{ draft.conv=b.dataset.adconv; renderAdd(); });
   $$("[data-admod]").forEach(b=> b.onclick=()=>{ draft.mod=b.dataset.admod; renderAdd(); });
@@ -2765,110 +2484,11 @@ function renderAdd(){
   const sv=$("#adSave"); if(sv) sv.onclick = saveDraft;
 }
 
-/* ---------- Várias datas no mesmo lançamento ---------- */
-let mdView = { y:null, m:null };
-function multiDateSheet(){
-  const t = todayISO();
-  const sel = new Set(draftDates());
-  const d0 = fromISO(draft.date);
-  mdView = { y:d0.getFullYear(), m:d0.getMonth() };
-  const grid = ()=>{
-    const y=mdView.y, m=mdView.m;
-    const first = new Date(y,m,1);
-    const start = addDays(toISO(first), -first.getDay());
-    const entryDates = new Set(S.entries.map(e=>e.date));
-    let cells="";
-    for(let i=0;i<42;i++){
-      const day = addDays(start,i), dd=fromISO(day);
-      const out = dd.getMonth()!==m, future = day>t;
-      cells += `<button class="cal-cell ${out?"out":""} ${day===t?"today":""} ${sel.has(day)?"sel":""}" data-md="${day}" ${future?"disabled style=\"opacity:.28\"":""}>
-        <span>${dd.getDate()}</span>
-        <span class="cd">${occurrences(day).slice(0,3).map(o=>`<i style="background:${SLOTS[locById(o.locId).slot]}"></i>`).join("")}</span>
-        ${entryDates.has(day)?'<span class="pb"></span>':""}
-      </button>`;
-    }
-    return `<div class="cal-head">
-        <div class="cal-title">${MONTHS_L[m]} ${y}</div>
-        <div class="cal-nav">
-          <button id="mdPrev" aria-label="mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-          <button id="mdNext" aria-label="próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
-        </div>
-      </div>
-      <div class="cal-grid">
-        ${["D","S","T","Q","Q","S","S"].map(x=>`<span class="cal-dow">${x}</span>`).join("")}
-        ${cells}
-      </div>`;
-  };
-  const paint = el=>{
-    $("#mdGrid",el).innerHTML = grid();
-    const arr = Array.from(sel).sort();
-    $("#mdCount",el).textContent = arr.length===1
-      ? "1 data selecionada" : `${arr.length} datas selecionadas`;
-    $("#mdList",el).innerHTML = arr.map(d=>
-      `<button class="chip on" data-mdrm="${d}">${esc(fmtDateShort(d))} ✕</button>`).join("");
-    bind(el);
-  };
-  const bind = el=>{
-    $("#mdPrev",el).onclick=()=>{ mdView.m--; if(mdView.m<0){mdView.m=11;mdView.y--;} paint(el); };
-    $("#mdNext",el).onclick=()=>{ mdView.m++; if(mdView.m>11){mdView.m=0;mdView.y++;} paint(el); };
-    $$("[data-md]",el).forEach(b=> b.onclick=()=>{
-      const d=b.dataset.md;
-      if(sel.has(d)){
-        if(sel.size===1){ toast("Deixe ao menos uma data"); return; }
-        sel.delete(d);
-      } else sel.add(d);
-      paint(el);
-    });
-    $$("[data-mdrm]",el).forEach(b=> b.onclick=()=>{
-      if(sel.size===1){ toast("Deixe ao menos uma data"); return; }
-      sel.delete(b.dataset.mdrm); paint(el);
-    });
-  };
-  openSheet(`
-    <h3>Lançar em várias datas</h3>
-    <div class="sheet-body">
-      <p class="note" style="margin-bottom:12px">Toque nos dias em que você fez <b style="color:var(--text)">a mesma produção</b>. O conjunto de exames que você montar será gravado igual em cada data (dias futuros ficam bloqueados).</p>
-      <div class="conv-chips" style="margin-bottom:12px">
-        <button class="chip" id="mdWeek">Últimos 7 dias</button>
-        <button class="chip" id="mdWeekdays">Dias úteis desta semana</button>
-        <button class="chip" id="mdOnly">Só a data atual</button>
-      </div>
-      <div id="mdGrid"></div>
-      <p class="note" id="mdCount" style="margin:12px 0 6px;font-weight:700;color:var(--text)"></p>
-      <div class="conv-chips" id="mdList"></div>
-    </div>
-    <div class="sheet-foot">
-      <button class="btn" id="mdCancel">Cancelar</button>
-      <button class="btn btn-primary" id="mdOk">Usar estas datas</button>
-    </div>`,
-    el=>{
-      paint(el);
-      $("#mdWeek",el).onclick=()=>{ for(let i=0;i<7;i++) sel.add(addDays(t,-i)); paint(el); };
-      $("#mdWeekdays",el).onclick=()=>{
-        const ws=weekStart(t);
-        for(let i=0;i<5;i++){ const d=addDays(ws,i); if(d<=t) sel.add(d); }
-        if(!sel.size) sel.add(t);
-        paint(el);
-      };
-      $("#mdOnly",el).onclick=()=>{ sel.clear(); sel.add(draft.date); paint(el); };
-      $("#mdCancel",el).onclick=closeSheet;
-      $("#mdOk",el).onclick=()=>{
-        const arr=Array.from(sel).sort();
-        if(!arr.length){ toast("Escolha ao menos uma data"); return; }
-        draft.date = arr[0];
-        draft.dates = arr.slice(1);
-        closeSheet();
-        toast(arr.length>1? arr.length+" datas selecionadas" : "1 data selecionada");
-        renderAdd();
-      };
-    });
-}
-
 /* ---------- Lançamento por voz ---------- */
 function recogMods(locId){
   const loc = locById(locId||draft.locId);
-  const locMods = (loc&&loc.mods&&loc.mods.length)? loc.mods : EXAM_MODS;
-  const panel = EXAM_MODS.filter(m=> locMods.includes(m) || activeMods().includes(m));
+  const locMods = (loc&&loc.mods&&loc.mods.length)? loc.mods : MODS;
+  const panel = MODS.filter(m=> locMods.includes(m) || activeMods().includes(m));
   return (draft.mod && draft.mod!=="all")? [draft.mod] : panel;
 }
 function recogPool(locId){
@@ -3062,38 +2682,9 @@ function voiceSheet(){
     },
     ()=>{ if(recRef){ try{recRef.stop();}catch(_){} recRef=null; } });
 }
-/* Grava direto no histórico itens que já vêm com data de realização própria */
-function commitDatedItems(items){
-  const locId=draft.locId, conv=draft.conv;
-  const miss=[]; const seen=new Set();
-  items.forEach(it=>{
-    if(getPrice(locId,it.exam.id,conv)==null && !seen.has(it.exam.id)){
-      seen.add(it.exam.id);
-      miss.push([it.exam.id, items.filter(x=>x.exam.id===it.exam.id).reduce((s2,x)=>s2+x.qty,0)]);
-    }
-  });
-  if(miss.length){ closeSheet(); setTimeout(()=>missingPriceSheet(miss, ()=>commitDatedItems(items)), 320); return; }
-  const dates=new Set();
-  items.forEach(it=>{
-    const d = it.date || draft.date;
-    dates.add(d);
-    S.entries.push({ id:"e"+(++S.entrySeq), date:d, locId, examId:it.exam.id, conv,
-      qty:it.qty, unit:getPrice(locId,it.exam.id,conv), paid:false });
-  });
-  S.last={locId, conv};
-  save(); closeSheet();
-  const n=items.reduce((s2,i2)=>s2+i2.qty,0);
-  toast(`${n} exames lançados em ${dates.size} datas`);
-  draft.qty={}; draft.search="";
-  nav("hist");
-}
 function showVoiceReview(el, p){
   const ctx=[];
-  const itemDates = Array.from(new Set(p.items.map(it=>it.date||draft.date)));
-  const multiDate = itemDates.length>1;
-  if(multiDate) ctx.push(itemDates.length+" datas no arquivo");
-  else if(p.items.length && p.items[0].date) ctx.push(fmtDateShort(p.items[0].date));
-  else if(p.date) ctx.push(fmtDateShort(p.date));
+  if(p.date) ctx.push(fmtDateShort(p.date));
   if(p.locId) ctx.push((locById(p.locId)||{}).name);
   if(p.conv) ctx.push(p.conv);
   if(p.turno) ctx.push(p.turno);
@@ -3102,16 +2693,9 @@ function showVoiceReview(el, p){
     <div class="card" style="padding:12px 14px;margin-top:12px">
       <div class="card-title" style="margin-bottom:8px">Entendi assim ↓ <span class="hint">confirme antes de inserir</span></div>
       ${ctx.length?`<p class="note" style="margin-bottom:8px">📍 ${esc(ctx.join(" · "))}</p>`:""}
-      ${multiDate?`<p class="note" style="margin-bottom:10px;color:var(--accent-text)"><b>Encontrei a data de realização no arquivo</b> — cada bloco abaixo será lançado na sua própria data, direto no histórico.</p>`:""}
-      ${p.items.length? (()=>{ let last="§"; return p.items.map((it,i)=>{
+      ${p.items.length? p.items.map((it,i)=>{
         const sure = it.learned || it.score>=0.8;
-        const dk = it.date||"";
-        let head="";
-        if(multiDate && dk!==last){
-          last=dk;
-          head = `<div class="mod-head" style="margin-top:8px">📅 ${dk? esc(fmtDateLong(dk)) : "Sem data no arquivo · "+esc(fmtDateShort(draft.date))}</div>`;
-        }
-        return head+`
+        return `
         <div class="vc-item ${sure?"":"miss"}">
           <div class="vc-main">
             <div class="vc-name"><span class="mod-flag">${it.exam.mod}</span>${esc(dispName(it.exam))}</div>
@@ -3122,7 +2706,7 @@ function showVoiceReview(el, p){
             <button data-vdec="${i}">−</button><span class="qty">${it.qty}</span><button data-vinc="${i}">+</button>
           </div>
         </div>`;
-      }).join(""); })() : '<p class="note">Nenhum exame reconhecido.</p>'}
+      }).join("") : '<p class="note">Nenhum exame reconhecido.</p>'}
       ${p.leftovers.length?`
         <div class="mod-head" style="margin-top:10px">Não reconheci — toque para ensinar</div>
         ${p.leftovers.map((l,i)=>`
@@ -3131,19 +2715,10 @@ function showVoiceReview(el, p){
             <button class="btn btn-sm" data-vteach="${i}">Ensinar</button>
           </div>`).join("")}`:""}
     </div>`;
-  $("#vcDone",el).textContent = p.items.length
-    ? (multiDate? `Lançar em ${itemDates.length} datas` : "Adicionar ao lançamento")
-    : "Tentar de novo";
+  $("#vcDone",el).textContent = p.items.length? "Adicionar ao lançamento":"Tentar de novo";
   $("#vcDone",el).onclick = ()=>{
     if(!p.items.length){ closeSheet(); voiceSheet(); return; }
-    if(multiDate){
-      p.items.forEach(it=>{ if(it.phrase && (it.score<0.8 || it.taught)) S.learn[it.phrase]=it.exam.id; });
-      save();
-      commitDatedItems(p.items);
-      return;
-    }
-    if(p.items[0] && p.items[0].date) draft.date=p.items[0].date;
-    else if(p.date) draft.date=p.date;
+    if(p.date) draft.date=p.date;
     if(p.locId){ draft.locId=p.locId; draft.conv=null; }
     if(p.conv) draft.conv=p.conv;
     // aprende com as correspondências confirmadas de baixa confiança
@@ -3201,38 +2776,42 @@ function inlineExamPicker(el, title, onPick, onBack){
 }
 
 /* ---------- Lançamento por imagem (OCR) ---------- */
-let tessPromise = null;
-function ensureTesseract(){
-  if(window.Tesseract) return Promise.resolve();
-  if(tessPromise) return tessPromise;
-  tessPromise = new Promise((res,rej)=>{
-    const sc=document.createElement("script");
-    sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
-    sc.onload=()=>res();
-    sc.onerror=()=>{ tessPromise=null; rej(new Error("offline")); };
-    document.head.appendChild(sc);
-  });
-  return tessPromise;
-}
-let pdfPromise=null, xlsxPromise=null;
+let tessPromise=null, pdfPromise=null, xlsxPromise=null;
 function loadScript(src){
   return new Promise((res,rej)=>{
     const sc=document.createElement("script");
-    sc.src=src; sc.onload=()=>res(); sc.onerror=()=>rej(new Error("offline"));
+    sc.src=src; sc.onload=()=>res(); sc.onerror=()=>{ sc.remove(); rej(new Error("offline")); };
     document.head.appendChild(sc);
   });
 }
+/* tenta cada CDN em ordem — resiliência quando um host está fora do ar/bloqueado */
+function loadScriptAny(urls){
+  return urls.reduce((p,u)=> p.catch(()=>loadScript(u)), Promise.reject());
+}
+function ensureTesseract(){
+  if(window.Tesseract) return Promise.resolve();
+  if(!tessPromise) tessPromise = loadScriptAny([
+      "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js",
+      "https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"
+    ]).catch(e=>{ tessPromise=null; throw e; });
+  return tessPromise;
+}
 function ensurePdfJs(){
   if(window.pdfjsLib) return Promise.resolve();
-  if(!pdfPromise) pdfPromise = loadScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js")
+  if(!pdfPromise) pdfPromise = loadScriptAny([
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+    ])
     .then(()=>{ window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"; })
     .catch(e=>{ pdfPromise=null; throw e; });
   return pdfPromise;
 }
 function ensureXlsx(){
   if(window.XLSX) return Promise.resolve();
-  if(!xlsxPromise) xlsxPromise = loadScript("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js")
-    .catch(e=>{ xlsxPromise=null; throw e; });
+  if(!xlsxPromise) xlsxPromise = loadScriptAny([
+      "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+    ]).catch(e=>{ xlsxPromise=null; throw e; });
   return xlsxPromise;
 }
 async function pdfToText(file){
@@ -3275,71 +2854,13 @@ async function runOCR(file, onProg){
   await worker.terminate();
   return data.text||"";
 }
-/* ---------- Datas dentro do documento (data de realização) ---------- */
-const MONTH_ABBR = {jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
-function isoFromDMY(d,m,y){
-  if(!(d>=1&&d<=31)||!(m>=1&&m<=12)) return null;
-  const now=new Date();
-  let year = (y==null)? now.getFullYear() : (y<100? 2000+y : y);
-  const dt = new Date(year, m-1, d);
-  if(dt.getMonth()!==m-1 || dt.getDate()!==d) return null;     // 31/02 e afins
-  let iso = toISO(dt);
-  if(iso>todayISO()){                                          // data no futuro → ano anterior
-    const dt2=new Date(year-1,m-1,d);
-    if(dt2.getMonth()===m-1 && toISO(dt2)<=todayISO()) iso=toISO(dt2);
-  }
-  return iso;
-}
-/* Extrai UMA data da linha e devolve {date, rest} (rest = linha sem a data) */
-function extractDate(raw){
-  const s0 = String(raw);
-  let m, iso;
-  // aaaa-mm-dd
-  if((m = s0.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)/))){
-    iso = isoFromDMY(+m[3], +m[2], +m[1]);
-    if(iso) return {date:iso, rest:s0.replace(m[0]," ")};
-  }
-  // dd/mm[/aaaa] e dd-mm-aaaa  (o ponto só é aceito na forma completa dd.mm.aaaa)
-  m = s0.match(/\b(\d{1,2})[\/](\d{1,2})(?:[\/](\d{2,4}))?(?!\d)/)
-   || s0.match(/\b(\d{1,2})-(\d{1,2})-(\d{2,4})(?!\d)/)
-   || s0.match(/\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?!\d)/);
-  if(m){
-    iso = isoFromDMY(+m[1], +m[2], m[3]!=null? +m[3] : null);
-    if(iso) return {date:iso, rest:s0.replace(m[0]," ")};
-  }
-  // "28 de julho de 2026", "28 jul 26", "28 julho"
-  const n = normName(s0);
-  if((m = n.match(/\b(\d{1,2})\s*(?:de\s*)?([a-z]{3,9})\.?\s*(?:de\s*)?(\d{2,4})?\b/))){
-    const mo = MONTH_WORDS[m[2]] != null ? MONTH_WORDS[m[2]] : MONTH_ABBR[m[2].slice(0,3)];
-    if(mo!=null){
-      iso = isoFromDMY(+m[1], mo+1, m[3]? +m[3] : null);
-      if(iso){
-        const re = new RegExp(m[1]+"\\s*(?:de\\s*)?[A-Za-zÀ-ú]{3,9}\\.?\\s*(?:de\\s*)?"+(m[3]||""),"i");
-        return {date:iso, rest:s0.replace(re," ")};
-      }
-    }
-  }
-  return null;
-}
-const DATE_HINT = /(data|dia|realiza|exec|atendiment|competencia|refer)/i;
 function parseImageText(text){
   const pool = recogPool();
   const agg = new Map(); const leftovers=[];
-  let curDate = null;               // data de realização vigente (cabeçalho/seção)
-  const datesFound = new Set();
   String(text).split(/\n+/).forEach(line=>{
-    let raw = line.trim();
-    if(!raw) return;
-    // 1. data de realização na própria linha (ou linha só de data → vale para as seguintes)
-    const dt = extractDate(raw);
-    if(dt){
-      curDate = dt.date; datesFound.add(dt.date);
-      raw = dt.rest.replace(/\s+/g," ").trim();
-      // remove rótulos como "Data:", "Data de realização", "Dia"
-      raw = raw.replace(/^\s*(data\s*(de\s*)?(realiza\w*|exec\w*|atendimento)?\s*:?|dia\s*:?|em\s*:?)\s*/i,"").trim();
-    }
+    const raw = line.trim();
     let ln = normName(raw);
-    if(ln.replace(/[^a-z]/g,"").length<3) return;   // linha só com a data
+    if(ln.replace(/[^a-z]/g,"").length<3) return;
     let qty=1, m;
     if((m=ln.match(/^(\d{1,3})\b/))){ qty=+m[1]; ln=ln.slice(m[0].length); }
     else if((m=ln.match(/\bx\s?(\d{1,3})$/))){ qty=+m[1]; ln=ln.slice(0,ln.length-m[0].length); }
@@ -3349,17 +2870,13 @@ function parseImageText(text){
     if(!words.length) return;
     const r = segMatch(words, pool, draft.conv, draft.locId);
     if(r.exam){
-      const key = (curDate||"")+"|"+r.exam.id;     // agrega por data + exame
-      if(!agg.has(key)) agg.set(key,{qty:0, exam:r.exam, date:curDate, n:0, first:raw.slice(0,42), phrase:r.phrase, score:r.score, learned:r.learned});
-      const a=agg.get(key); a.qty+=qty; a.n++; a.score=Math.max(a.score,r.score);
-    } else leftovers.push({qty, text:raw.slice(0,48), date:curDate});
+      if(!agg.has(r.exam.id)) agg.set(r.exam.id,{qty:0, exam:r.exam, n:0, first:raw.slice(0,42), phrase:r.phrase, score:r.score, learned:r.learned});
+      const a=agg.get(r.exam.id); a.qty+=qty; a.n++; a.score=Math.max(a.score,r.score);
+    } else leftovers.push({qty, text:raw.slice(0,48)});
   });
-  const items = Array.from(agg.values()).map(a=>({qty:a.qty, exam:a.exam, date:a.date, phrase:a.phrase, score:a.score, learned:a.learned,
-      text:a.first+(a.n>1?` (+${a.n-1} linhas)`:"")}));
-  items.sort((x,y)=> (x.date||"").localeCompare(y.date||"") || dispName(x.exam).localeCompare(dispName(y.exam),"pt-BR"));
   return {
-    items,
-    dates: Array.from(datesFound).sort(),
+    items: Array.from(agg.values()).map(a=>({qty:a.qty, exam:a.exam, phrase:a.phrase, score:a.score, learned:a.learned,
+      text:a.first+(a.n>1?` (+${a.n-1} linhas)`:"")})),
     leftovers: leftovers.slice(0,10)
   };
 }
@@ -3373,7 +2890,6 @@ function imageSheet(){
         <p class="note" style="font-size:12.5px"><b style="color:var(--text)">Passo a passo:</b><br>
         1️⃣ Confira o contexto abaixo (definido na tela anterior) → 2️⃣ envie foto/print, PDF, planilha (XLSX) ou CSV da lista de produtividade → 3️⃣ o app lê a imagem, reconhece exames e quantidades → 4️⃣ revise e confirme.</p>
         <p class="note" style="margin-top:8px;font-size:12px">📍 <b style="color:var(--text)">${esc(fmtDateShort(draft.date))} · ${esc(loc?loc.name:"")} · ${esc(draft.conv||"")}</b></p>
-        <p class="note" style="margin-top:8px;font-size:11.5px"><b style="color:var(--text)">Datas no arquivo:</b> se o documento trouxer a data de realização (no cabeçalho de cada bloco ou na própria linha do exame), o app usa essa data — inclusive quando há várias datas diferentes no mesmo arquivo. Sem data, vale a data selecionada acima.</p>
         <p class="note" style="margin-top:8px;font-size:11.5px">Aceita foto/print (OCR), PDF, XLSX, CSV e TXT. Dica: selecione a Modalidade na tela anterior para o reconhecimento ficar ainda mais preciso. Requer internet na primeira leitura de cada formato.</p>
       </div>
       <input type="file" id="imFile" accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" class="hidden">
@@ -3480,26 +2996,21 @@ function saveDraft(){
   if(!items.length) return;
   const missing = items.filter(([id])=>getPrice(draft.locId,id,draft.conv)==null);
   if(missing.length){ missingPriceSheet(missing); return; }
-  const dates = draftDates();
   try{
-    dates.forEach(dt=>{
-      items.forEach(([id,n])=>{
-        S.entries.push({ id:"e"+(++S.entrySeq), date:dt, locId:draft.locId,
-          examId:id, conv:draft.conv, qty:n, unit:getPrice(draft.locId,id,draft.conv), paid:false });
-      });
+    items.forEach(([id,n])=>{
+      S.entries.push({ id:"e"+(++S.entrySeq), date:draft.date, locId:draft.locId,
+        examId:id, conv:draft.conv, qty:n, unit:getPrice(draft.locId,id,draft.conv), paid:false });
     });
     S.last = {locId:draft.locId, conv:draft.conv};
     save();
   }catch(err){ toast("Erro ao salvar: "+err.message); return; }
   const tot = items.reduce((s,[id,n])=>s+n,0);
-  draft.qty={}; draft.search=""; draft.dates=[];
-  toast(dates.length>1
-    ? `${tot*dates.length} exames lançados em ${dates.length} datas!`
-    : tot+" exame"+(tot===1?"":"s")+" lançado"+(tot===1?"":"s")+"!");
+  draft.qty={}; draft.search="";
+  toast(tot+" exame"+(tot===1?"":"s")+" lançado"+(tot===1?"":"s")+"!");
   nav("dash");
 }
 
-function missingPriceSheet(missing, after){
+function missingPriceSheet(missing){
   const loc = locById(draft.locId);
   openSheet(`
     <h3>Defina os honorários para concluir</h3>
@@ -3532,153 +3043,50 @@ function missingPriceSheet(missing, after){
         vals.forEach(([id,v])=>{ S.prices[pKey(draft.locId,id,draft.conv)]=v; });
         save(); closeSheet();
         toast("Preços salvos");
-        if(after) after(); else saveDraft(); // agora sem pendências
+        saveDraft(); // agora sem pendências
       };
     });
 }
 
-/* ================== HISTÓRICO (macro → drill-down) ================== */
-const HIST_ROOTS = {
-  date: { label:"Todos os dias",   keys:["date","loc","mod","exam"] },
-  loc:  { label:"Todos os locais", keys:["loc","date","mod","exam"] }
-};
-const HIST_NOUN = { date:["dia","dias"], loc:["local","locais"], mod:["modalidade","modalidades"], exam:["exame","exames"] };
-let histView = { root:"date", path:[], limit:15 };
-function histRoot(){ return HIST_ROOTS[histView.root] || HIST_ROOTS.date; }
-function histKeys(){ return histRoot().keys; }
-function histResetView(){ histView.path=[]; histView.limit=15; }
-function histVal(e,k){
-  if(k==="date") return e.date;
-  if(k==="loc")  return e.locId||"";
-  if(k==="mod")  return (examById(e.examId)||{}).mod || "—";
-  return e.examId;
-}
-function histLabel(k,v){
-  if(k==="date") return fmtDateLong(v);
-  if(k==="loc"){ const l=locById(v); return l? l.name : "Local removido"; }
-  if(k==="mod") return MOD_LABELS[v] || v || "Sem modalidade";
-  const x=examById(v); return x? dispName(x) : "Exame removido";
-}
-function histDot(k,v){
-  if(k!=="loc") return "";
-  const l=locById(v); if(!l) return "";
-  return `<span class="dot" style="background:${SLOTS[l.slot]};display:inline-block;width:8px;height:8px;margin-right:7px"></span>`;
-}
-function histScope(){
-  const keys=histKeys();
-  return S.entries.filter(e=> histView.path.every((v,i)=> histVal(e,keys[i])===v));
-}
-function histGroups(list, key){
-  const map=new Map();
-  list.forEach(e=>{ const v=histVal(e,key); if(!map.has(v)) map.set(v,[]); map.get(v).push(e); });
-  const out=Array.from(map, ([v,ent])=>({
-    v, ent,
-    val: ent.reduce((s,e)=>s+entryValue(e),0),
-    qty: ent.reduce((s,e)=>s+exQty(e),0),
-    pend: ent.some(e=>!e.paid)
-  }));
-  if(key==="date") out.sort((a,b)=> a.v<b.v?1:-1);
-  else out.sort((a,b)=> b.val-a.val || b.qty-a.qty);
-  return out;
-}
-function histPreview(ent, key){
-  if(!key) return "";
-  const g=histGroups(ent,key);
-  const noun=HIST_NOUN[key][g.length===1?0:1];
-  const names=g.slice(0,2).map(x=>histLabel(key,x.v)).join(", ");
-  return `${g.length} ${noun} · ${esc(names)}${g.length>2?" +"+(g.length-2):""}`;
-}
-const HIST_CHEV = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
-
+/* ================== HISTÓRICO ================== */
+let histLimit = 15; // dias exibidos
 function renderHist(){
   if(!S.entries.length){
-    histResetView();
     $("#view").innerHTML = `<div class="page">`+emptyState("chart","Nenhum lançamento ainda",
-      "Sua volumetria diária aparecerá aqui: primeiro a visão por dia, e você abre local, modalidade e exame conforme quiser.","Lançar exames","goAdd3")+`</div>`;
+      "Sua volumetria diária aparecerá aqui, agrupada por dia, com os totais de cada plantão.","Lançar exames","goAdd3")+`</div>`;
     $("#goAdd3").onclick=()=>nav("add");
     return;
   }
-  const keys = histKeys();
-  // se um grupo ficou vazio (ex.: lançamentos excluídos), sobe um nível
-  while(histView.path.length && !histScope().length){ histView.path.pop(); histView.limit=15; }
+  const byDate = new Map();
+  S.entries.forEach(e=>{ if(!byDate.has(e.date)) byDate.set(e.date,[]); byDate.get(e.date).push(e); });
+  const dates = Array.from(byDate.keys()).sort().reverse();
+  const shown = dates.slice(0, histLimit);
 
-  const path = histView.path, depth = path.length, scope = histScope();
-  const val  = scope.reduce((s,e)=>s+entryValue(e),0);
-  const qty  = scope.reduce((s,e)=>s+exQty(e),0);
-  const pend = scope.filter(e=>!e.paid).reduce((s,e)=>s+entryValue(e),0);
-  const leaf = depth >= keys.length-1;
-  const key  = leaf? null : keys[depth];
-  const groups = leaf? [] : histGroups(scope, key);
-  const shown  = groups.slice(0, histView.limit);
-  const scopeTitle = depth? histLabel(keys[depth-1], path[depth-1]) : histRoot().label;
-
-  const back = depth? `<button id="histBack" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m15 18-6-6 6-6"/></svg>
-      ${esc(depth>1? histLabel(keys[depth-2], path[depth-2]) : histRoot().label)}</button>`:"";
-
-  const crumbs = `<div class="crumbs">
-    <button class="cr ${depth?"":"on"}" data-crumb="0">${esc(histRoot().label)}</button>
-    ${path.map((v,i)=>`<svg class="sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg><button class="cr ${i===depth-1?"on":""}" data-crumb="${i+1}">${esc(histLabel(keys[i],v))}</button>`).join("")}
-  </div>`;
-
-  const roots = depth? "" : `<div class="conv-chips" style="margin-bottom:10px">
-    <button class="chip ${histView.root==="date"?"on":""}" data-hroot="date">Dias primeiro</button>
-    <button class="chip ${histView.root==="loc"?"on":""}" data-hroot="loc">Locais primeiro</button>
-  </div>`;
-
-  const body = leaf
-    ? `<div class="card" style="padding:4px 16px;margin-top:12px">
-        ${scope.slice().sort((a,b)=> entryValue(b)-entryValue(a)).map(e=>{
+  $("#view").innerHTML = `<div class="page">
+    <div class="sec-head" style="margin-top:0"><h2>Histórico</h2><span class="mut" style="font-size:12px">${fmtN(S.entries.length)} lançamentos</span></div>
+    ${shown.map(d=>{
+      const list = byDate.get(d);
+      const tot = list.reduce((s,e)=>s+entryValue(e),0);
+      const nq = list.reduce((s,e)=>s+e.qty,0);
+      return `<div class="day-head"><span class="dh-date">${esc(fmtDateLong(d))}</span><span class="dh-total">${fmtBRL0(tot)} · ${nq} ex.</span></div>
+      <div class="card" style="padding:4px 16px">
+        ${list.slice().sort((a,b)=>(locById(a.locId)||{}).name>(locById(b.locId)||{}).name?1:-1).map(e=>{
           const x=examById(e.examId)||{name:"Exame removido",mod:""}, l=locById(e.locId);
           return `<button class="lrow" style="width:100%;text-align:left" data-edit="${e.id}">
             <div class="lr-main">
               <div class="lr-title">${e.qty}× ${esc(dispName(x))}</div>
-              <div class="lr-sub">${esc(e.conv)} · ${fmtBRL(e.unit)}/un${l?"":" · local removido"}</div>
+              <div class="lr-sub">${l?`<span class="dot" style="background:${SLOTS[l.slot]};display:inline-block;width:7px;height:7px;margin-right:4px"></span>`+esc(l.name)+" · ":""}${esc(e.conv)} · ${fmtBRL(e.unit)}/un</div>
             </div>
             <div class="lr-side"><b>${fmtBRL(entryValue(e))}</b><small style="color:${e.paid?"var(--good)":"var(--warn)"};font-weight:700">${e.paid?"✓ pago":"pendente"}</small></div>
-            ${HIST_CHEV}
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>`;
         }).join("")}
-      </div>`
-    : `<div class="card" style="padding:4px 16px;margin-top:12px">
-        ${shown.map((g,i)=>`<button class="lrow" style="width:100%;text-align:left" data-hg="${i}">
-          <div class="lr-main">
-            <div class="lr-title" style="${key==="date"?"text-transform:capitalize":""}">${histDot(key,g.v)}${esc(histLabel(key,g.v))}</div>
-            <div class="lr-sub">${histPreview(g.ent, keys[depth+1])}</div>
-          </div>
-          <div class="lr-side"><b>${fmtBRL0(g.val)}</b><small>${fmtN(g.qty)} ex.${g.pend?` · <span style="color:var(--warn);font-weight:700">pend.</span>`:""}</small></div>
-          ${HIST_CHEV}
-        </button>`).join("")}
-      </div>
-      ${groups.length>histView.limit?`<button class="btn" id="histMore" style="margin-top:12px">Mostrar mais ${HIST_NOUN[key][1]}</button>`:""}`;
-
-  $("#view").innerHTML = `<div class="page">
-    <div class="sec-head" style="margin-top:0"><h2>Histórico</h2><span class="mut" style="font-size:12px">${fmtN(S.entries.length)} lançamentos</span></div>
-    ${back}
-    ${crumbs}
-    ${roots}
-    <div class="hist-sum">
-      <div class="hs-l">
-        <div class="hs-t">${esc(scopeTitle)}</div>
-        <div class="hs-s">${fmtN(qty)} exame${qty===1?"":"s"} · ${fmtN(scope.length)} lançamento${scope.length===1?"":"s"}${pend>0?` · <b style="color:var(--warn)">${fmtBRL0(pend)} a receber</b>`:""}</div>
-      </div>
-      <div class="hs-r">${fmtBRL0(val)}</div>
-    </div>
-    ${body}
-    ${leaf?`<p class="note txt-c" style="margin-top:12px">Toque em um lançamento para editar ou excluir.</p>`:""}
+      </div>`;
+    }).join("")}
+    ${dates.length>histLimit?`<button class="btn" id="histMore">Mostrar dias anteriores</button>`:""}
   </div>`;
-
-  const vals = shown.map(g=>g.v);
-  $$("[data-hg]").forEach(b=> b.onclick=()=>{
-    histView.path.push(vals[+b.dataset.hg]); histView.limit=15; renderHist(); window.scrollTo({top:0});
-  });
-  $$("[data-crumb]").forEach(b=> b.onclick=()=>{
-    histView.path.length = +b.dataset.crumb; histView.limit=15; renderHist(); window.scrollTo({top:0});
-  });
-  $$("[data-hroot]").forEach(b=> b.onclick=()=>{ histView.root=b.dataset.hroot; histResetView(); renderHist(); });
-  const bk=$("#histBack"); if(bk) bk.onclick=()=>{ histView.path.pop(); histView.limit=15; renderHist(); window.scrollTo({top:0}); };
   $$("[data-edit]").forEach(b=> b.onclick=()=> editEntrySheet(b.dataset.edit));
-  const m=$("#histMore"); if(m) m.onclick=()=>{ histView.limit+=15; renderHist(); };
+  const m=$("#histMore"); if(m) m.onclick=()=>{ histLimit+=15; renderHist(); };
 }
 
 function editEntrySheet(id){
@@ -3750,7 +3158,7 @@ function gcalOpen(o){
     let rr = ruleRRule(r||{dow:fromISO(o.date).getDay(), from:o.date});
     url += "&recur=" + encodeURIComponent(rr);
   }
-  window.open(url, "_blank");
+  window.open(url, "_blank", "noopener");
 }
 function nextDowFrom(iso, dow){
   let d = iso;
@@ -3780,20 +3188,10 @@ function ruleFirstOcc(r, startBase){
   }
   return first;
 }
-const REM_OPTS = [[10,"10 min"],[30,"30 min"],[60,"1 h"],[120,"2 h"],[240,"4 h"],[720,"12 h"],[1440,"1 dia"],[2880,"2 dias"]];
-function remLabel(m){
-  const o = REM_OPTS.find(x=>x[0]===m);
-  if(o) return o[1];
-  if(m%1440===0) return (m/1440)+" dia"+(m/1440>1?"s":"");
-  if(m%60===0) return (m/60)+" h";
-  return m+" min";
-}
 function buildICS(){
   const t = todayISO();
   const L = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//RadFin//Agenda//PT","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
-  // um VALARM por lembrete escolhido (o app de agenda dispara todos)
-  const alarm = (S.cal.reminders||[]).reduce((acc,mins)=>acc.concat(
-    ["BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc("Plantão em "+remLabel(mins)),"TRIGGER:-PT"+mins+"M","END:VALARM"]), []);
+  const alarm = (S.cal.reminder>0) ? ["BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Plantão","TRIGGER:-PT"+S.cal.reminder+"M","END:VALARM"] : [];
   const push = (uid, dtLines, title, det, extra)=>{
     L.push("BEGIN:VEVENT","UID:"+uid+"@radfin","DTSTAMP:"+icsDT(t,"00:00"));
     dtLines.forEach(x=>L.push(x));
@@ -3836,12 +3234,7 @@ function buildICS(){
 }
 function icsExport(){
   if(!hasAgendaData() && !S.cal.weekly){ toast("Cadastre compromissos na agenda primeiro"); return; }
-  const blob = new Blob([buildICS()], {type:"text/calendar;charset=utf-8"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "radfin-agenda.ics";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  downloadFile("radfin-agenda.ics", buildICS(), "text/calendar;charset=utf-8");
   toast("Agenda exportada (.ics)");
 }
 
@@ -3983,7 +3376,7 @@ function dayDetailCard(stats){
   const occ = occurrences(day);
   const dayEntries = S.entries.filter(e=>e.date===day);
   const rev = dayEntries.reduce((s,e)=>s+entryValue(e),0);
-  const nEx = dayEntries.reduce((s,e)=>s+exQty(e),0);
+  const nEx = dayEntries.reduce((s,e)=>s+e.qty,0);
   const counts={}; occ.forEach(o=>counts[o.locId]=(counts[o.locId]||0)+1);
   return `
   <section class="card">
@@ -4025,8 +3418,7 @@ function bindAgenda(){
 
 /* ---------- Sheets de compromisso ---------- */
 function commitmentSheet(date){
-  const firstId = S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id;
-  const locIds = new Set([firstId]);   // múltiplos locais no mesmo lançamento
+  let locId = S.last.locId && locById(S.last.locId)? S.last.locId : S.locations[0].id;
   let period = PERIODS[0], repeat = true, timeMode = false;
   const dow = fromISO(date).getDay();
   const perHint = p => PERIOD_TIMES[p]? PERIOD_TIMES[p][0]+"–"+PERIOD_TIMES[p][1] : "";
@@ -4034,16 +3426,9 @@ function commitmentSheet(date){
     <h3>Novo compromisso</h3>
     <div class="sheet-body">
       <p class="note" style="margin-bottom:14px">${esc(fmtDateLong(date))}</p>
-      <div class="field"><label>Locais <span class="mut" style="font-weight:500">(pode marcar mais de um)</span></label>
-        <div class="conv-chips" id="cmLocs">${
-          S.locations.map(l=>`<button class="chip ${locIds.has(l.id)?"on":""}" data-l="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
-        }</div>
-        ${S.locations.length>1?`<div style="display:flex;gap:16px;margin-top:9px">
-          <button id="cmAllLocs" style="color:var(--accent);font-weight:700;font-size:12px">Marcar todos</button>
-          <button id="cmOneLoc" style="color:var(--muted);font-weight:700;font-size:12px">Deixar só um</button>
-        </div>
-        <p class="note" id="cmLocHint" style="margin-top:7px"><b style="color:var(--text)">Um toque (ou clique) marca e desmarca cada local</b> — pode marcar quantos quiser, não precisa segurar tecla nenhuma. No computador, <b style="color:var(--text)">Alt (⌥), Ctrl ou ⌘ + clique</b> deixa apenas o local clicado. Cada local marcado vira um compromisso próprio no mesmo dia e turno.</p>`:""}
-      </div>
+      <div class="field"><label>Local</label><div class="conv-chips" id="cmLocs">${
+        S.locations.map(l=>`<button class="chip ${l.id===locId?"on":""}" data-l="${l.id}"><span class="dot" style="background:${SLOTS[l.slot]}"></span>${esc(l.name)}</button>`).join("")
+      }</div></div>
       <div class="field"><label>Turno</label><div class="conv-chips" id="cmPer">${
         PERIODS.map((p,i)=>`<button class="chip ${i===0?"on":""}" data-p="${esc(p)}">${esc(p)}</button>`).join("")
       }<button class="chip" id="cmTime">Horário…</button></div></div>
@@ -4069,25 +3454,7 @@ function commitmentSheet(date){
       <button class="btn btn-primary" id="cmOk">Salvar</button>
     </div>`,
     el=>{
-      const paintLocs = ()=>{
-        $$("#cmLocs .chip",el).forEach(x=> x.classList.toggle("on", locIds.has(x.dataset.l)));
-        const ok=$("#cmOk",el);
-        if(ok) ok.textContent = locIds.size>1? `Salvar em ${locIds.size} locais` : "Salvar";
-      };
-      $$("#cmLocs .chip",el).forEach(c=> c.onclick=ev=>{
-        const id=c.dataset.l;
-        if(ev && (ev.altKey || ev.ctrlKey || ev.metaKey)){   // PC/Mac: deixa só este
-          locIds.clear(); locIds.add(id);
-        } else if(locIds.has(id)){
-          if(locIds.size===1){ toast("Marque ao menos um local"); return; }
-          locIds.delete(id);
-        } else locIds.add(id);
-        paintLocs();
-      });
-      const allB=$("#cmAllLocs",el);
-      if(allB) allB.onclick=()=>{ S.locations.forEach(l=>locIds.add(l.id)); paintLocs(); };
-      const oneB=$("#cmOneLoc",el);
-      if(oneB) oneB.onclick=()=>{ const keep=Array.from(locIds)[0]||firstId; locIds.clear(); locIds.add(keep); paintLocs(); };
+      $$("#cmLocs .chip",el).forEach(c=> c.onclick=()=>{ locId=c.dataset.l; $$("#cmLocs .chip",el).forEach(x=>x.classList.toggle("on",x===c)); });
       const timeBtn=$("#cmTime",el), timeBox=$("#cmTimeBox",el);
       $$("#cmPer .chip",el).forEach(c=>{ if(c===timeBtn) return; c.onclick=()=>{
         period=c.dataset.p; timeMode=false; timeBox.classList.add("hidden");
@@ -4102,24 +3469,17 @@ function commitmentSheet(date){
       $("#cmCancel",el).onclick=closeSheet;
       $("#cmOk",el).onclick=()=>{
         const note=$("#cmNote",el).value.trim();
-        const ids = S.locations.map(l=>l.id).filter(id=>locIds.has(id));
-        if(!ids.length){ toast("Marque ao menos um local"); return; }
-        const shape = {note};
+        const id="a"+(++S.agenda.seq);
+        const base = {id, locId, note};
         if(timeMode){
           const st=$("#cmStart",el).value, en=$("#cmEnd",el).value;
           if(!st||!en){ toast("Informe início e fim"); return; }
-          shape.period="Horário"; shape.start=st; shape.end=en;
-        } else shape.period=period;
-        ids.forEach(lid=>{
-          const base = {id:"a"+(++S.agenda.seq), locId:lid, ...shape};
-          if(freq!=="once") S.agenda.rules.push({...base, dow, from:date, freq});
-          else S.agenda.events.push({...base, date});
-        });
+          base.period="Horário"; base.start=st; base.end=en;
+        } else base.period=period;
+        if(freq!=="once") S.agenda.rules.push({...base, dow, from:date, freq});
+        else S.agenda.events.push({...base, date});
         save(); closeSheet();
-        const n=ids.length;
-        toast(n>1
-          ? `${n} compromissos criados${freq==="once"?"":" · "+FREQ_LABEL[freq]}`
-          : (freq==="once"? "Compromisso adicionado" : "Compromisso "+FREQ_LABEL[freq]+" criado"));
+        toast(freq==="once"? "Compromisso adicionado" : "Compromisso "+FREQ_LABEL[freq]+" criado");
         renderAgenda();
       };
     });
@@ -4173,7 +3533,7 @@ let locView = { locId:null, conv:null, search:"", mode:null }; // locId=null →
 /* ---------- PERFIL: modalidades do usuário ---------- */
 const CK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 function modCards(selSet, dataAttr){
-  return `<div class="modgrid">${EXAM_MODS.map(m=>`
+  return `<div class="modgrid">${MODS.map(m=>`
     <button class="modcard ${selSet.has(m)?"on":""}" data-${dataAttr}="${m}">
       <span class="mc-check">${CK_SVG}</span>
       <span><b>${m}</b><small>${esc(MOD_LABELS[m])}</small></span>
@@ -4205,19 +3565,11 @@ function profileSheet(onDone){
     });
 }
 
-/* ---------- Plantão por local ---------- */
-function shiftExams(){ return S.exams.filter(isShiftExam); }
-function locHasShift(l){
-  if(!l) return false;
-  if((l.mods||[]).includes(SHIFT_MOD)) return true;
-  return shiftExams().some(x=>Object.keys(S.prices).some(k=>k.startsWith(l.id+"|"+x.id+"|")));
-}
-
 /* ---------- WIZARD: nova instituição ---------- */
-const wiz = { name:"", convs:"", mods:new Set(), checks:{}, prices:{}, search:"", gross:false, taxPct:"", shift:{} };
+const wiz = { name:"", convs:"", mods:new Set(), checks:{}, prices:{}, search:"", gross:false, taxPct:"" };
 function startWizard(){
   if(S.userMods===null){ profileSheet(()=>startWizard()); return; }
-  wiz.name=""; wiz.convs=""; wiz.mods=new Set(); wiz.checks={}; wiz.prices={}; wiz.search=""; wiz.gross=false; wiz.taxPct=""; wiz.shift={};
+  wiz.name=""; wiz.convs=""; wiz.mods=new Set(); wiz.checks={}; wiz.prices={}; wiz.search=""; wiz.gross=false; wiz.taxPct="";
   const am = activeMods();
   if(am.length===1) wiz.mods.add(am[0]);
   locView = { locId:null, conv:null, search:"", mode:"wiz1" };
@@ -4285,9 +3637,8 @@ function renderWiz2(){
   const convs = wiz.convs.split(",").map(s=>s.trim()).filter(Boolean);
   const firstConv = convs[0] || "Padrão";
   const q = wiz.search.trim().toLowerCase();
-  const mods = EXAM_MODS.filter(m=>wiz.mods.has(m));
+  const mods = MODS.filter(m=>wiz.mods.has(m));
   const nSel = Object.keys(wiz.checks).filter(id=>wiz.checks[id]).length;
-  const nShift = Object.keys(wiz.shift).filter(id=>parseMoney(wiz.shift[id])!=null).length;
   $("#view").innerHTML = `<div class="page">
     <button id="wzBack2" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m15 18-6-6 6-6"/></svg>Voltar</button>
@@ -4297,18 +3648,6 @@ function renderWiz2(){
       <p class="note">Marque os exames que você realiza nesta instituição e informe o honorário${convs.length>1?` do convênio <b style="color:var(--text)">${esc(firstConv)}</b> (os demais você ajusta depois na tabela)`:""}. Valores podem ficar em branco e ser definidos depois.</p>
       <button class="btn btn-sm" id="wzImport" style="width:100%;margin-top:12px">⇪ Importar formulário preenchido (PDF, foto, planilha)</button>
       <input type="file" id="wzFile" accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" class="hidden">
-    </div>
-    <div class="card">
-      <div class="card-title">Plantão <span class="hint">valor fixo por turno</span></div>
-      <p class="note" style="margin-bottom:12px">Se esta instituição paga plantão em valor fechado (além ou no lugar da produção), informe abaixo. Depois é só lançar o plantão como um item no dia trabalhado.</p>
-      ${shiftExams().map(x=>`
-        <div class="lrow">
-          <div class="lr-main">
-            <div class="lr-title" style="font-size:13.5px">${esc(dispName(x))}</div>
-            <div class="lr-sub">${/noturn/i.test(x.name)?"Plantão noturno":"Plantão diurno"} · valor fixo por turno</div>
-          </div>
-          <input class="price-input ${wiz.shift[x.id]?"":"noval"}" inputmode="decimal" placeholder="R$ —" data-wsh="${x.id}" value="${esc(wiz.shift[x.id]||"")}">
-        </div>`).join("")}
     </div>
     <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
       <input class="input" id="wzSearch" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Buscar exame…" value="${esc(wiz.search)}"></div>
@@ -4336,7 +3675,7 @@ function renderWiz2(){
       }).join("") || '<p class="note" style="padding:16px 0">Nenhum exame encontrado.</p>'}
     </div>
     <button class="total-bar" id="wzDone" style="border:none;width:100%">
-      <span class="tb-l">Concluir cadastro<small>${nSel} exame${nSel===1?"":"s"} incluído${nSel===1?"":"s"}${nShift?` · ${nShift} plantão${nShift===1?"":"s"}`:""}</small></span>
+      <span class="tb-l">Concluir cadastro<small>${nSel} exame${nSel===1?"":"s"} incluído${nSel===1?"":"s"}</small></span>
       <span class="tb-r">✓</span>
     </button>
   </div>`;
@@ -4382,10 +3721,6 @@ function renderWiz2(){
         };
       });
   });
-  $$("[data-wsh]").forEach(inp=>{
-    inp.oninput = ()=>{ wiz.shift[inp.dataset.wsh]=inp.value; inp.classList.toggle("noval", !inp.value); };
-    inp.onclick = e=> e.stopPropagation();
-  });
   $("#wzImport").onclick=()=>$("#wzFile").click();
   $("#wzFile").onchange=async e=>{
     const f=e.target.files[0]; e.target.value=""; if(!f) return;
@@ -4394,22 +3729,15 @@ function renderWiz2(){
       const text = await fileToText(f);
       const res = parseFeeForm(text);
       const ids = Object.keys(res);
-      const misses = feeFormMisses.slice();
-      if(!ids.length){
-        toast("Nenhum exame com valor foi reconhecido no arquivo");
-        if(misses.length) setTimeout(()=>feeMissSheet(misses,0), 400);
-        return;
-      }
+      if(!ids.length){ toast("Nenhum exame com valor foi reconhecido no arquivo"); return; }
       ids.forEach(id=>{
         const x=examById(id); if(!x) return;
-        if(isShiftExam(x)){ wiz.shift[id]=res[id].toLocaleString("pt-BR",{minimumFractionDigits:2}); return; }
         wiz.checks[id]=true;
         wiz.prices[id]=res[id].toLocaleString("pt-BR",{minimumFractionDigits:2});
         wiz.mods.add(x.mod);
       });
+      toast(ids.length+" exame"+(ids.length===1?"":"s")+" preenchido"+(ids.length===1?"":"s")+" automaticamente — confira os valores");
       renderWiz2();
-      toast(ids.length+" item"+(ids.length===1?"":"ns")+" preenchido"+(ids.length===1?"":"s")+" automaticamente — confira os valores");
-      if(misses.length) setTimeout(()=>feeMissSheet(misses, ids.length), 900);
     }catch(err){ toast("Não foi possível ler o arquivo (OCR/PDF precisam de internet)"); }
   };
   $("#wzDone").onclick=finishWizard;
@@ -4420,27 +3748,18 @@ function finishWizard(){
   const firstConv = list[0];
   const id = "l"+(++S.locSeq);
   const examIds = Object.keys(wiz.checks).filter(k=>wiz.checks[k]);
-  const shiftIds = Object.keys(wiz.shift).filter(k=>parseMoney(wiz.shift[k])!=null);
   const taxV = parseMoney(String(wiz.taxPct||"")) || 0;
-  const mods = EXAM_MODS.filter(m=>wiz.mods.has(m));
-  if(shiftIds.length) mods.push(SHIFT_MOD);
   S.locations.push({ id, name:wiz.name.trim(), slot:(S.locSeq-1)%8,
-    convenios:list, mods, examIds: examIds.concat(shiftIds),
+    convenios:list, mods:MODS.filter(m=>wiz.mods.has(m)), examIds,
     gross: !!wiz.gross, taxPct: wiz.gross? taxV : 0 });
   let nPriced=0;
   examIds.forEach(xid=>{
     const v = parseMoney(wiz.prices[xid]||"");
     if(v!=null && v>=0){ S.prices[pKey(id,xid,firstConv)] = v; nPriced++; }
   });
-  // plantão: valor fixo vale para todos os convênios do local
-  shiftIds.forEach(xid=>{
-    const v = parseMoney(wiz.shift[xid]);
-    if(v==null || v<0) return;
-    list.forEach(c=> S.prices[pKey(id,xid,c)] = v);
-  });
   save();
   locView = { locId:id, conv:firstConv, search:"", mode:null };
-  toast(`Instituição criada · ${nPriced} preço${nPriced===1?"":"s"} definido${nPriced===1?"":"s"}${shiftIds.length?` · plantão configurado`:""}`);
+  toast(`Instituição criada · ${nPriced} preço${nPriced===1?"":"s"} definido${nPriced===1?"":"s"}`);
   render();
   window.scrollTo({top:0});
 }
@@ -4588,12 +3907,10 @@ function renderLocDetail(){
   const convs = l.convenios.length? l.convenios:["Padrão"];
   if(!locView.conv || !convs.includes(locView.conv)) locView.conv = convs[0];
   const q = locView.search.trim().toLowerCase();
-  const baseMods = (l.mods&&l.mods.length)? l.mods : EXAM_MODS;
-  const locMods = baseMods.includes(SHIFT_MOD)? baseMods : baseMods.concat([SHIFT_MOD]); // plantão sempre configurável
-  const priced = S.exams.filter(x=> locMods.includes(x.mod) && !isShiftExam(x) && S.prices[pKey(l.id,x.id,locView.conv)]!=null );
+  const locMods = (l.mods&&l.mods.length)? l.mods : MODS;
+  const priced = S.exams.filter(x=> locMods.includes(x.mod) && S.prices[pKey(l.id,x.id,locView.conv)]!=null );
   let exams = S.exams.filter(x=> locMods.includes(x.mod) && (!q || x.name.toLowerCase().includes(q) || x.mod.toLowerCase().includes(q) || (x.code||"").includes(q)));
-  const ordMods = [SHIFT_MOD].concat(MODS.filter(m=>m!==SHIFT_MOD)); // plantão primeiro
-  const grouped = ordMods.filter(m=>locMods.includes(m)).map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
+  const grouped = MODS.filter(m=>locMods.includes(m)).map(m=>[m,exams.filter(x=>x.mod===m)]).filter(g=>g[1].length);
 
   $("#view").innerHTML = `<div class="page">
     <button id="locBack" style="display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:12px">
@@ -4638,19 +3955,8 @@ function renderLocDetail(){
     inp.onchange=()=>{
       const v=parseMoney(inp.value);
       const k=pKey(l.id,inp.dataset.px,locView.conv);
-      const xid = inp.dataset.px, xx = examById(xid);
       if(v==null){ delete S.prices[k]; inp.value=""; inp.classList.add("noval"); }
       else { S.prices[k]=v; inp.value=v.toLocaleString("pt-BR",{minimumFractionDigits:2}); inp.classList.remove("noval"); }
-      if(isShiftExam(xx)){
-        // plantão é valor fixo do local: replica para os demais convênios
-        (l.convenios.length? l.convenios:["Padrão"]).forEach(c=>{
-          const kk=pKey(l.id,xid,c);
-          if(v==null) delete S.prices[kk]; else S.prices[kk]=v;
-        });
-        if(!Array.isArray(l.mods)) l.mods=[];
-        if(v!=null && !l.mods.includes(SHIFT_MOD)) l.mods.push(SHIFT_MOD);
-        if(v!=null && Array.isArray(l.examIds) && !l.examIds.includes(xid)) l.examIds.push(xid);
-      }
       save();
     };
   });
@@ -4706,7 +4012,7 @@ function adjustPricesSheet(){
 function simulatorSheet(){
   const to=todayISO(), from=addDays(to,-89);
   const ent=S.entries.filter(e=>e.date>=from&&e.date<=to);
-  const v=ent.reduce((s,e)=>s+entryValue(e),0), q=ent.reduce((s,e)=>s+exQty(e),0);
+  const v=ent.reduce((s,e)=>s+entryValue(e),0), q=ent.reduce((s,e)=>s+e.qty,0);
   const ticket=q? v/q : 0;
   const keepLoc=F.loc; F.loc="all";
   let hmin=0,hv=0; hourlyStats(from,to).forEach(c=>{ hmin+=c.min; hv+=c.v; });
@@ -4804,7 +4110,7 @@ function buildFeeFormHTML(mods){
     <div><h1>Tabela de honorários médicos</h1>
     <p class="sub">${esc(p.name||"")}${p.crm?" · "+esc(p.crm):""}${p.spec?" · "+esc(p.spec):""}</p></div>
   </div>
-  
+  <div class="noprint"><button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button></div>
   <p style="margin:12px 0 0">Solicito o preenchimento do <b>valor do honorário médico por exame (R$)</b> na coluna em branco. Mantenha o código TUSS de referência.</p>
   <div class="head-fields">
     <div class="hf">Instituição / Serviço:</div>
@@ -4845,17 +4151,11 @@ function feeFormSheet(){
       const mods=()=>{ if(!sel.size){ toast("Escolha ao menos uma modalidade"); return null; } return Array.from(sel); };
       $("#ffPdf",el).onclick=()=>{
         const m=mods(); if(!m) return;
-        closeSheet();
-        setTimeout(()=> openDoc("Formulário de honorários", buildFeeFormHTML(m), "formulario-honorarios-radfin.html"), 320);
+        if(openPrintWindow(buildFeeFormHTML(m))) closeSheet();
       };
       $("#ffDoc",el).onclick=()=>{
         const m=mods(); if(!m) return;
-        const blob=new Blob(["﻿"+buildFeeFormHTML(m)],{type:"application/msword"});
-        const a=document.createElement("a");
-        a.href=URL.createObjectURL(blob);
-        a.download="formulario-honorarios-radfin.doc";
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+        downloadFile("formulario-honorarios-radfin.doc","﻿"+buildFeeFormHTML(m),"application/msword");
         toast("Formulário .doc baixado"); closeSheet();
       };
     });
@@ -4869,114 +4169,28 @@ async function fileToText(f){
   if(name.endsWith(".xlsx") || name.endsWith(".xls")) return await xlsxToText(f);
   return await f.text();
 }
-let feeFormMisses = [];   // linhas com valor que não casaram com nenhum exame
-/* Valor da linha: prefere "R$ 120,00" > "120,00" > inteiro no fim da linha.
-   Ignora códigos TUSS de 8 dígitos e números soltos dentro do nome do exame. */
-function feeLineValue(line){
-  const clean = line.replace(/\b\d{8}\b/g, "  ");
-  const re = /(R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{1,2}|\d+[.,]\d{1,2}(?!\d)|\d{1,6})/g;
-  let m, best=null;
-  while((m = re.exec(clean))){
-    const raw = m[2], v = parseMoney(raw);
-    if(v==null || v<=0 || v>=1000000) continue;
-    const hasCur = !!m[1];
-    const hasDec = /[.,]\d{1,2}$/.test(raw);
-    const atEnd  = (m.index + m[0].length) >= clean.replace(/[\s\-–—_.]+$/,"").length - 1;
-    let rank = hasCur? 3 : hasDec? 2 : (atEnd && v>=5)? 1 : 0;
-    if(rank===0) continue;
-    if(!best || rank>best.rank || (rank===best.rank && m.index>best.i)) best={v, rank, i:m.index};
-  }
-  return best? best.v : null;
-}
-/* Quanto o texto da linha "parece" com o exame (0..1) — usado para desempatar
-   exames que compartilham o mesmo código TUSS (ex.: 2ª lesão, coluna, articular). */
-function feeNameScore(line, x){
-  const L = normName(line.replace(/\b\d{8}\b/g," ").replace(/R\$/g," "));
-  const N = normName(x.name), A = x.alias? normName(x.alias):"";
-  if(N.length>7 && L.includes(N)) return 1;
-  if(A.length>7 && L.includes(A)) return .95;
-  const toks = N.split(" ").filter(t=>t.length>2);
-  if(!toks.length) return 0;
-  let hit = toks.filter(t=>L.includes(t)).length / toks.length;
-  // marcadores que separam variantes com o mesmo código
-  const v2 = /(2a|2\.|2º|2o|segunda)\s*(lesao|nodulo)|2a lesao|2o nodulo|diante/.test(L);
-  const xv2 = /2a lesao|2o nodulo|2 lesao|2 nodulo|diante/.test(N);
-  if(v2!==xv2) hit -= .35;
-  ["cervical","lombar","toracica","dorsal","joelho","ombro","punho","cotovelo","tornozelo",
-   "quadril","coxofemoral","craneo","cranio","torax","abdome","aorta","pelve"].forEach(w=>{
-    if(N.includes(w) && !L.includes(w)) hit -= .12;
-  });
-  return Math.max(0, Math.min(1, hit));
-}
-function feePickByName(line, cands, out){
-  let best=null, bs=-1, bl=-1;
-  cands.forEach(x=>{
-    let sc = feeNameScore(line, x);
-    if(out[x.id]!=null) sc -= .25;         // prefere um que ainda esteja vazio
-    const len = normName(x.name).length;
-    // empate técnico → fica o nome mais específico (mais longo)
-    if(sc>bs+0.02 || (Math.abs(sc-bs)<=0.02 && len>bl)){ bs=sc; best=x; bl=len; }
-  });
-  return (best && bs>0.15)? best : null;
-}
-function feeMissSheet(misses, okCount){
-  openSheet(`
-    <h3>Linhas não reconhecidas</h3>
-    <div class="sheet-body">
-      <p class="note" style="margin-bottom:12px">${okCount? `Preenchi <b style="color:var(--text)">${okCount}</b> item${okCount===1?"":"ns"}. ` : ""}Estas <b style="color:var(--text)">${misses.length}</b> linha${misses.length===1?"":"s"} tinham valor, mas não consegui identificar o exame com segurança — preencha na lista abaixo (a busca ajuda a achar rápido).</p>
-      ${misses.slice(0,25).map(l=>`<p class="note" style="font-size:12px;padding:7px 10px;background:var(--accent-soft);border-radius:9px;margin-bottom:6px;color:var(--text)">${esc(l)}</p>`).join("")}
-      ${misses.length>25?`<p class="note" style="margin-top:8px">…e mais ${misses.length-25}.</p>`:""}
-      <p class="note" style="margin-top:12px">Dica: linhas com o <b style="color:var(--text)">código TUSS</b> ao lado do nome são reconhecidas com muito mais precisão — o formulário gerado pelo próprio RadFin (Usuário → Formulário de honorários) já vem nesse formato.</p>
-    </div>
-    <div class="sheet-foot"><button class="btn btn-primary" id="fmOk">Entendi</button></div>`,
-    el=>{ $("#fmOk",el).onclick=closeSheet; });
-}
 function parseFeeForm(text){
-  const out={}; feeFormMisses=[];
-  const HEAD=/^\s*(exame|c[oó]d|valor|tabela de honor|solicito|institui|conv[eê]nio|data\b|assinatura|formul[aá]rio|gerado pelo|dica:|ultrassonografia|tomografia|resson[aâ]ncia|mamografia|densitometria|procedimentos|doppler|radiografia|plant[aã]o)\s*$/i;
-  const lines = String(text).split(/\r?\n+/).map(l=>l.replace(/\s+/g," ").trim()).filter(Boolean);
-  let pending=null;   // exame reconhecido numa linha, cujo valor veio na linha seguinte
-  lines.forEach(line=>{
-    const letters = line.replace(/[^A-Za-zÀ-ú]/g,"").length;
-    const v = feeLineValue(line);
-    // linha só com número → completa o exame da linha anterior
-    if(letters<3){
-      if(v!=null && pending && out[pending.id]==null){ out[pending.id]=v; pending=null; }
-      return;
-    }
-    if(HEAD.test(line)){ pending=null; return; }
-
-    // 1) casamento por código TUSS (inclusive quando vários exames compartilham o código)
+  const out={};
+  String(text).split(/\n+/).forEach(line=>{
+    if(line.replace(/[^A-Za-zÀ-ú]/g,"").length<3) return;
+    const codeM = line.match(/\b(\d{8})\b/);
+    // números candidatos a valor (ignora códigos TUSS de 8 dígitos)
+    const nums = (line.match(/\d{1,3}(?:\.\d{3})*,\d{1,2}|\d+[.,]\d{1,2}(?!\d)|\b\d{1,5}\b/g)||[])
+      .filter(n=> !/^\d{8}$/.test(n.replace(/[.,]/g,"")));
+    let v=null;
+    for(let i=nums.length-1;i>=0;i--){ const c=parseMoney(nums[i]); if(c!=null && c>0 && c<100000){ v=c; break; } }
+    if(v==null) return;
     let ex=null;
-    const codes = line.match(/\b\d{8}\b/g) || [];
-    for(const c of codes){
-      const cands = S.exams.filter(x=>x.code===c || (x.code||"").includes(c));
-      if(!cands.length) continue;
-      ex = cands.length===1? cands[0] : (feePickByName(line,cands,out) || cands.find(x=>out[x.id]==null) || cands[0]);
-      if(ex) break;
-    }
-    // 2) casamento por nome (formulários sem código ou com código "—")
-    if(!ex){
-      let best=null, bs=0, bl=-1;
-      S.exams.forEach(x=>{
-        const sc=feeNameScore(line,x), len=normName(x.name).length;
-        if(sc>bs+0.02 || (Math.abs(sc-bs)<=0.02 && sc>0 && len>bl)){ bs=sc; best=x; bl=len; }
-      });
-      if(best && bs>=0.8) ex=best;
-    }
-    // 3) último recurso: motor de reconhecimento por palavras (voz/OCR)
+    if(codeM) ex = S.exams.find(x=>x.code===codeM[1]);
     if(!ex){
       const words = normName(line.replace(/\d{8}/g," ").replace(/R\$[\s\S]*$/,"")).split(" ")
         .filter(t=>t && !/^\d+([.,]\d+)?$/.test(t));
       if(words.length){
         const m = segMatch(words, S.exams, null, null);
-        if(m.exam && m.score>=0.62) ex=m.exam;
+        if(m.exam && m.score>=0.7) ex=m.exam;
       }
     }
-    if(!ex){ if(v!=null) feeFormMisses.push(line.slice(0,90)); pending=null; return; }
-    if(v==null){ pending=ex; return; }     // nome numa linha, valor na próxima
-    if(out[ex.id]==null) out[ex.id]=v;
-    pending=null;
+    if(ex && out[ex.id]==null) out[ex.id]=v;
   });
   return out;
 }
@@ -4989,9 +4203,6 @@ function aliasSheet(examId){
       <p class="note" style="margin-bottom:14px">Nome oficial: <b style="color:var(--text)">${esc(x.name)}</b>${x.code?" · TUSS "+esc(x.code):""}</p>
       <div class="field"><label>Apelido curto (como você chama no dia a dia)</label>
         <input class="input" id="alVal" placeholder="Ex.: Abdome total" value="${esc(x.alias||"")}"></div>
-      <div class="field"><label>Código TUSS${x.code?"":" — não preenchido"}</label>
-        <input class="input" id="alCode" inputmode="numeric" placeholder="Ex.: 41101014" value="${esc(x.code||"")}">
-        <p class="note" style="margin-top:6px">Confira no Rol/tabela da ANS ou na tabela do convênio — alguns procedimentos são cobrados com códigos diferentes por operadora.</p></div>
       <p class="note">O apelido aparece nas listas e na busca; o nome oficial e o código TUSS continuam registrados.</p>
     </div>
     <div class="sheet-foot">
@@ -5002,11 +4213,8 @@ function aliasSheet(examId){
       $("#alCancel",el).onclick=closeSheet;
       $("#alOk",el).onclick=()=>{
         const v=$("#alVal",el).value.trim();
-        const c=($("#alCode",el).value||"").replace(/[^0-9+ ]/g,"").trim();
         if(v) x.alias=v; else delete x.alias;
-        if(c) x.code=c; else delete x.code;
-        save(); closeSheet(); toast("Exame atualizado");
-        if(tab==="cfg") renderCfg(); else renderLocDetail();
+        save(); closeSheet(); toast(v?"Apelido salvo":"Apelido removido"); renderLocDetail();
       };
     });
 }
@@ -5132,9 +4340,6 @@ function mergeData(inc){
 }
 
 /* ================== AJUSTES ================== */
-function bindNoCode(){
-  $$("[data-nocode]").forEach(b=> b.onclick=()=> aliasSheet(b.dataset.nocode));
-}
 function renderCfg(){
   $("#view").innerHTML = `<div class="page">
     <div class="sec-head" style="margin-top:0"><h2>Ajustes</h2></div>
@@ -5162,13 +4367,9 @@ function renderCfg(){
     </div>
     <div class="card">
       <div class="card-title">Agenda &amp; lembretes <span class="hint">Google · Apple</span></div>
-      <div class="field"><label>Lembretes antes do plantão <span class="mut" style="font-weight:500">(pode marcar vários)</span></label>
-        <div class="conv-chips">${REM_OPTS.map(([v,l])=>
-          `<button class="chip ${S.cal.reminders.includes(v)?"on":""}" data-rem="${v}">${l}</button>`).join("")}
-          <button class="chip ${S.cal.reminders.length?"":"on"}" data-rem="0">Nenhum</button></div>
-        <p class="note" style="margin-top:8px">${S.cal.reminders.length
-          ? `Cada plantão exportado leva <b style="color:var(--text)">${S.cal.reminders.length} alerta${S.cal.reminders.length===1?"":"s"}</b>: ${S.cal.reminders.map(remLabel).join(" · ")} antes do início.`
-          : "Nenhum alerta será embutido nos plantões exportados."}</p></div>
+      <div class="field"><label>Lembrete antes do plantão</label>
+        <div class="conv-chips">${[[0,"Nenhum"],[30,"30 min"],[60,"1 h"],[120,"2 h"],[1440,"1 dia"]].map(([v,l])=>
+          `<button class="chip ${S.cal.reminder===v?"on":""}" data-rem="${v}">${l}</button>`).join("")}</div></div>
       <div class="field"><label>Resumo da semana às segundas (07:30)</label>
         <div class="conv-chips">
           <button class="chip ${S.cal.weekly?"on":""}" data-wk="1">Ativado</button>
@@ -5211,20 +4412,6 @@ function renderCfg(){
       <button class="btn btn-sm" id="cfExpAdd" style="width:100%">+ Adicionar despesa</button>
     </div>
     <div class="card">
-      <div class="card-title">Códigos TUSS</div>
-      ${(()=>{ const miss=S.exams.filter(x=>!x.code && !isShiftExam(x));
-        return miss.length
-          ? `<p class="note" style="margin-bottom:12px"><b style="color:var(--text)">${miss.length} exame${miss.length===1?"":"s"}</b> ainda sem código TUSS. Toque para preencher (o código muda de operadora para operadora em alguns procedimentos).</p>
-             ${miss.slice(0,12).map(x=>`<button class="lrow" style="width:100%;text-align:left" data-nocode="${x.id}">
-                <div class="lr-main"><div class="lr-title" style="font-size:13px;white-space:normal;line-height:1.35">${esc(dispName(x))}</div>
-                <div class="lr-sub">${esc(MOD_LABELS[x.mod]||x.mod)} · sem TUSS</div></div>
-                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-              </button>`).join("")}
-             ${miss.length>12?`<p class="note" style="margin-top:8px">…e mais ${miss.length-12}. Os demais podem ser editados na tabela de cada local.</p>`:""}`
-          : '<p class="note">Todos os exames do catálogo estão com código TUSS preenchido. ✓</p>';
-      })()}
-    </div>
-    <div class="card">
       <div class="card-title">Backup &amp; sincronização entre aparelhos</div>
       <p class="note" style="margin-bottom:12px">Seus dados ficam salvos neste aparelho${store.ok?"":" (⚠️ armazenamento indisponível neste navegador — use o backup!)"}. Para ver tudo atualizado em outro aparelho: <b style="color:var(--text)">Exportar</b> aqui → enviar o arquivo (iCloud Drive, Google Drive, WhatsApp…) → <b style="color:var(--text)">Importar</b> lá escolhendo <b style="color:var(--text)">Combinar</b>. A combinação junta lançamentos, preços e agenda dos dois aparelhos sem duplicar nem apagar nada. Sincronização automática em nuvem virá na versão de loja (etapa 2).</p>
       <div class="input-row">
@@ -5243,28 +4430,14 @@ function renderCfg(){
       <button class="btn" id="cfDemo" style="margin-bottom:10px">Carregar dados de exemplo</button>
       <button class="btn btn-danger" id="cfWipe">Apagar todos os dados</button>
     </div>
-    <div class="card">
-      <div class="card-title">Ajuda</div>
-      <p class="note" style="margin-bottom:12px">Refaça o tour guiado pela interface ou reveja as telas de boas-vindas a qualquer momento — o mesmo que o botão <b style="color:var(--text)">?</b> na barra do topo.</p>
-      <button class="btn btn-sm" id="cfHelp" style="width:100%">? Ajuda e tour guiado</button>
-    </div>
-    <p class="note txt-c" style="margin-top:18px">RadFin v2.11 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
+    <p class="note txt-c" style="margin-top:18px">RadFin v2.6.1 · ${fmtN(S.entries.length)} lançamentos · ${S.locations.length} locais · ${S.exams.length} exames no catálogo<br>Feito para radiologistas 🩻</p>
   </div>`;
 
-  bindNoCode();
-  const ch=$("#cfHelp"); if(ch) ch.onclick=helpSheet;
   $("#cfProfEdit").onclick=()=> editProfileSheet();
   $("#cfProfSwitch").onclick=()=> showLogin("pick");
   $("#cfFeeForm").onclick=()=> feeFormSheet();
   $("#cfMods").onclick=()=> profileSheet(()=>renderCfg());
-  $$("[data-rem]").forEach(b=> b.onclick=()=>{
-    const v=+b.dataset.rem;
-    if(v===0) S.cal.reminders=[];
-    else if(S.cal.reminders.includes(v)) S.cal.reminders=S.cal.reminders.filter(x=>x!==v);
-    else S.cal.reminders=S.cal.reminders.concat([v]).sort((a,b2)=>a-b2);
-    S.cal.reminder = S.cal.reminders.length? S.cal.reminders[0] : 0;
-    save(); renderCfg();
-  });
+  $$("[data-rem]").forEach(b=> b.onclick=()=>{ S.cal.reminder=+b.dataset.rem; save(); renderCfg(); });
   $$("[data-wk]").forEach(b=> b.onclick=()=>{ S.cal.weekly=b.dataset.wk==="1"; save(); renderCfg(); });
   $("#cfIcs").onclick=icsExport;
   $$("[data-taxp]").forEach(b=> b.onclick=()=>{
@@ -5347,17 +4520,13 @@ function renderCfg(){
   $("#cfExport").onclick=()=>{
     const p=curProfile()||{};
     const out={...S, profile:{name:p.name||"", crm:p.crm||"", spec:p.spec||"", salt:p.salt, hash:p.hash}};
-    const blob=new Blob([JSON.stringify(out,null,1)],{type:"application/json"});
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download="radfin-backup-"+todayISO()+".json";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    downloadFile("radfin-backup-"+todayISO()+".json", JSON.stringify(out,null,1), "application/json");
     toast("Backup exportado");
   };
   $("#cfImport").onclick=()=>$("#cfFile").click();
   $("#cfFile").onchange=e=>{
     const f=e.target.files[0]; if(!f) return;
+    if(f.size > 20e6){ toast("Arquivo grande demais para um backup do RadFin"); e.target.value=""; return; }
     const r=new FileReader();
     r.onload=()=>{
       try{
@@ -5404,7 +4573,6 @@ function renderCfg(){
 }
 
 /* ================== LOGIN & PERFIS ================== */
-function specOptions(){ return SPECS.map(x=>`<option value="${esc(x)}">`).join(""); }
 
 /* ---------- Especialidade: lista clicável (campo livre só em "Outra") ---------- */
 function specFieldHTML(pfx, initial){
@@ -5431,79 +4599,8 @@ function bindSpecField(el, pfx, initial){
   return ()=> sel==="Outra"? other.value.trim() : (sel||"");
 }
 
-/* ---------- Face ID / biometria (WebAuthn) ----------
-   Requisitos: contexto seguro (https ou localhost) + autenticador de plataforma
-   (Face ID / Touch ID / digital). FACE_PLAT é resolvido de forma assíncrona. */
-const FACE_SECURE = (window.isSecureContext===true) ||
-  location.protocol==="https:" || location.hostname==="localhost" || location.hostname==="127.0.0.1";
-let FACE_PLAT = null;   // null = ainda não checado, true/false depois
-const FACE_OK = FACE_SECURE && !!window.PublicKeyCredential;
-async function checkFacePlatform(){
-  if(!FACE_OK){ FACE_PLAT=false; return false; }
-  if(FACE_PLAT!==null) return FACE_PLAT;
-  try{
-    FACE_PLAT = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-  }catch(_){ FACE_PLAT = false; }
-  return FACE_PLAT;
-}
-function faceWhyUnavailable(){
-  if(!window.PublicKeyCredential) return "Este navegador não oferece login por biometria. No iPhone, use o Safari (ou abra o app pela tela de início).";
-  if(!FACE_SECURE) return "O Face ID só funciona em endereço seguro (https). Abra o app pelo link https do RadFin em vez de um arquivo local.";
-  if(FACE_PLAT===false) return "Este aparelho não tem Face ID / Touch ID disponível para sites, ou a biometria está desativada nos Ajustes do sistema.";
-  return "Não foi possível ativar a biometria neste aparelho.";
-}
-function faceDiag(){
-  const ua = navigator.userAgent||"";
-  const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
-  const ver = (ua.match(/OS (\d+)[._](\d+)/)||[])[0] || "?";
-  return { ios, ver, standalone:isStandalone(), secure:FACE_SECURE, host:location.hostname,
-           proto:location.protocol, api:!!window.PublicKeyCredential, plat:FACE_PLAT };
-}
-function faceFailSheet(e){
-  const d = faceDiag();
-  const dica = d.ios && d.standalone
-    ? "No iPhone, ative o Face ID <b style=\"color:var(--text)\">com o app aberto no Safari</b> (pelo link https), não pelo ícone da tela de início — o atalho da tela de início não recebe a permissão de biometria em todas as versões do iOS. Depois de ativado, o ícone passa a aceitar."
-    : d.ios
-    ? "No iPhone, confira em <b style=\"color:var(--text)\">Ajustes → Face ID e Código</b> se o Face ID está ligado para <b style=\"color:var(--text)\">Preenchimento Automático de Senha</b>, e em Ajustes → Senhas se o Chaveiro do iCloud está ativo. Depois toque de novo em Ativar Face ID."
-    : "Verifique se o aparelho tem biometria configurada e se o app está aberto pelo endereço https.";
-  openSheet(`
-    <h3>Não deu para ativar o Face ID</h3>
-    <div class="sheet-body">
-      <p class="note" style="font-size:13.5px;margin-bottom:12px">${esc(faceErrMsg(e))}</p>
-      <p class="note" style="font-size:13.5px;margin-bottom:14px">${dica}</p>
-      <div class="card-title" style="margin-bottom:6px">Diagnóstico</div>
-      <p class="note" style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.7">
-        endereço: ${esc(d.proto)}//${esc(d.host)}<br>
-        contexto seguro: ${d.secure?"sim":"NÃO"}<br>
-        API WebAuthn: ${d.api?"sim":"NÃO"}<br>
-        biometria disponível: ${d.plat===null?"não checada":(d.plat?"sim":"NÃO")}<br>
-        tela de início (standalone): ${d.standalone?"sim":"não"}<br>
-        sistema: ${esc(d.ver)}<br>
-        erro: ${esc((e&&e.name)||"—")}${e&&e.message?" · "+esc(String(e.message).slice(0,80)):""}
-      </p>
-    </div>
-    <div class="sheet-foot">
-      <button class="btn" id="fdClose">Fechar</button>
-      <button class="btn btn-primary" id="fdRetry">Tentar de novo</button>
-    </div>`,
-    el=>{
-      $("#fdClose",el).onclick=closeSheet;
-      $("#fdRetry",el).onclick=()=>{
-        const pr=curProfile(); if(!pr){ closeSheet(); return; }
-        faceRegister(pr)
-          .then(()=>{ delete pr.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); })
-          .catch(e2=>{ closeSheet(); setTimeout(()=>faceFailSheet(e2),320); });
-      };
-    });
-}
-function faceErrMsg(e){
-  const n=(e&&e.name)||"";
-  if(n==="NotAllowedError") return "Biometria cancelada ou expirada — tente de novo.";
-  if(n==="InvalidStateError") return "Este aparelho já tem uma credencial do RadFin para este usuário.";
-  if(n==="SecurityError") return "O endereço do app mudou — refaça o cadastro do Face ID em Usuário → Editar perfil.";
-  return faceWhyUnavailable();
-}
-function faceReady(){ return FACE_OK && FACE_PLAT!==false; }
+/* ---------- Face ID / biometria (WebAuthn, exige https) ---------- */
+const FACE_OK = location.protocol==="https:" && !!window.PublicKeyCredential;
 async function faceRegister(p){
   const cred = await navigator.credentials.create({ publicKey:{
     challenge: crypto.getRandomValues(new Uint8Array(32)),
@@ -5511,10 +4608,8 @@ async function faceRegister(p){
     user: { id: new TextEncoder().encode("radfin-"+p.id), name: p.name, displayName: p.name },
     pubKeyCredParams: [{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
     authenticatorSelection: { authenticatorAttachment:"platform", userVerification:"required", residentKey:"preferred" },
-    attestation: "none",
     timeout: 60000
   }});
-  if(!cred || !cred.rawId) throw new Error("sem credencial");
   p.credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
   saveReg();
 }
@@ -5528,35 +4623,19 @@ async function faceAuth(p){
   }});
   return true;
 }
-async function offerFaceSetup(prof){
-  if(!FACE_OK || !prof || prof.credId || prof.faceSkip) return;
-  await checkFacePlatform();
-  // sem autenticador de plataforma não faz sentido oferecer sozinho — o botão manual
-  // em Usuário → Ativar Face ID continua disponível e explica o motivo se falhar
-  if(FACE_PLAT===false) return;
-  setTimeout(()=> openSheet(`
-    <h3>Entrar com Face ID?</h3>
-    <div class="sheet-body">
-      <p class="note" style="font-size:13.5px">Use a biometria do aparelho (Face ID, Touch ID ou digital) para abrir o RadFin sem digitar senha. Você pode ligar ou desligar quando quiser em <b style="color:var(--text)">Usuário → Editar perfil</b>.</p>
-    </div>
-    <div class="sheet-foot" style="flex-wrap:wrap">
-      <button class="btn" id="ofLater">Agora não</button>
-      <button class="btn btn-primary" id="ofOk">Ativar Face ID</button>
-      <button id="ofNever" style="width:100%;color:var(--muted);font-size:12px;font-weight:600;margin-top:4px">Não perguntar mais</button>
-    </div>`,
-    el=>{
-      $("#ofLater",el).onclick=closeSheet;
-      $("#ofNever",el).onclick=()=>{ prof.faceSkip=true; saveReg(); closeSheet(); };
-      $("#ofOk",el).onclick=()=>{                       // sem await antes: iOS exige gesto direto
-        faceRegister(prof)
-          .then(()=>{ closeSheet(); toast("Face ID ativado"); if(tab==="cfg") renderCfg(); })
-          .catch(e=>{ closeSheet(); faceFailSheet(e); });
-      };
-    }), 500);
+function offerFaceSetup(prof){
+  if(!FACE_OK || prof.credId) return;
+  setTimeout(()=> confirmSheet("Ativar Face ID?",
+    "Use a biometria do aparelho (Face ID / Touch ID / digital) para entrar sem digitar senha. Você pode ativar ou desativar depois em Editar perfil.",
+    "Ativar Face ID", async ()=>{
+      try{ await faceRegister(prof); toast("Face ID ativado"); if(tab==="cfg") renderCfg(); }
+      catch(e){ toast("Não foi possível ativar a biometria neste aparelho"); }
+    }, false), 450);
 }
 
 /* ---------- Importar backup na tela de login (restaura usuário + dados) ---------- */
 function loginImportBackup(file){
+  if(file.size > 20e6){ toast("Arquivo grande demais para um backup do RadFin"); return; }
   const r = new FileReader();
   r.onload = ()=>{
     try{
@@ -5584,54 +4663,6 @@ function bindLoginImport(){
   if(!b||!f) return;
   b.onclick=()=>f.click();
   f.onchange=e=>{ const file=e.target.files[0]; if(file) loginImportBackup(file); e.target.value=""; };
-}
-let loginManage = false;
-function loginBackup(prof){
-  try{
-    const raw = store.get("radfin.v1."+prof.id);
-    const data = raw? JSON.parse(raw) : {};
-    data.profile = { name:prof.name, crm:prof.crm||"", spec:prof.spec||"", salt:prof.salt, hash:prof.hash };
-    const blob = new Blob([JSON.stringify(data)],{type:"application/json"});
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download="radfin-backup-"+normName(prof.name).replace(/ /g,"-")+"-"+todayISO()+".json";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    toast("Backup de "+prof.name.split(" ")[0]+" baixado");
-  }catch(_){ toast("Não foi possível gerar o backup"); }
-}
-function deleteProfileSheet(prof){
-  let n=0, nl=0;
-  try{ const d=JSON.parse(store.get("radfin.v1."+prof.id)||"{}");
-       n=(d.entries||[]).length; nl=(d.locations||[]).length; }catch(_){}
-  openSheet(`
-    <h3>Excluir ${esc(prof.name)}?</h3>
-    <div class="sheet-body">
-      <p class="note" style="font-size:13.5px;margin-bottom:12px">Isto apaga <b style="color:var(--text)">deste aparelho</b> o usuário e tudo que pertence a ele: ${fmtN(n)} lançamento${n===1?"":"s"}, ${nl} local${nl===1?"":"is"}, agenda, despesas e tabelas de preço. <b style="color:var(--crit-text)">Não dá para desfazer.</b></p>
-      <button class="btn" id="dpBackup" style="margin-bottom:12px">⬇ Baixar backup antes de excluir</button>
-      <p class="note">Com o backup em mãos você pode restaurar este usuário depois, em qualquer aparelho, pelo botão "Já uso o RadFin — importar meu backup".</p>
-    </div>
-    <div class="sheet-foot">
-      <button class="btn" id="dpCancel">Cancelar</button>
-      <button class="btn btn-danger" id="dpOk">Excluir</button>
-    </div>`,
-    el=>{
-      $("#dpCancel",el).onclick=closeSheet;
-      $("#dpBackup",el).onclick=()=>loginBackup(prof);
-      $("#dpOk",el).onclick=()=>{
-        closeSheet();
-        confirmSheet("Confirmar exclusão","Última confirmação: os dados de "+prof.name+" serão apagados deste aparelho.","Excluir definitivamente",()=>{
-          store.del("radfin.v1."+prof.id);
-          REG.list = REG.list.filter(x=>x.id!==prof.id);
-          if(REG.last===prof.id) REG.last=null;
-          saveReg();
-          if(PID===prof.id){ PID=null; S=null; }
-          toast("Usuário excluído");
-          if(!REG.list.length){ loginManage=false; showLogin("create"); }
-          else showLogin("pick");
-        });
-      };
-    });
 }
 function showLogin(mode){
   const el = $("#login");
@@ -5669,7 +4700,7 @@ function showLogin(mode){
       if(!name){ toast("Informe o nome"); return; }
       const prof = { id:"p"+(++REG.seq), name, crm:$("#lgCrm").value.trim(), spec:getSpec() };
       const pwd=$("#lgPwd").value;
-      if(pwd){ prof.salt=randSalt(); prof.hash=await hashPwd(prof.salt,pwd); }
+      if(pwd){ prof.salt=randSalt(); prof.hash=await makePwdHash(prof.salt,pwd); }
       REG.list.push(prof); saveReg();
       enterProfile(prof.id);
       toast("Bem-vindo(a), "+name.split(" ")[0]+"!");
@@ -5682,27 +4713,17 @@ function showLogin(mode){
   el.innerHTML = `<div class="login-box">${logo}
     <p class="note txt-c" style="margin-bottom:14px;font-size:13px">Quem está usando?</p>
     ${REG.list.map(p=>`
-      <button class="user-card ${loginManage?"managing":""}" data-lg="${p.id}">
+      <button class="user-card" data-lg="${p.id}">
         <span class="avatar">${esc(initials(p.name))}</span>
         <span class="uc-main"><span class="uc-name" style="display:block">${esc(p.name)}</span>
         <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
-        ${p.credId&&FACE_OK?'<span class="uc-face">Face ID</span><svg class="lock" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V6a3 3 0 0 1 3-3h2M16 3h2a3 3 0 0 1 3 3v2M21 16v2a3 3 0 0 1-3 3h-2M8 21H6a3 3 0 0 1-3-3v-2"/><path d="M8 10v1M16 10v1M9.5 15.5c.7.7 1.6 1 2.5 1s1.8-.3 2.5-1"/></svg>':(p.hash?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':"")}
-        ${loginManage?`<span class="uc-del" data-del="${p.id}" role="button" aria-label="Excluir ${esc(p.name)}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-        </span>`:""}
+        ${p.credId&&FACE_OK?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V6a3 3 0 0 1 3-3h2M16 3h2a3 3 0 0 1 3 3v2M21 16v2a3 3 0 0 1-3 3h-2M8 21H6a3 3 0 0 1-3-3v-2"/><path d="M8 10v1M16 10v1M9.5 15.5c.7.7 1.6 1 2.5 1s1.8-.3 2.5-1"/></svg>':(p.hash?'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':"")}
       </button>`).join("")}
     <button class="btn" id="lgNew" style="margin-top:6px">+ Novo usuário</button>
-    <button id="lgManage" style="display:block;width:100%;margin-top:12px;color:${loginManage?"var(--accent)":"var(--muted)"};font-weight:700;font-size:12.5px">${loginManage?"✓ Concluir":"⚙︎ Gerenciar usuários (excluir)"}</button>
-    ${REG.list.some(p=>p.credId)&&FACE_OK?'<p class="note txt-c" style="margin-top:10px;font-size:12px">Toque no seu nome para entrar com Face ID.</p>':""}
-    <p class="note txt-c" id="lgFaceNote" style="margin-top:8px;font-size:11.5px;color:var(--muted)"></p>
     <div id="lgPwdBox"></div>
     ${LOGIN_IMPORT_HTML}
   </div>`;
   bindLoginImport();
-  checkFacePlatform().then(ok=>{
-    const box=$("#lgFaceNote");
-    if(box && !ok) box.textContent = faceWhyUnavailable();
-  });
   const pwdFallback = p=>{
     $("#lgPwdBox").innerHTML = `<div class="card" style="margin-top:12px">
       <div class="card-title">Senha de ${esc(p.name.split(" ")[0])}</div>
@@ -5712,30 +4733,28 @@ function showLogin(mode){
       </div><p class="note hidden" id="lgErr" style="margin-top:8px;color:var(--crit-text)">Senha incorreta.</p></div>`;
     const inp=$("#lgTryPwd"); inp.focus();
     const tryGo = async ()=>{
-      const h = await hashPwd(p.salt||"", inp.value);
-      if(h===p.hash) enterProfile(p.id);
+      if(await checkPwd(p, inp.value)){
+        // migra silenciosamente hash legado → PBKDF2 no primeiro login correto
+        if(!(p.hash||"").startsWith("p2:")){
+          try{ p.salt=randSalt(); p.hash=await hashPwd2(p.salt, inp.value); saveReg(); }catch(_){}
+        }
+        enterProfile(p.id);
+      }
       else $("#lgErr").classList.remove("hidden");
     };
     $("#lgTry").onclick=tryGo;
     inp.onkeydown=e=>{ if(e.key==="Enter") tryGo(); };
   };
-  const mg=$("#lgManage");
-  if(mg) mg.onclick=()=>{ loginManage=!loginManage; showLogin("pick"); };
-  $$("[data-del]").forEach(d=> d.addEventListener("click", ev=>{
-    ev.stopPropagation(); ev.preventDefault();
-    const p = REG.list.find(x=>x.id===d.dataset.del);
-    if(p) deleteProfileSheet(p);
-  }));
   $$("[data-lg]").forEach(b=> b.onclick=async ()=>{
-    if(loginManage) return;                 // no modo gerenciar o cartão não entra
     const p = REG.list.find(x=>x.id===b.dataset.lg);
     if(!p) return;
     // 1º: biometria, se ativada e disponível
     if(p.credId && FACE_OK){
       try{ await faceAuth(p); enterProfile(p.id); return; }
       catch(e){
-        if(p.hash){ toast(faceErrMsg(e)+" Use a senha."); pwdFallback(p); return; }
-        confirmSheet("Face ID não confirmado", faceErrMsg(e)+" Entrar mesmo assim?",
+        if(p.hash){ toast("Biometria não confirmada — use a senha"); pwdFallback(p); return; }
+        confirmSheet("Biometria indisponível",
+          "Não foi possível confirmar o Face ID neste aparelho (pode ter sido cadastrado em outro). Entrar mesmo assim?",
           "Entrar", ()=> enterProfile(p.id), false);
         return;
       }
@@ -5748,16 +4767,13 @@ function showLogin(mode){
 function enterProfile(id){
   PID=id; REG.last=id; saveReg();
   // zera estados de sessão do perfil anterior
-  draft.qty={}; draft.locId=null; draft.conv=null; draft.search=""; draft.mod="all"; draft.dates=[]; draft.date=todayISO();
+  draft.qty={}; draft.locId=null; draft.conv=null; draft.search=""; draft.mod="all";
   locView.locId=null; locView.mode=null;
   F.loc=F.conv=F.mod=F.exam="all"; F.period="month";
   agView.sel=todayISO(); agView.y=null;
   load(); applyTheme(); updateUserBtn();
   $("#login").classList.add("hidden");
   tab="dash"; render();
-  const prof = curProfile();
-  if(S && S.onb && !S.onb.done){ setTimeout(startOnboarding, 420); }
-  else if(prof) offerFaceSetup(prof);
 }
 function updateUserBtn(){
   const p=curProfile(), b=$("#userBtn");
@@ -5774,7 +4790,6 @@ function userSheet(){
         <span class="uc-sub">${esc([p.crm,p.spec].filter(Boolean).join(" · ")||"—")}</span></span>
       </div>
       <button class="btn" id="usEdit" style="margin:10px 0">Editar perfil</button>
-      ${FACE_OK?`<button class="btn" id="usFace" style="margin-bottom:10px">${p.credId?"🔓 Desativar Face ID":"🔒 Ativar Face ID / Touch ID"}</button>`:""}
       <button class="btn" id="usForm" style="margin-bottom:10px">📄 Formulário de honorários</button>
       <button class="btn" id="usSwitch" style="margin-bottom:10px">Trocar de usuário</button>
       <button class="btn" id="usNew">+ Novo usuário</button>
@@ -5783,13 +4798,6 @@ function userSheet(){
     el=>{
       $("#usClose",el).onclick=closeSheet;
       $("#usEdit",el).onclick=()=>{ closeSheet(); editProfileSheet(); };
-      const uf=$("#usFace",el);
-      if(uf) uf.onclick=()=>{
-        if(p.credId){ delete p.credId; saveReg(); closeSheet(); toast("Face ID desativado"); return; }
-        faceRegister(p)
-          .then(()=>{ delete p.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); })
-          .catch(e=>{ closeSheet(); faceFailSheet(e); });
-      };
       $("#usForm",el).onclick=()=>{ closeSheet(); setTimeout(feeFormSheet,350); };
       $("#usSwitch",el).onclick=()=>{ closeSheet(); showLogin("pick"); };
       $("#usNew",el).onclick=()=>{ closeSheet(); showLogin("create"); };
@@ -5809,7 +4817,7 @@ function editProfileSheet(){
       ${FACE_OK?`<div class="field"><label>Biometria</label>
         <button class="btn" id="epFace">${p.credId?"Desativar Face ID":"Ativar Face ID / Touch ID"}</button>
         <p class="note" style="margin-top:7px">${p.credId?"O login por biometria está ativo neste aparelho.":"Entre sem digitar senha usando a biometria do aparelho."}</p></div>`
-      :`<p class="note" style="margin-bottom:14px">${esc(faceWhyUnavailable())}</p>`}
+      :'<p class="note" style="margin-bottom:14px">Face ID fica disponível quando o app é acessado pelo link https (ex.: seu endereço no GitHub Pages).</p>'}
       <button class="btn btn-danger" id="epDel">Excluir este usuário e seus dados</button>
     </div>
     <div class="sheet-foot">
@@ -5820,11 +4828,10 @@ function editProfileSheet(){
       $("#epCancel",el).onclick=closeSheet;
       const getSpec = bindSpecField(el,"ep", p.spec||"");
       const fb=$("#epFace",el);
-      if(fb) fb.onclick=()=>{
+      if(fb) fb.onclick=async ()=>{
         if(p.credId){ delete p.credId; saveReg(); closeSheet(); toast("Face ID desativado"); return; }
-        faceRegister(p)
-          .then(()=>{ delete p.faceSkip; saveReg(); closeSheet(); toast("Face ID ativado"); })
-          .catch(e=>{ closeSheet(); faceFailSheet(e); });
+        try{ await faceRegister(p); closeSheet(); toast("Face ID ativado"); }
+        catch(e){ toast("Não foi possível ativar a biometria"); }
       };
       const np=$("#epNoPwd",el); if(np) np.onclick=()=>{ delete p.hash; delete p.salt; saveReg(); closeSheet(); toast("Senha removida"); };
       $("#epDel",el).onclick=()=>{
@@ -5841,7 +4848,7 @@ function editProfileSheet(){
         if(!name){ toast("Informe o nome"); return; }
         p.name=name; p.crm=$("#epCrm",el).value.trim(); p.spec=getSpec();
         const pwd=$("#epPwd",el).value;
-        if(pwd){ p.salt=randSalt(); p.hash=await hashPwd(p.salt,pwd); }
+        if(pwd){ p.salt=randSalt(); p.hash=await makePwdHash(p.salt,pwd); }
         saveReg(); updateUserBtn(); closeSheet(); toast("Perfil atualizado");
         if(tab==="cfg") renderCfg();
       };
@@ -5850,20 +4857,19 @@ function editProfileSheet(){
 
 /* ================== NAVEGAÇÃO / INIT ================== */
 let tab="dash";
-function nav(t){ if(t==="hist" && tab==="hist") histResetView(); tab=t; render(); window.scrollTo({top:0}); }
+function nav(t){ tab=t; render(); window.scrollTo({top:0}); }
 function render(){
   $("#tooltip").classList.remove("show");
   $$(".tab").forEach(b=> b.classList.toggle("on", b.dataset.tab===tab));
   if(tab==="dash") renderDash();
   else if(tab==="add") renderAdd();
   else if(tab==="agenda") renderAgenda();
-  else if(tab==="hist") renderHist();
+  else if(tab==="hist"){ histLimit=15; renderHist(); }
   else if(tab==="locs") renderLocs();
   else if(tab==="cfg") renderCfg();
 }
 $$(".tab,[data-tab='add']").forEach(b=> b.addEventListener("click",()=>nav(b.dataset.tab)));
 $("#cfgBtn").addEventListener("click",()=>nav("cfg"));
-$("#helpBtn").addEventListener("click",()=>{ if(S) helpSheet(); });
 $("#themeBtn").addEventListener("click",()=>{
   if(!S) return;
   S.theme = S.theme==="dark"? "light":"dark";
@@ -5873,7 +4879,6 @@ $("#themeBtn").addEventListener("click",()=>{
 $("#userBtn").addEventListener("click",()=>{ if(S) userSheet(); });
 
 (function init(){
-  checkFacePlatform();   // resolve cedo: no iOS não dá para aguardar dentro do clique
   const d=new Date();
   $("#appbarDate").innerHTML = `<b>${WEEKDAYS[d.getDay()]}</b>${d.getDate()} ${MONTHS_S[d.getMonth()]}`;
   applyTheme(); // tema padrão antes do login
